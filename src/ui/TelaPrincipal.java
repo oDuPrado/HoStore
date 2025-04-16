@@ -58,6 +58,7 @@ private void trocarPainel(JPanel novoPainel) {
         JButton btnClientes = criarBotao("🧍 Clientes");
         btnClientes.addActionListener(e -> trocarPainel(new PainelClientes()));
         JButton btnVendas = criarBotao("💰 Vendas");
+        btnVendas.addActionListener(e -> trocarPainel(new PainelVendas(this)));
         JButton btnRelatorios = criarBotao("📊 Relatórios");
         JButton btnConfig = criarBotao("⚙️ Ajustes");
         JButton btnBuscarCartas = criarBotao("🤖 Buscar Cartas"); // nome novo aqui

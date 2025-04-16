@@ -97,6 +97,30 @@ public class ClienteDAO {
         } catch (SQLException e){ e.printStackTrace(); }
         return false;
     }
+    public List<String> listarTodosNomes() {
+        List<String> nomes = new ArrayList<>();
+        try (PreparedStatement ps = DB.get().prepareStatement("SELECT nome FROM clientes ORDER BY nome")) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                nomes.add(rs.getString("nome"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return nomes;
+    }
+    
+    public String obterIdPorNome(String nome) {
+        try (PreparedStatement ps = DB.get().prepareStatement("SELECT id FROM clientes WHERE nome = ? LIMIT 1")) {
+            ps.setString(1, nome);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("id");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
 }
 
 
