@@ -57,7 +57,7 @@ private void trocarPainel(JPanel novoPainel) {
         menuLateral.setPreferredSize(new Dimension(180, 600));
 
         JButton btnEstoque = criarBotao("📦 Estoque");
-        btnEstoque.addActionListener(e -> trocarPainel(new PainelEstoque(this)));
+        btnEstoque.addActionListener(e -> trocarPainel(new PainelEstoque()));
         JButton btnClientes = criarBotao("🧍 Clientes");
         btnClientes.addActionListener(e -> trocarPainel(new PainelClientes()));
         JButton btnVendas = criarBotao("💰 Vendas");

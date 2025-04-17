@@ -145,6 +145,32 @@ public class DB {
               "FOREIGN KEY(ilustracao_id) REFERENCES ilustracoes(id)" +
               ")");
 
+              // produtos (estoque geral)
+        st.execute(
+            "CREATE TABLE IF NOT EXISTS produtos (" +
+                "id TEXT PRIMARY KEY, " +
+                "nome TEXT NOT NULL, " +
+                "categoria TEXT NOT NULL, " +
+                "quantidade INTEGER NOT NULL, " +
+                "preco_compra REAL, " +
+                "preco_venda REAL, " +
+                "fornecedor TEXT, " +
+                "criado_em TEXT, " +
+                "alterado_em TEXT" +
+                ")");
+        // detalhes extras por categoria (guarda campos específicos)
+        st.execute(
+            "CREATE TABLE IF NOT EXISTS produtos_detalhes (" +
+                "id TEXT PRIMARY KEY, " +          // mesmo id da tabela produtos
+                "tipo_especifico TEXT, " +         // chaveiro, playmat, etc.
+                "colecao TEXT, " +                 // coleção Pokémon, set, etc.
+                "subtipo TEXT, " +                 // unitário, quadripack...
+                "categoria_extra TEXT, " +         // estrela, master...
+                "versao TEXT, " +                  // nacional, americana...
+                "validade TEXT" +                  // para alimentos
+                ")");
+
+
     } catch (SQLException e) {
       e.printStackTrace();
     }
