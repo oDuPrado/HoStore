@@ -60,19 +60,52 @@ public class CartaDAO {
     }
 
     public void inserirCartaFake() {
-        try (PreparedStatement ps = DB.get().prepareStatement(
-                "INSERT OR IGNORE INTO cartas (id, nome, colecao, numero, qtd, preco) VALUES (?, ?, ?, ?, ?, ?)")) {
-            ps.setString(1, "001");
-            ps.setString(2, "Pikachu");
-            ps.setString(3, "Base Set");
-            ps.setString(4, "58/102");
-            ps.setInt(5, 50);
-            ps.setDouble(6, 9.90);
-            ps.executeUpdate();
+        try (Connection c = DB.get()) {
+            // Primeiro insere os dados base nas tabelas relacionais (ignora se já existe)
+            try (Statement st = c.createStatement()) {
+                st.execute("INSERT OR IGNORE INTO condicoes (id, nome) VALUES ('C1', 'Nova')");
+                st.execute("INSERT OR IGNORE INTO linguagens (id, nome) VALUES ('L1', 'Português')");
+                st.execute("INSERT OR IGNORE INTO tipo_cartas (id, nome) VALUES ('T1', 'Pokémon')");
+                st.execute("INSERT OR IGNORE INTO subtipo_cartas (id, nome) VALUES ('ST1', 'Básico')");
+                st.execute("INSERT OR IGNORE INTO raridades (id, nome) VALUES ('R1', 'Rara')");
+                st.execute("INSERT OR IGNORE INTO sub_raridades (id, nome) VALUES ('SR1', 'Reverse')");
+                st.execute("INSERT OR IGNORE INTO ilustracoes (id, nome) VALUES ('IL1', 'Regular')");
+            }
+    
+            // Agora insere a carta com os campos completos
+            try (PreparedStatement ps = c.prepareStatement(
+                "INSERT OR REPLACE INTO cartas (" +
+                    "id, nome, colecao, numero, qtd, preco, condicao_id, custo, linguagem_id, consignado, dono, " +
+                    "tipo_id, subtipo_id, raridade_id, sub_raridade_id, ilustracao_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+    
+                ps.setString(1, "001");             // id
+                ps.setString(2, "Pikachu");         // nome
+                ps.setString(3, "Base Set");        // colecao
+                ps.setString(4, "58/102");          // numero
+                ps.setInt(5, 50);                   // qtd
+                ps.setDouble(6, 9.90);              // preco
+                ps.setString(7, "C1");              // condicao_id
+                ps.setDouble(8, 4.50);              // custo
+                ps.setString(9, "L1");              // linguagem_id
+                ps.setInt(10, 0);                   // consignado (0 = loja)
+                ps.setString(11, "L-0001");         // dono (id loja)
+                ps.setString(12, "T1");             // tipo_id
+                ps.setString(13, "ST1");            // subtipo_id
+                ps.setString(14, "R1");             // raridade_id
+                ps.setString(15, "SR1");            // sub_raridade_id
+                ps.setString(16, "IL1");            // ilustracao_id
+    
+                ps.executeUpdate();
+            }
+    
+            System.out.println("Carta fake inserida com sucesso!");
+    
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
+    }    
+
     /* devolve todas as coleções distintas – ordenadas */
 public List<String> listarColecoes() {
     List<String> out = new ArrayList<>();

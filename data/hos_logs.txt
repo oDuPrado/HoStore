@@ -1,0 +1,4 @@
+abr 17, 2025 9:49:47 AM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso
+abr 17, 2025 9:53:33 AM util.LogService info
+INFORMAÇÕES: Venda 2 finalizada com sucesso

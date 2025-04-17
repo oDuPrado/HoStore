@@ -1,10 +1,31 @@
-
 package factory;
-import model.*;
-import java.util.List;
+
+import model.VendaModel;
+import util.DateUtils;
 
 public class VendaFactory {
-    public static VendaModel criarVenda(String clienteId,double total,double desconto,String forma,int parcelas){
-        return new VendaModel(java.time.LocalDateTime.now().toString(), clienteId,total,desconto,forma,parcelas,"fechada");
+
+    /**
+     * Cria um VendaModel com total bruto, desconto em R$, total líquido e status "fechada".
+     */
+    public static VendaModel criarVenda(
+            String clienteId,
+            double totalBruto,
+            double desconto,
+            String formaPagamento,
+            int parcelas
+    ) {
+        double totalLiquido = totalBruto - desconto;
+        String dataVenda = DateUtils.now();
+        return new VendaModel(
+            dataVenda,
+            clienteId,
+            totalBruto,
+            desconto,
+            totalLiquido,
+            formaPagamento,
+            parcelas,
+            "fechada"
+        );
     }
 }

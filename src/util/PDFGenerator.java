@@ -63,10 +63,12 @@ public class PDFGenerator {
                 cs.newLine();
                 cs.showText("----------------------------------------");
                 cs.newLine();
-                cs.showText("Total: R$" 
-                        + String.format("%.2f", venda.getTotal())
-                        + "   Desconto: R$" 
-                        + String.format("%.2f", venda.getDesconto()));
+                cs.showText("Bruto: R$" + String.format("%.2f", venda.getTotalBruto()));
+cs.newLine();
+cs.showText("Desconto: R$" + String.format("%.2f", venda.getDesconto()));
+cs.newLine();
+cs.showText("Total Final: R$" + String.format("%.2f", venda.getTotalLiquido()));
+
 
                 cs.endText();
             }

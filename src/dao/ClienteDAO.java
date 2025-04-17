@@ -120,6 +120,13 @@ public class ClienteDAO {
         }
         return null;
     }
+    public String obterNomePorId(String id) {
+        return findAll().stream()
+            .filter(c -> c.getId().equals(id))
+            .map(c -> c.getNome())  // ou getRazaoSocial() dependendo de como chama
+            .findFirst()
+            .orElse("Desconhecido");
+    }    
     
 }
 
