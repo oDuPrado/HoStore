@@ -3,6 +3,8 @@ package ui;
 import ui.PainelClientes;
 import javax.swing.*;
 import java.awt.*;
+import ui.PainelEstoque;
+
 
 public class TelaPrincipal extends JFrame {
 
@@ -55,6 +57,7 @@ private void trocarPainel(JPanel novoPainel) {
         menuLateral.setPreferredSize(new Dimension(180, 600));
 
         JButton btnEstoque = criarBotao("📦 Estoque");
+        btnEstoque.addActionListener(e -> trocarPainel(new PainelEstoque(this)));
         JButton btnClientes = criarBotao("🧍 Clientes");
         btnClientes.addActionListener(e -> trocarPainel(new PainelClientes()));
         JButton btnVendas = criarBotao("💰 Vendas");

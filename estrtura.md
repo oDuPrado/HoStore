@@ -1,41 +1,72 @@
-/lib                     ← (dependências externas, se houver)
-/scripts                ← (scripts extras ou utilitários)
-/data                   ← (pasta de dados persistidos - SQLite DB, arquivos exportados etc.)
+/lib                      ← dependências externas (ex: JDBC, PDFBox, etc.)
+/scripts                  ← scripts auxiliares e integração Python (futuro)
+/data                     ← banco de dados SQLite, PDFs, exports, backups etc.
 
 /src
 │
 ├── app/
-│   └── Main.java                      ← ponto de entrada da aplicação
+│   └── Main.java
 │
-├── controller/                        ← (reservado, ainda vazio)
+├── controller/
+│   ├── EstoqueController.java          ← gerenciamento da lógica UI do estoque (planejado)
+│   └── VendaController.java            ← lógica UI da venda
 │
-├── dao/                               ← acesso direto ao banco (SQLite)
-│   ├── ClienteDAO.java                ← CRUD de clientes
-│   ├── VendaDAO.java                  ← CRUD da venda
-│   └── VendaItemDAO.java              ← CRUD dos itens de venda
+├── dao/
+│   ├── CartaDAO.java                   ← CRUD e buscas de cartas
+│   ├── ClienteDAO.java                 ← CRUD clientes
+│   ├── VendaDAO.java                   ← CRUD vendas
+│   ├── VendaItemDAO.java               ← CRUD itens de venda
+│   ├── ProdutoDAO.java                 ← CRUD genérico (comidas, bebidas, etc.)
+│   ├── BoosterDAO.java                 ← CRUD boosters
+│   ├── DeckDAO.java                    ← CRUD decks
+│   ├── AcessorioDAO.java               ← CRUD acessórios
+│   └── EtbDAO.java                     ← CRUD ETBs
 │
-├── model/                             ← estrutura das entidades
-│   ├── Carta.java                     ← entidade de carta/estoque
-│   ├── ClienteModel.java              ← entidade de cliente
-│   ├── VendaModel.java                ← entidade da venda
-│   └── VendaItemModel.java            ← entidade dos itens da venda
+├── model/
+│   ├── CartaModel.java                 ← entidade cartas
+│   ├── ClienteModel.java
+│   ├── VendaModel.java
+│   ├── VendaItemModel.java
+│   ├── ProdutoModel.java               ← genérico (comidas, bebidas)
+│   ├── BoosterModel.java               ← boosters individuais
+│   ├── DeckModel.java                  ← decks completos
+│   ├── AcessorioModel.java             ← acessórios diversos
+│   └── EtbModel.java                   ← Elite Trainer Boxes
 │
-├── service/                           ← regras de negócio (validação, integração, lógica de app)
-│   ├── ClienteService.java            ← lógica de clientes
-│   ├── EstoqueService.java            ← controle de estoque (cartas)
-│   └── VendaService.java              ← lógica da venda (inicia, adiciona item, totaliza, finaliza)
+├── service/
+│   ├── CartaService.java               ← lógica de cadastro e validação cartas
+│   ├── ClienteService.java
+│   ├── EstoqueService.java             ← consultas e validações do estoque geral
+│   ├── VendaService.java
+│   ├── ProdutoService.java             ← lógica genérica produtos
+│   ├── BoosterService.java
+│   ├── DeckService.java
+│   ├── AcessorioService.java
+│   └── EtbService.java
 │
-├── ui/                                ← interface visual
-│   ├── dialog/                        ← modais (janela flutuante)
-│   │   ├── ClienteCadastroDialog.java ← modal de cliente
-│   │   ├── VendaFinalizarDialog.java  ← finalizar venda (pagamento, total etc.)
-│   │   └── VendaNovaDialog.java       ← nova venda (seleção de cliente e cartas)
+├── ui/
+│   ├── dialog/
+│   │   ├── SelecionarCategoriaDialog.java ← seleção de categoria para cadastro
+│   │   ├── CartaCadastroDialog.java       ← modal cartas
+│   │   ├── ProdutoCadastroDialog.java     ← modal produtos genéricos
+│   │   ├── BoosterCadastroDialog.java     ← modal boosters
+│   │   ├── DeckCadastroDialog.java        ← modal decks
+│   │   ├── AcessorioCadastroDialog.java   ← modal acessórios
+│   │   ├── EtbCadastroDialog.java         ← modal ETBs
+│   │   ├── VendaNovaDialog.java
+│   │   ├── VendaFinalizarDialog.java
+│   │   └── VendaDetalhesDialog.java
 │   │
-│   ├── DashboardPanel.java            ← painel inicial / home do sistema
-│   ├── PainelClientes.java            ← tela principal de clientes
-│   ├── PainelVendas.java              ← tela principal de vendas
-│   └── TelaPrincipal.java             ← janela principal do app
+│   ├── PainelEstoque.java             ← painel principal estoque
+│   ├── DashboardPanel.java            ← dashboard inicial/resumo geral
+│   ├── PainelClientes.java
+│   ├── PainelVendas.java
+│   └── TelaPrincipal.java
 │
-├── util/                              ← utilitários diversos
-│   ├── DB.java                        ← conexão com banco SQLite
-│   └── PythonCaller.java              ← ponte de integração com scripts Python
+├── util/
+│   ├── DB.java                        ← conexão SQLite
+│   ├── DateUtils.java                 ← utilitários de data
+│   ├── AlertUtils.java                ← utilitários para alertas visuais
+│   ├── LogService.java                ← serviço de logging
+│   ├── PDFGenerator.java              ← gera PDFs (vendas, relatórios)
+│   └── PythonCaller.java              ← integração futura scrapper

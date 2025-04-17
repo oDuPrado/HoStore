@@ -38,6 +38,41 @@ public class CartaDAO {
         return nomes;
     }
 
+
+     /** Insere uma nova carta */
+     public void insert(Carta cta) throws SQLException {
+        String sql =
+            "INSERT INTO cartas (id,nome,colecao,numero,qtd,preco,custo,condicao_id,linguagem_id," +
+            "consignado,dono,tipo_id,subtipo_id,raridade_id,sub_raridade_id,ilustracao_id) " +
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
+            bind(ps, cta);
+            ps.executeUpdate();
+        }
+    }
+
+    /** Atualiza todos os campos editáveis */
+    public void update(Carta cta) throws SQLException {
+        String sql =
+            "UPDATE cartas SET nome=?,colecao=?,numero=?,qtd=?,preco=?,custo=?,condicao_id=?,linguagem_id=?," +
+            "consignado=?,dono=?,tipo_id=?,subtipo_id=?,raridade_id=?,sub_raridade_id=?,ilustracao_id=? " +
+            "WHERE id=?";
+        try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
+            bind(ps, cta);
+            ps.setString(16, cta.getId());   // id na cláusula WHERE
+            ps.executeUpdate();
+        }
+    }
+
+    /** Apaga pelo id */
+    public void delete(String id) throws SQLException {
+        try (PreparedStatement ps = DB.get()
+                 .prepareStatement("DELETE FROM cartas WHERE id=?")) {
+            ps.setString(1, id);
+            ps.executeUpdate();
+        }
+    }
+
     public Carta buscarPorNomeUnico(String nome) {
         try (PreparedStatement ps = DB.get().prepareStatement(
                 "SELECT * FROM cartas WHERE nome = ? LIMIT 1")) {
@@ -156,4 +191,25 @@ public List<Carta> listarCartas(String termo, String colecao, String orderBy) {
     return out;
 }
 
-}
+    /* ---------- Helper para bindar campos ---------- */
+    private void bind(PreparedStatement ps, Carta c) throws SQLException {
+        ps.setString(1,  c.getId());
+        ps.setString(2,  c.getNome());
+        ps.setString(3,  c.getColecao());
+        ps.setString(4,  c.getNumero());
+        ps.setInt   (5,  c.getQtd());
+        ps.setDouble(6,  c.getPreco());
+        ps.setDouble(7,  c.getCusto());
+        ps.setString(8,  c.getCondicaoId());
+        ps.setString(9,  c.getLinguagemId());
+        ps.setInt   (10, c.isConsignado() ? 1 : 0);
+        ps.setString(11, c.getDono());
+        ps.setString(12, c.getTipoId());
+        ps.setString(13, c.getSubtipoId());
+        ps.setString(14, c.getRaridadeId());
+        ps.setString(15, c.getSubRaridadeId());
+        ps.setString(16, c.getIlustracaoId());
+    }
+    }
+
+
