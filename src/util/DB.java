@@ -159,16 +159,22 @@ public class DB {
                 "alterado_em TEXT" +
                 ")");
         // detalhes extras por categoria (guarda campos específicos)
-        st.execute(
-            "CREATE TABLE IF NOT EXISTS produtos_detalhes (" +
-                "id TEXT PRIMARY KEY, " +          // mesmo id da tabela produtos
-                "tipo_especifico TEXT, " +         // chaveiro, playmat, etc.
-                "colecao TEXT, " +                 // coleção Pokémon, set, etc.
-                "subtipo TEXT, " +                 // unitário, quadripack...
-                "categoria_extra TEXT, " +         // estrela, master...
-                "versao TEXT, " +                  // nacional, americana...
-                "validade TEXT" +                  // para alimentos
-                ")");
+            st.execute(
+                "CREATE TABLE IF NOT EXISTS produtos_detalhes (" +
+                "id TEXT PRIMARY KEY, " +             // FK para produtos.id
+                "tipo_especifico TEXT, " +            // ex: para acessórios
+                "colecao TEXT, " +                    // coleção Pokémon
+                "subtipo TEXT, " +                    // ex: tipo de booster
+                "set_especifico TEXT, " +             // ex: código do set
+                "idioma TEXT, " +                     // ex: Português, Inglês
+                "validade TEXT, " +                   // DD/MM/AAAA
+                "codigo_barras TEXT, " +              // opcional
+                "categoria_extra TEXT, " +            // para decks
+                "versao TEXT, " +                     // para ETB
+                "UNIQUE(id)" +                        // garante 1:1
+                ")"
+            );
+
 
 
     } catch (SQLException e) {
