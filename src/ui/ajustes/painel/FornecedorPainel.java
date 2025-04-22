@@ -1,4 +1,3 @@
-// src/ui/ajustes/painel/FornecedorPainel.java
 package ui.ajustes.painel;
 
 import dao.FornecedorDAO;
@@ -7,6 +6,7 @@ import ui.ajustes.dialog.FornecedorDialog;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.util.List;
 
@@ -26,23 +26,30 @@ public class FornecedorPainel extends JPanel {
     private final DefaultTableModel modelo;
     private final FornecedorDAO dao = new FornecedorDAO();
 
-    public FornecedorPainel() throws java.text.ParseException {
+    public FornecedorPainel() {
         setLayout(new BorderLayout(8,8));
 
-        // filtro
-        ftfFiltroCnpj = new JFormattedTextField(
-            new javax.swing.text.MaskFormatter("##.###.###/####-##")
-        );
+        // inicializa o formatted field sem throws, tratando internamente
+        JFormattedTextField tmp;
+        try {
+            MaskFormatter mf = new MaskFormatter("##.###.###/####-##");
+            mf.setPlaceholderCharacter('_');
+            tmp = new JFormattedTextField(mf);
+        } catch (Exception e) {
+            tmp = new JFormattedTextField();
+        }
+        ftfFiltroCnpj = tmp;
+
+        // painel de filtro
         JPanel filtro = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
         filtro.add(new JLabel("Nome:"));  filtro.add(tfFiltroNome);
         filtro.add(new JLabel("CNPJ:"));  filtro.add(ftfFiltroCnpj);
         filtro.add(new JLabel("Tipo:"));  filtro.add(cbFiltroTipo);
         filtro.add(new JLabel("Prazo:")); filtro.add(cbFiltroPrazo);
         filtro.add(btnBuscar);
-
         btnBuscar.addActionListener(e -> carregarTabela());
 
-        // tabela
+        // tabela de resultados
         modelo = new DefaultTableModel(
             new String[]{"ID","Nome","CNPJ","Tipo","Prazo"},0
         ) {
@@ -51,10 +58,9 @@ public class FornecedorPainel extends JPanel {
         tabela = new JTable(modelo);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // botoes CRUD
+        // botões de CRUD
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
         botoes.add(btnAdd); botoes.add(btnEdit); botoes.add(btnDel);
-
         btnAdd .addActionListener(e -> onAdicionar());
         btnEdit.addActionListener(e -> onEditar());
         btnDel .addActionListener(e -> onRemover());
@@ -88,10 +94,8 @@ public class FornecedorPainel extends JPanel {
     }
 
     private void onAdicionar() {
-        try {
-            new FornecedorDialog(null, null).setVisible(true);
-            carregarTabela();
-        } catch (Exception ignore) {}
+        new FornecedorDialog((Frame) SwingUtilities.getWindowAncestor(this), null).setVisible(true);
+        carregarTabela();
     }
 
     private void onEditar() {
@@ -99,9 +103,12 @@ public class FornecedorPainel extends JPanel {
         if (row == -1) return;
         String id = modelo.getValueAt(row, 0).toString();
         try {
-            var f = dao.buscarPorId(id);
-            if (f != null) new FornecedorDialog(null, f).setVisible(true);
-            carregarTabela();
+            FornecedorModel f = dao.buscarPorId(id);
+            if (f != null) {
+                new FornecedorDialog((Frame) SwingUtilities.getWindowAncestor(this), f)
+                    .setVisible(true);
+                carregarTabela();
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this, "Erro ao editar.");

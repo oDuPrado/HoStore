@@ -43,7 +43,10 @@ public class AjustesPanel extends JPanel {
         container.add(criarBotao("👥 Usuários e Permissões", () -> new UsuarioPainel().abrir()));
 
         // ==== CADASTROS GERAIS ====
-        container.add(criarBotao("🚚 Fornecedores", () -> new FornecedorPainel().abrir()));
+        container.add(criarBotao("🚚 Fornecedores", () -> {
+            // abre o painel de fornecedores
+            new ui.ajustes.painel.FornecedorPainel().abrir();
+        }));
         container.add(criarBotao("📦 Categorias de Produtos", () -> new CategoriaProdutoPainel().abrir()));
         container.add(criarBotao("📑 Condições de Produto", () -> new CondicaoPainel().abrir()));
         container.add(criarBotao("🈯 Idiomas", () -> new IdiomaPainel().abrir()));
