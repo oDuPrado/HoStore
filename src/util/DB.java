@@ -179,10 +179,24 @@ public class DB {
                                                         ")");
 
                         // Fornecedores
-                        st.execute("CREATE TABLE IF NOT EXISTS fornecedores(" +
-                                        "id TEXT PRIMARY KEY, nome TEXT, telefone TEXT, email TEXT, cnpj TEXT, contato TEXT,"
-                                        +
-                                        "endereco TEXT, cidade TEXT, estado TEXT, observacoes TEXT, criado_em TEXT, alterado_em TEXT)");
+                        st.execute(
+                                "CREATE TABLE IF NOT EXISTS fornecedores (" +
+                                  "id TEXT PRIMARY KEY, " +
+                                  "nome TEXT, " +
+                                  "telefone TEXT, " +
+                                  "email TEXT, " +
+                                  "cnpj TEXT, " +
+                                  "contato TEXT, " +
+                                  "endereco TEXT, " +
+                                  "cidade TEXT, " +
+                                  "estado TEXT, " +
+                                  "observacoes TEXT, " +
+                                  "pagamento_tipo TEXT, " +
+                                  "prazo INTEGER, " +
+                                  "criado_em TEXT, " +
+                                  "alterado_em TEXT" +
+                                ")"
+                              );
 
                         // Sets Pokémon (séries principais)
                         st.execute("CREATE TABLE IF NOT EXISTS sets(" +
@@ -238,6 +252,45 @@ public class DB {
                         st.execute("CREATE TABLE IF NOT EXISTS logs_acessos(" +
                                         "id INTEGER PRIMARY KEY AUTOINCREMENT, usuario_id TEXT, data TEXT," +
                                         "tipo TEXT, descricao TEXT, FOREIGN KEY(usuario_id) REFERENCES usuarios(id))");
+
+
+                        // Promoções (versão final correta)
+                        st.execute("CREATE TABLE IF NOT EXISTS promocoes (" +
+                                        "id TEXT PRIMARY KEY, " +
+                                        "nome TEXT, " +
+                                        "desconto REAL, " +
+                                        "data_inicio TEXT, " +
+                                        "data_fim TEXT, " +
+                                        "observacoes TEXT, " +
+                                        "tipo_id TEXT, " +
+                                        "FOREIGN KEY(tipo_id) REFERENCES tipos_promocao(id)" +
+                                        ")");
+
+                        // Tipos de Promoção
+                        st.execute("CREATE TABLE IF NOT EXISTS tipos_promocao (" +
+                                        "id TEXT PRIMARY KEY, " +
+                                        "nome TEXT NOT NULL, " +
+                                        "descricao TEXT" +
+                                        ")");
+
+                        // Relação entre promoção e produtos
+                        st.execute("CREATE TABLE IF NOT EXISTS promocao_produtos (" +
+                                        "id TEXT PRIMARY KEY, " +
+                                        "promocao_id TEXT, " +
+                                        "produto_id TEXT, " +
+                                        "FOREIGN KEY(promocao_id) REFERENCES promocoes(id) ON DELETE CASCADE, " +
+                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id) ON DELETE CASCADE" +
+                                        ")");
+
+                        // Clientes VIP
+                        st.execute("CREATE TABLE IF NOT EXISTS clientes_vip (" +
+                                        "id TEXT PRIMARY KEY, " +
+                                        "nome TEXT, " +
+                                        "cpf TEXT, " +
+                                        "telefone TEXT, " +
+                                        "categoria TEXT, " +
+                                        "criado_em TEXT, " +
+                                        "observacoes TEXT)");
 
                         // No final do método init() em util/DB.java
                         try {

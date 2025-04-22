@@ -4,6 +4,8 @@ import ui.PainelClientes;
 import javax.swing.*;
 import java.awt.*;
 import ui.PainelEstoque;
+import ui.ajustes.AjustesPanel;
+
 
 
 public class TelaPrincipal extends JFrame {
@@ -64,6 +66,7 @@ private void trocarPainel(JPanel novoPainel) {
         btnVendas.addActionListener(e -> trocarPainel(new PainelVendas(this)));
         JButton btnRelatorios = criarBotao("📊 Relatórios");
         JButton btnConfig = criarBotao("⚙️ Ajustes");
+        btnConfig.addActionListener(e -> trocarPainel(new AjustesPanel()));
         JButton btnBuscarCartas = criarBotao("🤖 Buscar Cartas"); // nome novo aqui
 
         menuLateral.add(btnEstoque);
