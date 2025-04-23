@@ -198,13 +198,18 @@ public class PainelEstoque extends JPanel {
             case "Carta":
                 model.Carta carta = new dao.CartaDAO().buscarPorId(p.getId());
                 if (carta != null)
-                new ui.estoque.dialog.CadastroCartaDialog(owner, carta)
-                .setVisible(true);
+                    new ui.estoque.dialog.CadastroCartaDialog(owner, carta).setVisible(true);
                 break;
-    
+        
+            case "Booster":
+                model.BoosterModel booster = new dao.BoosterDAO().buscarPorId(p.getId());
+                if (booster != null)
+                    new ui.estoque.dialog.CadastroBoosterDialog((JFrame) owner, booster).setVisible(true);
+                break;
+        
             default:
-                new ui.estoque.dialog.ProdutoCadastroDialog(owner, p).setVisible(true);
-        }
+                new ui.estoque.dialog.ProdutoCadastroDialog((JFrame) owner, p).setVisible(true);
+        }        
     
         listar();
     }

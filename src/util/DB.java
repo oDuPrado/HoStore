@@ -187,6 +187,7 @@ public class DB {
                                                         "custo REAL, " +
                                                         "preco_venda REAL, " +
                                                         "fornecedor_id TEXT, " +
+                                                        "data_lancamento TEXT, " + // ✅ coluna que estava faltando
                                                         "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")");
 

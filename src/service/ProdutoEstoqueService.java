@@ -1,7 +1,9 @@
 package service;
 
 import dao.ProdutoDAO;
+import dao.BoosterDAO;
 import model.ProdutoModel;
+import model.BoosterModel;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -11,16 +13,18 @@ public class ProdutoEstoqueService {
 
     private final ProdutoDAO dao = new ProdutoDAO();
 
-    /* ==================== AÇÕES PRINCIPAIS ==================== */
+    /* ==================== PRODUTOS GENÉRICOS ==================== */
 
     public void salvar(ProdutoModel p) throws SQLException {
         ProdutoModel existente = dao.findById(p.getId());
-        if (existente == null) dao.insert(p);
-        else {
-            existente.setAlteradoEmNow();
+    
+        if (existente == null) {
+            dao.insert(p);
+        } else {
+            p.setAlteradoEmNow();
             dao.update(p);
         }
-    }
+    }    
 
     public void remover(String id) throws SQLException {
         dao.delete(id);
@@ -31,11 +35,14 @@ public class ProdutoEstoqueService {
     }
 
     public List<ProdutoModel> filtrarPorNomeOuCat(String termo) {
-        if (termo == null || termo.trim().isEmpty()) return listarTudo();
+        if (termo == null || termo.trim().isEmpty())
+            return listarTudo();
         String t = termo.toLowerCase();
         return listarTudo().stream()
-        .filter(p -> p.getNome().toLowerCase().contains(t)
-        || p.getTipo().toLowerCase().contains(t))
+            .filter(p ->
+                p.getNome().toLowerCase().contains(t) ||
+                p.getTipo().toLowerCase().contains(t)
+            )
             .collect(Collectors.toList());
     }
 
@@ -50,5 +57,17 @@ public class ProdutoEstoqueService {
 
     public boolean estoqueBaixo(ProdutoModel p, int limite) {
         return p.getQuantidade() <= limite;
+    }
+
+    /* ==================== MÉTODOS ESPECÍFICOS PARA BOOSTER ==================== */
+
+    /** Insere um novo booster (ou REPLACE, se já existir) */
+    public void salvarNovoBooster(BoosterModel b) throws Exception {
+        new BoosterDAO().insert(b);
+    }
+
+    /** Atualiza um booster existente via INSERT OR REPLACE */
+    public void atualizarBooster(BoosterModel b) throws Exception {
+        new BoosterDAO().insert(b);
     }
 }
