@@ -126,27 +126,36 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS cartas (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "nome TEXT, " +
+                                                        "set_id TEXT, " + // nova coluna para Set/Series
                                                         "colecao TEXT, " +
                                                         "numero TEXT, " +
                                                         "qtd INTEGER, " +
                                                         "preco REAL, " +
+                                                        "preco_loja REAL, " + // renomeado de preco
+                                                        "preco_consignado REAL, " + // preço se consignado
+                                                        "percentual_loja REAL, " + // % que a loja recebe em consignado
+                                                        "valor_loja REAL, " + // valor que a loja recebe calculado
+                                                        "custo REAL, " + // custo de aquisição
                                                         "condicao_id TEXT, " +
-                                                        "custo REAL, " +
                                                         "linguagem_id TEXT, " +
-                                                        "consignado INTEGER DEFAULT 0, " + // 0 = loja, 1 = consignado
-                                                        "dono TEXT, " + // cliente_id ou id da filial
+                                                        "consignado INTEGER DEFAULT 0, " + // 0=loja,1=consignado
+                                                        "dono TEXT, " + // id do cliente/filial
                                                         "tipo_id TEXT, " +
                                                         "subtipo_id TEXT, " +
                                                         "raridade_id TEXT, " +
                                                         "sub_raridade_id TEXT, " +
                                                         "ilustracao_id TEXT, " +
+                                                        "fornecedor_id TEXT, " + // vincula ao fornecedor
+                                                        // chaves estrangeiras
+                                                        "FOREIGN KEY(set_id) REFERENCES sets(id), " +
                                                         "FOREIGN KEY(condicao_id) REFERENCES condicoes(id), " +
                                                         "FOREIGN KEY(linguagem_id) REFERENCES linguagens(id), " +
                                                         "FOREIGN KEY(tipo_id) REFERENCES tipo_cartas(id), " +
                                                         "FOREIGN KEY(subtipo_id) REFERENCES subtipo_cartas(id), " +
                                                         "FOREIGN KEY(raridade_id) REFERENCES raridades(id), " +
                                                         "FOREIGN KEY(sub_raridade_id) REFERENCES sub_raridades(id), " +
-                                                        "FOREIGN KEY(ilustracao_id) REFERENCES ilustracoes(id)" +
+                                                        "FOREIGN KEY(ilustracao_id) REFERENCES ilustracoes(id), " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")");
 
                         // produtos (estoque geral)
@@ -154,49 +163,51 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS produtos (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "nome TEXT NOT NULL, " +
-                                                        "categoria TEXT NOT NULL, " +
+                                                        "tipo TEXT NOT NULL, " +
                                                         "quantidade INTEGER NOT NULL, " +
                                                         "preco_compra REAL, " +
                                                         "preco_venda REAL, " +
-                                                        "fornecedor TEXT, " +
+                                                        "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, "
+                                                        +
                                                         "criado_em TEXT, " +
                                                         "alterado_em TEXT" +
                                                         ")");
+
                         // detalhes extras por categoria (guarda campos específicos)
                         st.execute(
-                                        "CREATE TABLE IF NOT EXISTS produtos_detalhes (" +
-                                                        "id TEXT PRIMARY KEY, " + // FK para produtos.id
-                                                        "tipo_especifico TEXT, " + // ex: para acessórios
-                                                        "colecao TEXT, " + // coleção Pokémon
-                                                        "subtipo TEXT, " + // ex: tipo de booster
-                                                        "set_especifico TEXT, " + // ex: código do set
-                                                        "idioma TEXT, " + // ex: Português, Inglês
-                                                        "validade TEXT, " + // DD/MM/AAAA
-                                                        "codigo_barras TEXT, " + // opcional
-                                                        "categoria_extra TEXT, " + // para decks
-                                                        "versao TEXT, " + // para ETB
-                                                        "UNIQUE(id)" + // garante 1:1
+                                        "CREATE TABLE IF NOT EXISTS boosters (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT, " +
+                                                        "serie TEXT, " +
+                                                        "colecao TEXT, " +
+                                                        "tipo TEXT, " +
+                                                        "idioma TEXT, " +
+                                                        "codigo_barras TEXT, " +
+                                                        "quantidade INTEGER, " +
+                                                        "custo REAL, " +
+                                                        "preco_venda REAL, " +
+                                                        "fornecedor_id TEXT, " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")");
 
                         // Fornecedores
                         st.execute(
-                                "CREATE TABLE IF NOT EXISTS fornecedores (" +
-                                  "id TEXT PRIMARY KEY, " +
-                                  "nome TEXT, " +
-                                  "telefone TEXT, " +
-                                  "email TEXT, " +
-                                  "cnpj TEXT, " +
-                                  "contato TEXT, " +
-                                  "endereco TEXT, " +
-                                  "cidade TEXT, " +
-                                  "estado TEXT, " +
-                                  "observacoes TEXT, " +
-                                  "pagamento_tipo TEXT, " +
-                                  "prazo INTEGER, " +
-                                  "criado_em TEXT, " +
-                                  "alterado_em TEXT" +
-                                ")"
-                              );
+                                        "CREATE TABLE IF NOT EXISTS fornecedores (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT, " +
+                                                        "telefone TEXT, " +
+                                                        "email TEXT, " +
+                                                        "cnpj TEXT, " +
+                                                        "contato TEXT, " +
+                                                        "endereco TEXT, " +
+                                                        "cidade TEXT, " +
+                                                        "estado TEXT, " +
+                                                        "observacoes TEXT, " +
+                                                        "pagamento_tipo TEXT, " +
+                                                        "prazo INTEGER, " +
+                                                        "criado_em TEXT, " +
+                                                        "alterado_em TEXT" +
+                                                        ")");
 
                         // Sets Pokémon (séries principais)
                         st.execute("CREATE TABLE IF NOT EXISTS sets(" +
@@ -253,7 +264,6 @@ public class DB {
                                         "id INTEGER PRIMARY KEY AUTOINCREMENT, usuario_id TEXT, data TEXT," +
                                         "tipo TEXT, descricao TEXT, FOREIGN KEY(usuario_id) REFERENCES usuarios(id))");
 
-
                         // Promoções (versão final correta)
                         st.execute("CREATE TABLE IF NOT EXISTS promocoes (" +
                                         "id TEXT PRIMARY KEY, " +
@@ -292,6 +302,17 @@ public class DB {
                                         "criado_em TEXT, " +
                                         "observacoes TEXT)");
 
+                        // usuários
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS usuarios (" +
+                                                        "  id TEXT PRIMARY KEY, " +
+                                                        "  nome TEXT NOT NULL, " +
+                                                        "  usuario TEXT NOT NULL UNIQUE, " +
+                                                        "  senha TEXT NOT NULL, " +
+                                                        "  tipo TEXT NOT NULL, " +
+                                                        "  ativo INTEGER NOT NULL DEFAULT 1" +
+                                                        ")");
+
                         // No final do método init() em util/DB.java
                         try {
                                 dao.ColecaoDAO colecaoDAO = new dao.ColecaoDAO();
@@ -308,9 +329,52 @@ public class DB {
                                 ex.printStackTrace();
                         }
 
+                        // Cria usuário admin padrão se for o primeiro acesso
+                        try (Connection conn = get();
+                                        Statement stCheck = conn.createStatement();
+                                        ResultSet rs = stCheck.executeQuery("SELECT COUNT(*) FROM usuarios")) {
+
+                                if (rs.next() && rs.getInt(1) == 0) {
+                                        String id = java.util.UUID.randomUUID().toString();
+                                        String nome = "Administrador";
+                                        String usuario = "admin";
+                                        String senha = hashSenha("admin123");
+                                        String tipo = "Admin";
+
+                                        String sql = "INSERT INTO usuarios (id, nome, usuario, senha, tipo, ativo) VALUES (?,?,?,?,?,1)";
+                                        try (PreparedStatement p = conn.prepareStatement(sql)) {
+                                                p.setString(1, id);
+                                                p.setString(2, nome);
+                                                p.setString(3, usuario);
+                                                p.setString(4, senha);
+                                                p.setString(5, tipo);
+                                                p.executeUpdate();
+                                                System.out.println("✅ Usuário padrão 'admin' criado (senha: admin123)");
+                                        }
+                                }
+
+                        } catch (Exception ex) {
+                                System.err.println("Erro ao verificar/criar usuário admin:");
+                                ex.printStackTrace();
+                        }
+
                 } catch (SQLException e) {
                         System.err.println("Erro ao criar tabelas no banco de dados:");
                         e.printStackTrace();
+                }
+
+        }
+
+        private static String hashSenha(String senha) {
+                try {
+                        java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+                        byte[] hash = md.digest(senha.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        StringBuilder sb = new StringBuilder();
+                        for (byte b : hash)
+                                sb.append(String.format("%02x", b));
+                        return sb.toString();
+                } catch (Exception e) {
+                        throw new RuntimeException(e);
                 }
         }
 }

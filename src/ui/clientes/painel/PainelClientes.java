@@ -1,8 +1,8 @@
-package ui;
+package ui.clientes.painel;
 
 import model.ClienteModel;
 import service.ClienteService;
-import ui.dialog.ClienteCadastroDialog;
+import ui.clientes.dialog.ClienteCadastroDialog;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

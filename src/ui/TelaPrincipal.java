@@ -1,10 +1,13 @@
 package ui;
 
-import ui.PainelClientes;
 import javax.swing.*;
 import java.awt.*;
-import ui.PainelEstoque;
+
 import ui.ajustes.AjustesPanel;
+import ui.clientes.painel.PainelClientes;
+import ui.dash.painel.DashboardPanel;
+import ui.estoque.painel.PainelEstoque;
+import ui.venda.painel.PainelVendas;
 
 
 

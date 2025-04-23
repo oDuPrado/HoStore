@@ -18,6 +18,8 @@ import ui.ajustes.painel.IdiomaPainel;
 import ui.ajustes.painel.TipoCartaPainel;
 import ui.ajustes.painel.PromocaoPainel;
 import ui.ajustes.painel.ClienteVipPainel;
+import service.SessaoService;
+
 
 public class AjustesPanel extends JPanel {
 
@@ -40,7 +42,10 @@ public class AjustesPanel extends JPanel {
         container.add(criarBotao("🖨 Impressão e PDF", () -> new ConfigImpressaoDialog(null).setVisible(true)));
         container.add(criarBotao("💵 Configurações Financeiras", () -> new ConfigFinanceiroDialog(null).setVisible(true)));
         container.add(criarBotao("🗄 Backup e Sistema", () -> new ConfigSistemaDialog(null).setVisible(true)));
-        container.add(criarBotao("👥 Usuários e Permissões", () -> new UsuarioPainel().abrir()));
+        if (SessaoService.isAdmin()) {
+            container.add(criarBotao("👥 Usuários e Permissões", () -> new UsuarioPainel().abrir()));
+        }
+        
 
         // ==== CADASTROS GERAIS ====
         container.add(criarBotao("🚚 Fornecedores", () -> {

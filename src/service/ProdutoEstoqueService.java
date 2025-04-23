@@ -34,8 +34,8 @@ public class ProdutoEstoqueService {
         if (termo == null || termo.trim().isEmpty()) return listarTudo();
         String t = termo.toLowerCase();
         return listarTudo().stream()
-            .filter(p -> p.getNome().toLowerCase().contains(t)
-                      || p.getCategoria().toLowerCase().contains(t))
+        .filter(p -> p.getNome().toLowerCase().contains(t)
+        || p.getTipo().toLowerCase().contains(t))
             .collect(Collectors.toList());
     }
 

@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.estoque.dialog;
 
 import controller.ProdutoEstoqueController;
 import model.ProdutoModel;

@@ -1,9 +1,9 @@
-package ui.dialog;
+package ui.venda.dialog;
 
 import controller.VendaController;
 import dao.ClienteDAO;
 import model.VendaItemModel;
-import ui.PainelVendas;
+import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
 
 import javax.swing.*;

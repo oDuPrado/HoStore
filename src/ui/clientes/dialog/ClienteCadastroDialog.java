@@ -1,4 +1,4 @@
-package ui.dialog;
+package ui.clientes.dialog;
 
 import model.ClienteModel;
 import service.ClienteService;

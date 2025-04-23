@@ -81,7 +81,7 @@ public class SelectCartaDialog extends JDialog {
         for (Carta c : cartas) {
             modelo.addRow(new Object[]{
                     c.getId(), c.getNome(), c.getColecao(),
-                    c.getNumero(), c.getQtd(), c.getPreco()
+                    c.getNumero(), c.getQtd(), c.getPrecoLoja()
             });
         }
     }

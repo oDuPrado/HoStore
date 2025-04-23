@@ -1,11 +1,12 @@
-package ui.dialog;
+package ui.venda.dialog;
 
 import controller.VendaController;
 import dao.ClienteDAO;
 import dao.CartaDAO;
 import model.Carta;
 import model.VendaItemModel;
-import ui.PainelVendas;
+import ui.dialog.SelectCartaDialog;
+import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
 
 import javax.swing.*;
@@ -71,8 +72,8 @@ public class VendaNovaDialog extends JDialog {
             dlg.setVisible(true);
             List<Carta> sel = dlg.getSelecionadas();
             for (Carta c : sel) {
-                controller.adicionarItem(new VendaItemModel(c.getId(), 0, c.getPreco(), 0));
-                carrinhoModel.addRow(new Object[]{ c.getNome(), 0, c.getPreco(), 0, 0, "", "" });
+                controller.adicionarItem(new VendaItemModel(c.getId(), 0, c.getPrecoLoja(), 0));
+                carrinhoModel.addRow(new Object[]{ c.getNome(), 0, c.getPrecoLoja(), 0, 0, "", "" });
             }
             atualizarTotalCarrinho();
         });

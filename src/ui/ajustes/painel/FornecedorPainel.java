@@ -29,7 +29,7 @@ public class FornecedorPainel extends JPanel {
     public FornecedorPainel() {
         setLayout(new BorderLayout(8,8));
 
-        // inicializa o formatted field sem throws, tratando internamente
+        // cria máscara de CNPJ sem propagar exceção
         JFormattedTextField tmp;
         try {
             MaskFormatter mf = new MaskFormatter("##.###.###/####-##");
@@ -40,7 +40,7 @@ public class FornecedorPainel extends JPanel {
         }
         ftfFiltroCnpj = tmp;
 
-        // painel de filtro
+        // painel de filtros
         JPanel filtro = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
         filtro.add(new JLabel("Nome:"));  filtro.add(tfFiltroNome);
         filtro.add(new JLabel("CNPJ:"));  filtro.add(ftfFiltroCnpj);
@@ -51,14 +51,14 @@ public class FornecedorPainel extends JPanel {
 
         // tabela de resultados
         modelo = new DefaultTableModel(
-            new String[]{"ID","Nome","CNPJ","Tipo","Prazo"},0
+            new String[]{"Nome","CNPJ","Tipo","Prazo"}, 0
         ) {
-            @Override public boolean isCellEditable(int r,int c){return false;}
+            @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         tabela = new JTable(modelo);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // botões de CRUD
+        // botões CRUD
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT,5,5));
         botoes.add(btnAdd); botoes.add(btnEdit); botoes.add(btnDel);
         btnAdd .addActionListener(e -> onAdicionar());
@@ -83,8 +83,11 @@ public class FornecedorPainel extends JPanel {
             );
             for (FornecedorModel f : lista) {
                 modelo.addRow(new Object[]{
-                    f.getId(), f.getNome(), f.getCnpj(),
-                    f.getPagamentoTipo(), f.getPrazo()
+                    f.getId(),
+                    f.getNome(),
+                    f.getCnpj(),
+                    f.getPagamentoTipo(),
+                    f.getPrazo()
                 });
             }
         } catch (Exception ex) {
@@ -94,7 +97,9 @@ public class FornecedorPainel extends JPanel {
     }
 
     private void onAdicionar() {
-        new FornecedorDialog((Frame) SwingUtilities.getWindowAncestor(this), null).setVisible(true);
+        Window w = SwingUtilities.getWindowAncestor(this);
+        Frame owner = (w instanceof Frame ? (Frame)w : null);
+        new FornecedorDialog(owner, null).setVisible(true);
         carregarTabela();
     }
 
@@ -105,8 +110,9 @@ public class FornecedorPainel extends JPanel {
         try {
             FornecedorModel f = dao.buscarPorId(id);
             if (f != null) {
-                new FornecedorDialog((Frame) SwingUtilities.getWindowAncestor(this), f)
-                    .setVisible(true);
+                Window w = SwingUtilities.getWindowAncestor(this);
+                Frame owner = (w instanceof Frame ? (Frame)w : null);
+                new FornecedorDialog(owner, f).setVisible(true);
                 carregarTabela();
             }
         } catch (Exception ex) {
@@ -120,8 +126,11 @@ public class FornecedorPainel extends JPanel {
         if (row == -1) return;
         String id = modelo.getValueAt(row, 0).toString();
         if (JOptionPane.showConfirmDialog(
-                this,"Excluir este fornecedor?","Confirma",
-                JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
+                this,
+                "Excluir este fornecedor?",
+                "Confirmação",
+                JOptionPane.YES_NO_OPTION
+            ) == JOptionPane.YES_OPTION) {
             try {
                 dao.excluir(id);
                 carregarTabela();
@@ -133,10 +142,14 @@ public class FornecedorPainel extends JPanel {
     }
 
     public void abrir() {
-        JDialog d = new JDialog((Frame)null,"Fornecedores",true);
+        // este painel pode ser chamado de um diálogo de owner qualquer
+        Window w = SwingUtilities.getWindowAncestor(this);
+        Frame  owner = (w instanceof Frame ? (Frame)w : null);
+
+        JDialog d = new JDialog(owner, "Fornecedores", true);
         d.setContentPane(this);
-        d.setSize(700,500);
-        d.setLocationRelativeTo(null);
+        d.setSize(700, 500);
+        d.setLocationRelativeTo(owner);
         d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         d.setVisible(true);
     }

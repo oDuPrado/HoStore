@@ -1,5 +1,5 @@
 // src/ui/dialog/VendaDetalhesDialog.java
-package ui.dialog;
+package ui.venda.dialog;
 
 import util.DB;
 import util.DateUtils;

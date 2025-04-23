@@ -29,6 +29,16 @@ public class ProdutoEstoqueController {
         }
     }
 
+    public void salvarProdutoBase(String id, String nome, String categoria,
+                              int quantidade, double precoCompra, double precoVenda,
+                              String fornecedor) {
+    model.ProdutoModel produto = new model.ProdutoModel(
+        id, nome, categoria, quantidade, precoCompra, precoVenda, fornecedor
+    );
+    salvar(produto);
+}
+
+
     public void remover(String id) {
         try {
             service.remover(id);

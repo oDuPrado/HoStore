@@ -1,4 +1,4 @@
-package ui;
+package ui.dash.painel;
 
 import javax.swing.*;
 

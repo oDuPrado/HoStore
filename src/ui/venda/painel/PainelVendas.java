@@ -1,8 +1,6 @@
 // src/ui/PainelVendas.java
-package ui;
+package ui.venda.painel;
 
-import ui.dialog.VendaDetalhesDialog;
-import ui.dialog.VendaNovaDialog;
 import util.AlertUtils;
 import util.DB;
 
@@ -10,6 +8,10 @@ import javax.swing.*;
 import java.text.NumberFormat;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
+
+import ui.venda.dialog.VendaDetalhesDialog;
+import ui.venda.dialog.VendaNovaDialog;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.ResultSet;

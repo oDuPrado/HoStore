@@ -4,55 +4,53 @@ import java.time.LocalDateTime;
 
 public class ProdutoModel {
 
-    private String id;              // SKU ou código interno
+    private String id;              // mesmo id da entidade detalhada (ex: carta.id)
     private String nome;
-    private String categoria;       // “Booster”, “Deck”, “Acessório”, etc.
-    private int    quantidade;
+    private String tipo;           // "Carta", "Booster", etc.
+    private int quantidade;
     private double precoCompra;
     private double precoVenda;
-    private String fornecedor;
     private LocalDateTime criadoEm;
     private LocalDateTime alteradoEm;
 
     /* ==================== CONSTRUTORES ==================== */
 
-    public ProdutoModel(String id, String nome, String categoria,
-                        int quantidade, double precoCompra,
-                        double precoVenda, String fornecedor) {
+    public ProdutoModel(String id, String nome, String tipo,
+                        int quantidade, double precoCompra, double precoVenda) {
 
-        this.id          = id;
-        this.nome        = nome;
-        this.categoria   = categoria;
-        this.quantidade  = quantidade;
+        this.id = id;
+        this.nome = nome;
+        this.tipo = tipo;
+        this.quantidade = quantidade;
         this.precoCompra = precoCompra;
-        this.precoVenda  = precoVenda;
-        this.fornecedor  = fornecedor;
-        this.criadoEm    = LocalDateTime.now();
-        this.alteradoEm  = LocalDateTime.now();
+        this.precoVenda = precoVenda;
+        this.criadoEm = LocalDateTime.now();
+        this.alteradoEm = LocalDateTime.now();
     }
 
     /* ==================== GETTERS / SETTERS ==================== */
 
-    public String getId()                { return id; }
-    public String getNome()              { return nome; }
-    public void   setNome(String nome)   { this.nome = nome; }
+    public String getId() { return id; }
 
-    public String getCategoria()               { return categoria; }
-    public void   setCategoria(String cat)     { this.categoria = cat; }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public int  getQuantidade()                { return quantidade; }
-    public void setQuantidade(int qtd)         { this.quantidade = qtd; }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
 
-    public double getPrecoCompra()             { return precoCompra; }
-    public void   setPrecoCompra(double pc)    { this.precoCompra = pc; }
+    public int getQuantidade() { return quantidade; }
+    public void setQuantidade(int quantidade) { this.quantidade = quantidade; }
 
-    public double getPrecoVenda()              { return precoVenda; }
-    public void   setPrecoVenda(double pv)     { this.precoVenda = pv; }
+    public double getPrecoCompra() { return precoCompra; }
+    public void setPrecoCompra(double precoCompra) { this.precoCompra = precoCompra; }
 
-    public String getFornecedor()              { return fornecedor; }
-    public void   setFornecedor(String f)      { this.fornecedor = f; }
+    public double getPrecoVenda() { return precoVenda; }
+    public void setPrecoVenda(double precoVenda) { this.precoVenda = precoVenda; }
 
-    public LocalDateTime getCriadoEm()         { return criadoEm; }
-    public LocalDateTime getAlteradoEm()       { return alteradoEm; }
-    public void          setAlteradoEmNow()    { this.alteradoEm = LocalDateTime.now(); }
+    public double getLucro() { return precoVenda - precoCompra; }
+
+    public LocalDateTime getCriadoEm() { return criadoEm; }
+
+    public LocalDateTime getAlteradoEm() { return alteradoEm; }
+    public void setAlteradoEmNow() { this.alteradoEm = LocalDateTime.now(); }
 }

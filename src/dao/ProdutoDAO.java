@@ -13,26 +13,25 @@ public class ProdutoDAO {
 
     public void insert(ProdutoModel p) throws SQLException {
         String sql = "INSERT INTO produtos " +
-                     "(id, nome, categoria, quantidade, preco_compra, preco_venda, fornecedor, criado_em, alterado_em) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     "(id, nome, tipo, quantidade, preco_compra, preco_venda, criado_em, alterado_em) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
-            bind(ps, p);
+            bindInsert(ps, p);
             ps.executeUpdate();
         }
     }
 
     public void update(ProdutoModel p) throws SQLException {
-        String sql = "UPDATE produtos SET nome=?, categoria=?, quantidade=?, preco_compra=?, " +
-                     "preco_venda=?, fornecedor=?, alterado_em=? WHERE id=?";
+        String sql = "UPDATE produtos SET nome=?, tipo=?, quantidade=?, preco_compra=?, " +
+                     "preco_venda=?, alterado_em=? WHERE id=?";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             ps.setString(1, p.getNome());
-            ps.setString(2, p.getCategoria());
+            ps.setString(2, p.getTipo());
             ps.setInt   (3, p.getQuantidade());
             ps.setDouble(4, p.getPrecoCompra());
             ps.setDouble(5, p.getPrecoVenda());
-            ps.setString(6, p.getFornecedor());
-            ps.setString(7, p.getAlteradoEm().toString());
-            ps.setString(8, p.getId());
+            ps.setString(6, p.getAlteradoEm().toString());
+            ps.setString(7, p.getId());
             ps.executeUpdate();
         }
     }
@@ -68,27 +67,24 @@ public class ProdutoDAO {
     /* ==================== AJUDANTES ==================== */
 
     private ProdutoModel map(ResultSet rs) throws SQLException {
-        ProdutoModel p = new ProdutoModel(
+        return new ProdutoModel(
             rs.getString("id"),
             rs.getString("nome"),
-            rs.getString("categoria"),
+            rs.getString("tipo"),
             rs.getInt   ("quantidade"),
             rs.getDouble("preco_compra"),
-            rs.getDouble("preco_venda"),
-            rs.getString("fornecedor")
+            rs.getDouble("preco_venda")
         );
-        return p;
     }
 
-    private void bind(PreparedStatement ps, ProdutoModel p) throws SQLException {
+    private void bindInsert(PreparedStatement ps, ProdutoModel p) throws SQLException {
         ps.setString(1, p.getId());
         ps.setString(2, p.getNome());
-        ps.setString(3, p.getCategoria());
+        ps.setString(3, p.getTipo());
         ps.setInt   (4, p.getQuantidade());
         ps.setDouble(5, p.getPrecoCompra());
         ps.setDouble(6, p.getPrecoVenda());
-        ps.setString(7, p.getFornecedor());
-        ps.setString(8, p.getCriadoEm().toString());
-        ps.setString(9, p.getAlteradoEm().toString());
+        ps.setString(7, p.getCriadoEm().toString());
+        ps.setString(8, p.getAlteradoEm().toString());
     }
 }
