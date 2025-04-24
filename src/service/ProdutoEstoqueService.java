@@ -3,7 +3,12 @@ package service;
 import dao.ProdutoDAO;
 import dao.BoosterDAO;
 import model.ProdutoModel;
+import model.AcessorioModel;
 import model.BoosterModel;
+import dao.DeckDAO;
+import dao.EtbDAO;
+import model.DeckModel;
+import model.EtbModel;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -17,14 +22,14 @@ public class ProdutoEstoqueService {
 
     public void salvar(ProdutoModel p) throws SQLException {
         ProdutoModel existente = dao.findById(p.getId());
-    
+
         if (existente == null) {
             dao.insert(p);
         } else {
             p.setAlteradoEmNow();
             dao.update(p);
         }
-    }    
+    }
 
     public void remover(String id) throws SQLException {
         dao.delete(id);
@@ -39,17 +44,17 @@ public class ProdutoEstoqueService {
             return listarTudo();
         String t = termo.toLowerCase();
         return listarTudo().stream()
-            .filter(p ->
-                p.getNome().toLowerCase().contains(t) ||
-                p.getTipo().toLowerCase().contains(t)
-            )
-            .collect(Collectors.toList());
+                .filter(p -> p.getNome().toLowerCase().contains(t) ||
+                        p.getTipo().toLowerCase().contains(t))
+                .collect(Collectors.toList());
     }
 
     public void baixarEstoque(String idProduto, int qtd) throws Exception {
         ProdutoModel p = dao.findById(idProduto);
-        if (p == null) throw new Exception("Produto não encontrado!");
-        if (p.getQuantidade() < qtd) throw new Exception("Estoque insuficiente!");
+        if (p == null)
+            throw new Exception("Produto não encontrado!");
+        if (p.getQuantidade() < qtd)
+            throw new Exception("Estoque insuficiente!");
         p.setQuantidade(p.getQuantidade() - qtd);
         p.setAlteradoEmNow();
         dao.update(p);
@@ -70,4 +75,46 @@ public class ProdutoEstoqueService {
     public void atualizarBooster(BoosterModel b) throws Exception {
         new BoosterDAO().insert(b);
     }
+
+    /** Salva um novo deck nas tabelas produtos e decks */
+    public void salvarNovoDeck(DeckModel d) throws Exception {
+        new DeckDAO().insert(d);
+    }
+
+    /** Atualiza um deck nas tabelas produtos e decks */
+    public void atualizarDeck(DeckModel d) throws Exception {
+        new DeckDAO().update(d);
+    }
+
+    public void salvarNovoEtb(EtbModel e) throws Exception {
+        new EtbDAO().insert(e);
+    }
+
+    public void atualizarEtb(EtbModel e) throws Exception {
+        new EtbDAO().update(e);
+    }
+
+    public void salvarNovoAcessorio(AcessorioModel a) throws Exception {
+    new dao.AcessorioDAO().salvar(a); // salva na tabela acessorios (detalhes)
+    salvar(a); // salva na tabela produtos (resumo)
+}
+
+public void atualizarAcessorio(AcessorioModel a) throws Exception {
+    new dao.AcessorioDAO().atualizar(a); // atualiza acessorios (detalhes)
+    salvar(a); // atualiza produtos (resumo)
+}
+
+/* ==================== ALIMENTO ==================== */
+
+public void salvarNovoAlimento(model.AlimentoModel a) throws Exception {
+    new dao.AlimentoDAO().salvar(a); // salva na tabela produtos_alimenticios
+    salvar(a);                        // salva na tabela produtos
+}
+
+public void atualizarAlimento(model.AlimentoModel a) throws Exception {
+    new dao.AlimentoDAO().atualizar(a); // atualiza produtos_alimenticios
+    salvar(a);                           // atualiza produtos
+}
+
+
 }

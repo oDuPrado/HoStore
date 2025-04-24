@@ -22,13 +22,13 @@ public class MaskUtils {
         return f;
     }
 
-    public static JFormattedTextField dateField() {
-        try {
-            MaskFormatter mf = new MaskFormatter("##/##/####");
-            mf.setPlaceholderCharacter('_');
-            return new JFormattedTextField(mf);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
+    public static JFormattedTextField getFormattedIntField(int valorInicial) {
+        NumberFormatter formatter = new NumberFormatter(NumberFormat.getIntegerInstance());
+        formatter.setAllowsInvalid(false);
+        formatter.setMinimum(0);
+        JFormattedTextField f = new JFormattedTextField(formatter);
+        f.setValue(valorInicial);
+        return f;
     }
+    
 }

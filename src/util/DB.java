@@ -230,6 +230,66 @@ public class DB {
                                         "FOREIGN KEY(series) REFERENCES sets(id)" +
                                         ")");
 
+                        // decks (detalhes de decks)
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS decks (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "fornecedor TEXT, " + // pode ser ID ou nome
+                                                        "colecao TEXT, " +
+                                                        "tipo_deck TEXT, " +
+                                                        "categoria TEXT, " +
+                                                        "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE" +
+                                                        ")");
+
+                        // etbs (entidade com detalhes de selados tipo ETB)
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS etbs (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "fornecedor TEXT, " +
+                                                        "serie TEXT, " +
+                                                        "colecao TEXT, " +
+                                                        "tipo TEXT, " +
+                                                        "versao TEXT, " +
+                                                        "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE" +
+                                                        ")");
+
+                        // acessórios (detalhes por tipo)
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS acessorios (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT NOT NULL, " +
+                                                        "tipo TEXT NOT NULL, " + // ex: Sleeve, Playmat, etc
+                                                        "arte TEXT, " + // ex: Pokémon, Treinador, Outros, Cor Única
+                                                        "cor TEXT, " + // usada apenas se arte = Cor Única
+                                                        "quantidade INTEGER NOT NULL, " +
+                                                        "custo REAL, " +
+                                                        "preco_venda REAL, " +
+                                                        "fornecedor_id TEXT, " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                                                        ")");
+
+                        // ─────────── PRODUTOS ALIMENTÍCIOS ───────────
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS produtos_alimenticios (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT NOT NULL, " +
+                                                        "categoria TEXT, " +
+                                                        "subtipo TEXT, " +
+                                                        "marca TEXT, " +
+                                                        "sabor TEXT, " +
+                                                        "lote TEXT, " +
+                                                        "peso REAL, " +
+                                                        "unidade_peso TEXT, " +
+                                                        "codigo_barras TEXT, " +
+                                                        "data_validade TEXT, " +
+                                                        "quantidade INTEGER, " +
+                                                        "preco_compra REAL, " +
+                                                        "preco_venda REAL, " +
+                                                        "fornecedor_id TEXT, " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                                                        ")");
+                        // ─────────────────────────────────────────────────
+
                         // Formas de Pagamento
                         st.execute("CREATE TABLE IF NOT EXISTS formas_pagamento(" +
                                         "id TEXT PRIMARY KEY, nome TEXT, taxa REAL DEFAULT 0)");
@@ -313,6 +373,35 @@ public class DB {
                                                         "  tipo TEXT NOT NULL, " +
                                                         "  ativo INTEGER NOT NULL DEFAULT 1" +
                                                         ")");
+
+                        /* ─────────── POVOAMENTO INICIAL (INSERT OR IGNORE) ─────────── */
+
+                        // TIPOS
+                        st.execute("INSERT OR IGNORE INTO tipo_cartas (id,nome) VALUES " +
+                                        "('T1','Pokémon')," +
+                                        "('T2','Treinador')," +
+                                        "('T3','Energia')");
+
+                        // SUBTIPOS
+                        st.execute("INSERT OR IGNORE INTO subtipo_cartas (id,nome) VALUES " +
+                                        "('S1','Básico'),('S2','Estágio 1'),('S3','Estágio 2')," +
+                                        "('S4','Item'),('S5','Suporte'),('S6','Estádio'),('S7','Ferramenta')," +
+                                        "('S8','Água'),('S9','Fogo'),('S10','Grama'),('S11','Elétrico'),('S12','Lutador'),"
+                                        +
+                                        "('S13','Noturno'),('S14','Psíquico'),('S15','Metálico'),('S16','Dragão'),('S17','Incolor')");
+
+                        // RARIDADES
+                        st.execute("INSERT OR IGNORE INTO raridades (id,nome) VALUES " +
+                                        "('R1','Comum'),('R2','Incomum'),('R3','Rara'),('R4','Promo')," +
+                                        "('R5','Foil'),('R6','Foil Reverse'),('R7','Secreta')");
+
+                        // SUB-RARIDADES
+                        st.execute("INSERT OR IGNORE INTO sub_raridades (id,nome) VALUES " +
+                                        "('SR1','EX'),('SR2','GX'),('SR3','V'),('SR4','VMAX'),('SR5','VSTAR'),('SR6','TERA')");
+
+                        // ILUSTRAÇÕES
+                        st.execute("INSERT OR IGNORE INTO ilustracoes (id,nome) VALUES " +
+                                        "('IL1','Regular'),('IL2','Full Art'),('IL3','Secreta')");
 
                         // No final do método init() em util/DB.java
                         try {

@@ -14,6 +14,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +58,7 @@ public class CadastroCartaDialog extends JDialog {
     private final JComboBox<ComboItem> cbRaridade = new JComboBox<>();
     private final JComboBox<ComboItem> cbSubraridade = new JComboBox<>();
     private final JComboBox<ComboItem> cbIlustracao = new JComboBox<>();
+    private final Map<String, List<ComboItem>> subtiposPorTipo = new HashMap<>();
 
     /* Fornecedor */
     private final JLabel lblFornecedor = new JLabel("Nenhum");
@@ -65,6 +67,7 @@ public class CadastroCartaDialog extends JDialog {
 
     /** Painel que agrupa os campos de consignado */
     private JPanel pnlConsignado;
+    private JPanel pnlSubraridade;
 
     /** Helper para combobox id/label */
     private static class ComboItem {
@@ -168,7 +171,11 @@ public class CadastroCartaDialog extends JDialog {
         addRow(pnlSpecs, s, 0, "Tipo:", cbTipoCarta);
         addRow(pnlSpecs, s, 1, "Subtipo:", cbSubtipo);
         addRow(pnlSpecs, s, 2, "Raridade:", cbRaridade);
-        addRow(pnlSpecs, s, 3, "Sub-raridade:", cbSubraridade);
+        pnlSubraridade = new JPanel(new BorderLayout());
+        pnlSubraridade.add(cbSubraridade, BorderLayout.CENTER);
+
+        addRow(pnlSpecs, s, 3, "Sub-raridade:", pnlSubraridade);
+
         addRow(pnlSpecs, s, 4, "Ilustração:", cbIlustracao);
 
         /* Fornecedor */
@@ -206,7 +213,12 @@ public class CadastroCartaDialog extends JDialog {
         carregarLookup("condicoes", cbCondicao);
         carregarLookup("linguagens", cbIdioma);
         carregarLookup("tipo_cartas", cbTipoCarta);
-        carregarLookup("subtipo_cartas", cbSubtipo);
+        carregarSubtiposAgrupados(); // Carrega os subtipos por tipo manualmente
+        cbTipoCarta.addActionListener(e -> atualizarSubtiposPorTipo());
+        cbTipoCarta.addActionListener(e -> {
+            atualizarSubtiposPorTipo();
+            toggleSubRaridade();
+        });
         carregarLookup("raridades", cbRaridade);
         carregarLookup("sub_raridades", cbSubraridade);
         carregarLookup("ilustracoes", cbIlustracao);
@@ -320,6 +332,64 @@ public class CadastroCartaDialog extends JDialog {
         }
     }
 
+    // Carrega os subtipos já agrupados por tipo
+    private void carregarSubtiposAgrupados() {
+        subtiposPorTipo.clear();
+
+        // T1 = Pokémon
+        subtiposPorTipo.put("T1", List.of(
+                new ComboItem("S1", "Básico"),
+                new ComboItem("S2", "Estágio 1"),
+                new ComboItem("S3", "Estágio 2")));
+
+        // T2 = Treinador
+        subtiposPorTipo.put("T2", List.of(
+                new ComboItem("S4", "Item"),
+                new ComboItem("S5", "Suporte"),
+                new ComboItem("S6", "Estádio"),
+                new ComboItem("S7", "Ferramenta")));
+
+        // T3 = Energia
+        subtiposPorTipo.put("T3", List.of(
+                new ComboItem("S8", "Água"),
+                new ComboItem("S9", "Fogo"),
+                new ComboItem("S10", "Grama"),
+                new ComboItem("S11", "Elétrico"),
+                new ComboItem("S12", "Lutador"),
+                new ComboItem("S13", "Noturno"),
+                new ComboItem("S14", "Psíquico"),
+                new ComboItem("S15", "Metálico"),
+                new ComboItem("S16", "Dragão"),
+                new ComboItem("S17", "Incolor")));
+    }
+
+    // Atualiza a lista do combo de subtipo baseado no tipo selecionado
+    private void atualizarSubtiposPorTipo() {
+        ComboItem tipoSel = (ComboItem) cbTipoCarta.getSelectedItem();
+        if (tipoSel == null)
+            return;
+
+        List<ComboItem> lista = subtiposPorTipo.get(tipoSel.getId());
+        cbSubtipo.removeAllItems();
+
+        if (lista != null) {
+            for (ComboItem item : lista) {
+                cbSubtipo.addItem(item);
+            }
+        }
+    }
+
+    private void toggleSubRaridade() {
+        ComboItem tipo = (ComboItem) cbTipoCarta.getSelectedItem();
+        if (tipo == null)
+            return;
+
+        boolean mostrar = "T1".equals(tipo.getId()); // T1 = Pokémon
+        pnlSubraridade.setVisible(mostrar);
+        pnlSubraridade.getParent().revalidate();
+        pnlSubraridade.getParent().repaint();
+    }
+
     private void toggleConsignado() {
         boolean cons = "Consignado".equals(cbTipoVenda.getSelectedItem());
         pnlConsignado.setVisible(cons);
@@ -329,7 +399,6 @@ public class CadastroCartaDialog extends JDialog {
         // ajusta o tamanho do diálogo ao novo layout
         pack();
     }
-
 
     private void atualizarValorLoja() {
         if (!pnlConsignado.isVisible())
@@ -351,37 +420,40 @@ public class CadastroCartaDialog extends JDialog {
         tfPercentualLoja.setValue(cartaOrig.getPercentualLoja());
         tfValorLoja.setValue(cartaOrig.getValorLoja());
         tfPrecoVenda.setValue(cartaOrig.getPrecoLoja());
-    
+
         // Set
         cbSet.removeAllItems();
         cbSet.addItem(cartaOrig.getSetId());
         cbSet.setSelectedIndex(0);
         carregarColecoes();
-    
+
         // Coleção
         cbColecao.removeAllItems();
         ColecaoModel colecao = new ColecaoModel();
         colecao.setName(cartaOrig.getColecao());
         cbColecao.addItem(colecao);
         cbColecao.setSelectedIndex(0);
-    
+
         // Condição
         selecionarComboBox(cbCondicao, cartaOrig.getCondicaoId());
-    
+
         // Idioma
         selecionarComboBox(cbIdioma, cartaOrig.getLinguagemId());
-    
+
         // Tipo/Subtipo/Raridade
         selecionarComboBox(cbTipoCarta, cartaOrig.getTipoId());
+        atualizarSubtiposPorTipo(); // ← recarrega os subtipos corretos
+        toggleSubRaridade();
         selecionarComboBox(cbSubtipo, cartaOrig.getSubtipoId());
+
         selecionarComboBox(cbRaridade, cartaOrig.getRaridadeId());
         selecionarComboBox(cbSubraridade, cartaOrig.getSubRaridadeId());
         selecionarComboBox(cbIlustracao, cartaOrig.getIlustracaoId());
-    
+
         // Consignado
         cbTipoVenda.setSelectedItem(cartaOrig.isConsignado() ? "Consignado" : "Loja");
         toggleConsignado();
-    
+
         // Dono
         if (cartaOrig.isConsignado()) {
             selecionarComboBox(cbDono, cartaOrig.getDono());
@@ -397,20 +469,18 @@ public class CadastroCartaDialog extends JDialog {
             }
         }
     }
-    
-    
 
     private void onSalvar() {
         if (tfNome.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nome obrigatório");
             return;
         }
-        
-       // Remova ou comente esta parte:
-// if (fornecedorSelecionado == null) {
-//     JOptionPane.showMessageDialog(this, "Selecione um fornecedor");
-//     return;
-// }
+
+        // Remova ou comente esta parte:
+        // if (fornecedorSelecionado == null) {
+        // JOptionPane.showMessageDialog(this, "Selecione um fornecedor");
+        // return;
+        // }
         try {
             String id = isEdicao ? cartaOrig.getId() : UUID.randomUUID().toString();
             String nome = tfNome.getText().trim();
@@ -427,7 +497,7 @@ public class CadastroCartaDialog extends JDialog {
                 return;
             }
             double custo = ((Number) tfCusto.getValue()).doubleValue();
-            
+
             String lang = ((ComboItem) cbIdioma.getSelectedItem()).getId();
 
             boolean cons = "Consignado".equals(cbTipoVenda.getSelectedItem());
@@ -451,40 +521,36 @@ public class CadastroCartaDialog extends JDialog {
                     precoVenda, precoCons, percLoja, valorLoja,
                     custo, cond, lang, cons, donoId,
                     tipo, sub, rar, srar, ilu,
-                    fornecedorSelecionado != null ? fornecedorSelecionado.getId() : null
-);
+                    fornecedorSelecionado != null ? fornecedorSelecionado.getId() : null);
 
-if (isEdicao) {
-    estoqueService.atualizarCarta(c);
+            if (isEdicao) {
+                estoqueService.atualizarCarta(c);
 
-    model.ProdutoModel p = new model.ProdutoModel(
-    c.getId(),
-    c.getNome(),
-    "Carta",
-    c.getQtd(),
-    c.getCusto(),
-    c.getPrecoLoja()
-);
+                model.ProdutoModel p = new model.ProdutoModel(
+                        c.getId(),
+                        c.getNome(),
+                        "Carta",
+                        c.getQtd(),
+                        c.getCusto(),
+                        c.getPrecoLoja());
 
-    new controller.ProdutoEstoqueController().salvar(p);
+                new controller.ProdutoEstoqueController().salvar(p);
 
-} else {
-    estoqueService.salvarNovaCarta(c);
+            } else {
+                estoqueService.salvarNovaCarta(c);
 
-    // Também insere na tabela produtos
-    model.ProdutoModel p = new model.ProdutoModel(
-    c.getId(),
-    c.getNome(),
-    "Carta",
-    c.getQtd(),
-    c.getCusto(),
-    precoVenda
-);
-    new controller.ProdutoEstoqueController().salvar(p);
-}
+                // Também insere na tabela produtos
+                model.ProdutoModel p = new model.ProdutoModel(
+                        c.getId(),
+                        c.getNome(),
+                        "Carta",
+                        c.getQtd(),
+                        c.getCusto(),
+                        precoVenda);
+                new controller.ProdutoEstoqueController().salvar(p);
+            }
 
-
-dispose();
+            dispose();
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,

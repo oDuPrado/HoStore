@@ -1,23 +1,53 @@
 package model;
 
 public class EtbModel extends ProdutoModel {
-
+    private String fornecedor;
+    private String serie;
     private String colecao;
-    private String set;
-    private String tipoEtb; // booster box, pokemon center, ETB
-    private String versao;  // nacional, americana
+    private String tipo;
+    private String versao;
 
-    public EtbModel(String id, String nome, int qtd, double custo,
-                    double preco, String fornecedor, String colecao,
-                    String set, String tipo, String versao) {
-
-        super(id, nome, "ETB", qtd, custo, preco, fornecedor);
-        this.colecao = colecao; this.set = set;
-        this.tipoEtb = tipo; this.versao = versao;
+    /**
+     * @param id          ID único (mesmo da tabela produtos)
+     * @param nome        Nome do ETB
+     * @param quantidade  Quantidade em estoque
+     * @param precoCompra Preço de custo
+     * @param precoVenda  Preço de venda
+     * @param fornecedor  ID ou nome do fornecedor
+     * @param serie       Série (set) do produto
+     * @param colecao     Coleção relacionada à série
+     * @param tipo        Tipo (Booster Box, Pokémon Center, ETB)
+     * @param versao      Versão (Nacional, Americana)
+     */
+    public EtbModel(String id,
+                    String nome,
+                    int quantidade,
+                    double precoCompra,
+                    double precoVenda,
+                    String fornecedor,
+                    String serie,
+                    String colecao,
+                    String tipo,
+                    String versao) {
+        super(id, nome, "ETB", quantidade, precoCompra, precoVenda);
+        this.fornecedor = fornecedor;
+        this.serie      = serie;
+        this.colecao    = colecao;
+        this.tipo       = tipo;
+        this.versao     = versao;
     }
 
-    public String getColecao() { return colecao; }
-    public String getSet()     { return set; }
-    public String getTipoEtb() { return tipoEtb; }
-    public String getVersao()  { return versao; }
+    // — Getters —
+    public String getFornecedor() { return fornecedor; }
+    public String getSerie()      { return serie; }
+    public String getColecao()    { return colecao; }
+    public String getTipo()       { return tipo; }
+    public String getVersao()     { return versao; }
+
+    // — Setters (opcionais) —
+    public void setFornecedor(String fornecedor) { this.fornecedor = fornecedor; }
+    public void setSerie(String serie)           { this.serie = serie; }
+    public void setColecao(String colecao)       { this.colecao = colecao; }
+    public void setTipo(String tipo)             { this.tipo = tipo; }
+    public void setVersao(String versao)         { this.versao = versao; }
 }

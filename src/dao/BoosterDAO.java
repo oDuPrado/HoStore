@@ -15,8 +15,12 @@ public class BoosterDAO extends ProdutoDAO {
      *  - tabela boosters (colecao, serie, tipo, idioma, validade, codigo_barras)
      */
     public void insert(BoosterModel b) throws Exception {
-        // salva campos genéricos na tabela produtos
-        super.insert(b);
+        // verifica se já existe produto com mesmo ID
+        if (super.findById(b.getId()) == null) {
+            super.insert(b);
+        } else {
+            super.update(b);
+        }
 
         // depois, insere/atualiza detalhes específicos na tabela boosters
         try (Connection c = DB.get();
