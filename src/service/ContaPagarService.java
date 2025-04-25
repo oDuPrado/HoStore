@@ -4,23 +4,19 @@ import dao.ParcelaContaPagarDAO;
 import dao.TituloContaPagarDAO;
 import model.ParcelaContaPagarModel;
 import model.TituloContaPagarModel;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 
 import javax.swing.*;
-import java.util.List;
 import java.awt.*;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Regras de negócio de contas a pagar.
- * Permite gerar títulos com lista arbitrária de vencimentos,
- * com ou sem aplicação de juros simples / composto,
- * além de pré-visualização opcional.
+ * Agora gera títulos vinculados a uma Conta do Plano de Contas.
  */
 public class ContaPagarService {
 
@@ -31,106 +27,122 @@ public class ContaPagarService {
 
     /**
      * Gera um novo título a pagar usando uma lista de datas de vencimento.
+     *
      * @param fornecedorId   ID do fornecedor
+     * @param planoContaId   ID da conta contábil do plano de contas
      * @param valorTotal     valor total do título
-     * @param datasVenc      lista de objetos java.util.Date (uma por parcela)
-     * @param aplicarJuros   true = aplica juros
-     * @param jurosSimples   válido se aplicarJuros=true
-     * @param taxa           percentual
-     * @param preview        mostra preview HTML se true
-     * @param parent         componente para JOptionPane
-     * @param obs            observações
+     * @param datasVenc      lista de datas de vencimento (uma por parcela)
+     * @param jurosSimples   aplica juros simples se true
+     * @param taxa           percentual de juros por parcela
+     * @param preview        mostra preview antes de gravar
+     * @param parent         componente para JOptionPane (preview)
+     * @param obs            observações do título
      */
-    public void gerarTituloComDatas(String fornecedorId,
-                                    double valorTotal,
-                                    List<Date> datasVenc,
-                                    boolean jurosSimples,
-                                    double taxa,
-                                    boolean preview,
-                                    Component parent,
-                                    String obs) throws SQLException {
-
+    public void gerarTituloComDatas(
+            String fornecedorId,
+            String planoContaId,
+            double valorTotal,
+            List<Date> datasVenc,
+            boolean jurosSimples,
+            double taxa,
+            boolean preview,
+            Component parent,
+            String obs
+    ) throws SQLException {
         int nParcelas = datasVenc.size();
         double base = valorTotal / nParcelas;
-        List<Double> valores = new ArrayList<>();
 
-        for (int i=1;i<=nParcelas;i++){
+        // calcula valores com juros
+        java.util.List<Double> valores = new java.util.ArrayList<>();
+        for (int i = 1; i <= nParcelas; i++) {
             double acr = 0;
-            if (taxa>0){
+            if (taxa > 0) {
                 acr = jurosSimples
                     ? base * (taxa/100.0) * i
                     : base * (Math.pow(1+taxa/100.0,i)-1);
             }
-            valores.add(base+acr);
+            valores.add(base + acr);
         }
 
-        if (preview){
-            StringBuilder html=new StringBuilder("<html><table border='1'>");
-            html.append("<tr><th>Parcela</th><th>Vencimento</th><th>Valor (R$)</th></tr>");
-            for (int i=0;i<nParcelas;i++){
+        // preview HTML
+        if (preview) {
+            StringBuilder html = new StringBuilder("<html><table border='1'>")
+                .append("<tr><th>Parcela</th><th>Vencimento</th><th>Valor</th></tr>");
+            for (int i = 0; i < nParcelas; i++) {
                 html.append("<tr><td>")
                     .append(i+1).append("</td><td>")
                     .append(fmtBR.format(datasVenc.get(i))).append("</td><td>")
-                    .append(String.format(Locale.US,"R$ %,.2f",valores.get(i)))
+                    .append(String.format(Locale.US,"R$ %,.2f", valores.get(i)))
                     .append("</td></tr>");
             }
             html.append("</table></html>");
-            JOptionPane.showMessageDialog(parent,html.toString(),
-                "Pré-visualização",JOptionPane.PLAIN_MESSAGE);
+            JOptionPane.showMessageDialog(parent, html.toString(),
+                "Pré-visualização", JOptionPane.PLAIN_MESSAGE);
         }
 
-        /* grava título */
-        String tituloId = UUID.randomUUID().toString();
-        String dataGeracao = fmtSQL.format(new Date());
+        // grava título
+        String tituloId   = UUID.randomUUID().toString();
+        String dataGeracao= fmtSQL.format(new Date());
         TituloContaPagarModel titulo = new TituloContaPagarModel(
-            tituloId,fornecedorId,tituloId,dataGeracao,
-            valorTotal,"aberto",obs
+            tituloId,
+            fornecedorId,
+            planoContaId,
+            tituloId,        // usamos o mesmo UUID como códigoSelecao
+            dataGeracao,
+            valorTotal,
+            "aberto",
+            obs
         );
         tituloDAO.inserir(titulo);
 
-        /* grava parcelas */
-        for (int i=0;i<nParcelas;i++){
-            Date dt = datasVenc.get(i);
-            double valorFinal = valores.get(i);
-            double acr = valorFinal - base;
-
+        // grava parcelas
+        for (int i = 0; i < nParcelas; i++) {
+            Date dt       = datasVenc.get(i);
+            double valor  = valores.get(i);
+            double acr    = valor - base;
             ParcelaContaPagarModel p = new ParcelaContaPagarModel(
-                null,tituloId,i+1,fmtSQL.format(dt),
-                base,                                          // valor nominal
+                null,
+                tituloId,
+                i+1,
+                fmtSQL.format(dt),
+                base,
                 (taxa>0 && jurosSimples) ? base*(taxa/100.0) : 0,
-                acr,                                           // acréscimo (juros)
-                0,0,null,null,false,null,"aberto"
+                acr,
+                0,
+                0,
+                null,
+                null,
+                false,
+                null,
+                "aberto"
             );
             parcelaDAO.inserir(p);
         }
-
     }
 
     /**
- * Registra um pagamento de uma parcela específica.
- */
-public void registrarPagamento(int parcelaId, double valorPago, Date dataPagamento, String formaPagamento) throws SQLException {
-    ParcelaContaPagarModel parcela = parcelaDAO.buscarPorId(parcelaId);
+     * Registra um pagamento de uma parcela específica.
+     * Atualiza o status da parcela e não do título (pode ser complementado).
+     */
+    public void registrarPagamento(int parcelaId, double valorPago, Date dataPagamento, String formaPagamento)
+            throws SQLException {
+        ParcelaContaPagarModel parcela = parcelaDAO.buscarPorId(parcelaId);
+        if (parcela == null) {
+            throw new SQLException("Parcela não encontrada para pagamento.");
+        }
 
-    if (parcela == null) {
-        throw new SQLException("Parcela não encontrada para pagamento.");
+        double novoPago = parcela.getValorPago() + valorPago;
+        parcela.setValorPago(novoPago);
+
+        String dataStr = fmtSQL.format(dataPagamento);
+        parcela.setDataPagamento(dataStr);
+        parcela.setDataCompensacao(dataStr);
+
+        if (novoPago >= (parcela.getValorNominal() + parcela.getValorAcrescimo())) {
+            parcela.setStatus("pago");
+            parcela.setPagoComDesconto(novoPago < (parcela.getValorNominal() + parcela.getValorAcrescimo()));
+        }
+
+        parcelaDAO.atualizar(parcela);
     }
-
-    double novoValorPago = parcela.getValorPago() + valorPago;
-    parcela.setValorPago(novoValorPago);
-
-    SimpleDateFormat fmtSQL = new SimpleDateFormat("yyyy-MM-dd");
-    String dataPagStr = fmtSQL.format(dataPagamento);
-
-    parcela.setDataPagamento(dataPagStr);
-    parcela.setDataCompensacao(dataPagStr);
-
-    if (novoValorPago >= (parcela.getValorNominal() + parcela.getValorAcrescimo())) {
-        parcela.setStatus("pago");
-        parcela.setPagoComDesconto(novoValorPago < (parcela.getValorNominal() + parcela.getValorAcrescimo()));
-    }
-
-    parcelaDAO.atualizar(parcela);
-}
-
 }

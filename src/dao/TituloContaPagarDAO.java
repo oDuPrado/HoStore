@@ -9,39 +9,42 @@ import java.util.List;
 
 /**
  * DAO para titulos_contas_pagar
+ * Agora com suporte ao campo plano_conta_id (vínculo contábil).
  */
 public class TituloContaPagarDAO {
 
     public void inserir(TituloContaPagarModel t) throws SQLException {
         String sql = "INSERT INTO titulos_contas_pagar("
-            + "id, fornecedor_id, codigo_selecao, data_geracao, valor_total, status, observacoes"
-            + ") VALUES (?,?,?,?,?,?,?)";
+            + "id, fornecedor_id, plano_conta_id, codigo_selecao, data_geracao, valor_total, status, observacoes"
+            + ") VALUES (?,?,?,?,?,?,?,?)";
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, t.getId());
             ps.setString(2, t.getFornecedorId());
-            ps.setString(3, t.getCodigoSelecao());
-            ps.setString(4, t.getDataGeracao());
-            ps.setDouble(5, t.getValorTotal());
-            ps.setString(6, t.getStatus());
-            ps.setString(7, t.getObservacoes());
+            ps.setString(3, t.getPlanoContaId());
+            ps.setString(4, t.getCodigoSelecao());
+            ps.setString(5, t.getDataGeracao());
+            ps.setDouble(6, t.getValorTotal());
+            ps.setString(7, t.getStatus());
+            ps.setString(8, t.getObservacoes());
             ps.executeUpdate();
         }
     }
 
     public void atualizar(TituloContaPagarModel t) throws SQLException {
         String sql = "UPDATE titulos_contas_pagar SET "
-            + "fornecedor_id=?, codigo_selecao=?, data_geracao=?, valor_total=?, status=?, observacoes=? "
+            + "fornecedor_id=?, plano_conta_id=?, codigo_selecao=?, data_geracao=?, valor_total=?, status=?, observacoes=? "
             + "WHERE id=?";
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, t.getFornecedorId());
-            ps.setString(2, t.getCodigoSelecao());
-            ps.setString(3, t.getDataGeracao());
-            ps.setDouble(4, t.getValorTotal());
-            ps.setString(5, t.getStatus());
-            ps.setString(6, t.getObservacoes());
-            ps.setString(7, t.getId());
+            ps.setString(2, t.getPlanoContaId());
+            ps.setString(3, t.getCodigoSelecao());
+            ps.setString(4, t.getDataGeracao());
+            ps.setDouble(5, t.getValorTotal());
+            ps.setString(6, t.getStatus());
+            ps.setString(7, t.getObservacoes());
+            ps.setString(8, t.getId());
             ps.executeUpdate();
         }
     }
@@ -64,6 +67,7 @@ public class TituloContaPagarDAO {
                 return new TituloContaPagarModel(
                     rs.getString("id"),
                     rs.getString("fornecedor_id"),
+                    rs.getString("plano_conta_id"),
                     rs.getString("codigo_selecao"),
                     rs.getString("data_geracao"),
                     rs.getDouble("valor_total"),
@@ -84,6 +88,7 @@ public class TituloContaPagarDAO {
                 out.add(new TituloContaPagarModel(
                     rs.getString("id"),
                     rs.getString("fornecedor_id"),
+                    rs.getString("plano_conta_id"),
                     rs.getString("codigo_selecao"),
                     rs.getString("data_geracao"),
                     rs.getDouble("valor_total"),

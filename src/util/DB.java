@@ -346,16 +346,20 @@ public class DB {
                                         ")");
 
                         // TITULOS - CONTAS A PAGAR
-                        st.execute("CREATE TABLE IF NOT EXISTS titulos_contas_pagar (" +
-                                        "id TEXT PRIMARY KEY, " +
-                                        "fornecedor_id TEXT, " +
-                                        "codigo_selecao TEXT, " + // UUID que agrupa o título
-                                        "data_geracao TEXT, " +
-                                        "valor_total REAL, " +
-                                        "status TEXT, " + // aberto, quitado, vencido, cancelado
-                                        "observacoes TEXT, " +
-                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
-                                        ")");
+
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS titulos_contas_pagar (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "fornecedor_id TEXT, " +
+                                                        "plano_conta_id TEXT, " + // ✅ NOVO: vincula ao Plano de Contas
+                                                        "codigo_selecao TEXT, " + // UUID que agrupa o título
+                                                        "data_geracao TEXT, " +
+                                                        "valor_total REAL, " +
+                                                        "status TEXT, " + // aberto, quitado, vencido, cancelado
+                                                        "observacoes TEXT, " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id), " +
+                                                        "FOREIGN KEY(plano_conta_id) REFERENCES planos_contas(id)" +
+                                                        ")");
 
                         // PARCELAS - CONTAS A PAGAR
                         st.execute("CREATE TABLE IF NOT EXISTS parcelas_contas_pagar (" +

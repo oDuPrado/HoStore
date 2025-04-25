@@ -1,22 +1,31 @@
 package model;
 
 /**
- * Representa o título de uma conta a pagar (grupo de parcelas).
+ * Representa o título de uma conta a pagar (grupo de parcelas),
+ * agora com vínculo a uma conta do Plano de Contas.
  */
 public class TituloContaPagarModel {
     private String id;
     private String fornecedorId;
+    private String planoContaId;   // NOVO: ID da conta contábil
     private String codigoSelecao;
     private String dataGeracao;
     private double valorTotal;
     private String status;
     private String observacoes;
 
-    public TituloContaPagarModel(String id, String fornecedorId, String codigoSelecao,
-                                 String dataGeracao, double valorTotal,
-                                 String status, String observacoes) {
+    public TituloContaPagarModel(
+            String id,
+            String fornecedorId,
+            String planoContaId,
+            String codigoSelecao,
+            String dataGeracao,
+            double valorTotal,
+            String status,
+            String observacoes) {
         this.id = id;
         this.fornecedorId = fornecedorId;
+        this.planoContaId = planoContaId;
         this.codigoSelecao = codigoSelecao;
         this.dataGeracao = dataGeracao;
         this.valorTotal = valorTotal;
@@ -24,11 +33,15 @@ public class TituloContaPagarModel {
         this.observacoes = observacoes;
     }
 
+    // getters e setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
     public String getFornecedorId() { return fornecedorId; }
     public void setFornecedorId(String fornecedorId) { this.fornecedorId = fornecedorId; }
+
+    public String getPlanoContaId() { return planoContaId; }
+    public void setPlanoContaId(String planoContaId) { this.planoContaId = planoContaId; }
 
     public String getCodigoSelecao() { return codigoSelecao; }
     public void setCodigoSelecao(String codigoSelecao) { this.codigoSelecao = codigoSelecao; }
