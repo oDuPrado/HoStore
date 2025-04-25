@@ -304,17 +304,87 @@ public class DB {
                                         "quantidade INTEGER, motivo TEXT, data TEXT, usuario TEXT," +
                                         "FOREIGN KEY(produto_id) REFERENCES produtos(id))");
 
-                        // Contas a Receber
-                        st.execute("CREATE TABLE IF NOT EXISTS contas_receber(" +
-                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id TEXT, valor REAL," +
-                                        "vencimento TEXT, pagamento TEXT, status TEXT," +
-                                        "FOREIGN KEY(cliente_id) REFERENCES clientes(id))");
+                        // TITULOS - CONTAS A RECEBER
+                        st.execute("CREATE TABLE IF NOT EXISTS titulos_contas_receber (" +
+                                        "id TEXT PRIMARY KEY, " +
+                                        "cliente_id TEXT, " +
+                                        "codigo_selecao TEXT, " +
+                                        "data_geracao TEXT, " +
+                                        "valor_total REAL, " +
+                                        "status TEXT, " +
+                                        "observacoes TEXT, " +
+                                        "FOREIGN KEY(cliente_id) REFERENCES clientes(id)" +
+                                        ")");
 
-                        // Contas a Pagar
-                        st.execute("CREATE TABLE IF NOT EXISTS contas_pagar(" +
-                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, fornecedor_id TEXT, valor REAL," +
-                                        "vencimento TEXT, pagamento TEXT, status TEXT," +
-                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id))");
+                        // PARCELAS - CONTAS A RECEBER
+                        st.execute("CREATE TABLE IF NOT EXISTS parcelas_contas_receber (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "titulo_id TEXT, " +
+                                        "numero_parcela INTEGER, " +
+                                        "vencimento TEXT, " +
+                                        "valor_nominal REAL, " +
+                                        "valor_juros REAL DEFAULT 0, " +
+                                        "valor_acrescimo REAL DEFAULT 0, " +
+                                        "valor_desconto REAL DEFAULT 0, " +
+                                        "valor_pago REAL DEFAULT 0, " +
+                                        "data_pagamento TEXT, " +
+                                        "data_compensacao TEXT, " +
+                                        "pago_com_desconto INTEGER DEFAULT 0, " +
+                                        "forma_pagamento TEXT, " +
+                                        "status TEXT DEFAULT 'aberto', " +
+                                        "FOREIGN KEY(titulo_id) REFERENCES titulos_contas_receber(id)" +
+                                        ")");
+
+                        // PAGAMENTOS - CONTAS A RECEBER
+                        st.execute("CREATE TABLE IF NOT EXISTS pagamentos_contas_receber (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "parcela_id INTEGER, " +
+                                        "forma_pagamento TEXT, " +
+                                        "valor_pago REAL, " +
+                                        "data_pagamento TEXT, " +
+                                        "FOREIGN KEY(parcela_id) REFERENCES parcelas_contas_receber(id)" +
+                                        ")");
+
+                        // TITULOS - CONTAS A PAGAR
+                        st.execute("CREATE TABLE IF NOT EXISTS titulos_contas_pagar (" +
+                                        "id TEXT PRIMARY KEY, " +
+                                        "fornecedor_id TEXT, " +
+                                        "codigo_selecao TEXT, " + // UUID que agrupa o título
+                                        "data_geracao TEXT, " +
+                                        "valor_total REAL, " +
+                                        "status TEXT, " + // aberto, quitado, vencido, cancelado
+                                        "observacoes TEXT, " +
+                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                                        ")");
+
+                        // PARCELAS - CONTAS A PAGAR
+                        st.execute("CREATE TABLE IF NOT EXISTS parcelas_contas_pagar (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "titulo_id TEXT, " +
+                                        "numero_parcela INTEGER, " +
+                                        "vencimento TEXT, " +
+                                        "valor_nominal REAL, " +
+                                        "valor_juros REAL DEFAULT 0, " +
+                                        "valor_acrescimo REAL DEFAULT 0, " +
+                                        "valor_desconto REAL DEFAULT 0, " +
+                                        "valor_pago REAL DEFAULT 0, " +
+                                        "data_pagamento TEXT, " +
+                                        "data_compensacao TEXT, " +
+                                        "pago_com_desconto INTEGER DEFAULT 0, " +
+                                        "forma_pagamento TEXT, " +
+                                        "status TEXT DEFAULT 'aberto', " +
+                                        "FOREIGN KEY(titulo_id) REFERENCES titulos_contas_pagar(id)" +
+                                        ")");
+
+                        // PAGAMENTOS - CONTAS A PAGAR
+                        st.execute("CREATE TABLE IF NOT EXISTS pagamentos_contas_pagar (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "parcela_id INTEGER, " +
+                                        "forma_pagamento TEXT, " +
+                                        "valor_pago REAL, " +
+                                        "data_pagamento TEXT, " +
+                                        "FOREIGN KEY(parcela_id) REFERENCES parcelas_contas_pagar(id)" +
+                                        ")");
 
                         // Usuários do Sistema
                         st.execute("CREATE TABLE IF NOT EXISTS usuarios(" +

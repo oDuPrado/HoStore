@@ -10,6 +10,10 @@ import dao.EtbDAO;
 import model.DeckModel;
 import model.EtbModel;
 
+import service.MovimentacaoEstoqueService;
+import model.MovimentacaoEstoqueModel;
+import java.time.LocalDateTime;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,14 +26,30 @@ public class ProdutoEstoqueService {
 
     public void salvar(ProdutoModel p) throws SQLException {
         ProdutoModel existente = dao.findById(p.getId());
-
-        if (existente == null) {
+        boolean novo = (existente == null);
+    
+        if (novo) {
             dao.insert(p);
+    
+            // Se tiver quantidade inicial, registrar como entrada
+            if (p.getQuantidade() > 0) {
+                try {
+                    registrarEntrada(
+                        p.getId(),
+                        p.getQuantidade(),
+                        "Cadastro inicial",
+                        "sistema"
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace(); // ou logue em produção
+                }
+            }
+    
         } else {
             p.setAlteradoEmNow();
             dao.update(p);
         }
-    }
+    }    
 
     public void remover(String id) throws SQLException {
         dao.delete(id);
@@ -114,6 +134,60 @@ public void salvarNovoAlimento(model.AlimentoModel a) throws Exception {
 public void atualizarAlimento(model.AlimentoModel a) throws Exception {
     new dao.AlimentoDAO().atualizar(a); // atualiza produtos_alimenticios
     salvar(a);                           // atualiza produtos
+}
+
+public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
+    ProdutoModel produto = dao.findById(produtoId);
+    if (produto == null) throw new Exception("Produto não encontrado!");
+
+    // atualiza quantidade
+    produto.setQuantidade(produto.getQuantidade() + quantidade);
+    produto.setAlteradoEmNow();
+    dao.update(produto);
+
+    // registra movimentação
+    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+        produtoId, "entrada", quantidade, motivo, usuario
+    );
+    mov.setData(LocalDateTime.now());
+
+    new MovimentacaoEstoqueService().registrar(mov);
+}
+
+public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
+    ProdutoModel produto = dao.findById(produtoId);
+    if (produto == null) throw new Exception("Produto não encontrado!");
+
+    if (produto.getQuantidade() < quantidade)
+        throw new Exception("Estoque insuficiente para saída!");
+
+    // atualiza quantidade
+    produto.setQuantidade(produto.getQuantidade() - quantidade);
+    produto.setAlteradoEmNow();
+    dao.update(produto);
+
+    // registra movimentação
+    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+        produtoId, "saida", quantidade, motivo, usuario
+    );
+    mov.setData(LocalDateTime.now());
+
+    new MovimentacaoEstoqueService().registrar(mov);
+}
+
+public int obterQuantidade(String produtoId) throws SQLException {
+    ProdutoModel p = dao.findById(produtoId);
+    if (p == null) throw new SQLException("Produto não encontrado!");
+    return p.getQuantidade();
+}
+
+public void atualizarQuantidade(String produtoId, int novaQtd) throws SQLException {
+    ProdutoModel p = dao.findById(produtoId);
+    if (p == null) throw new SQLException("Produto não encontrado!");
+
+    p.setQuantidade(novaQtd);
+    p.setAlteradoEmNow();
+    dao.update(p);
 }
 
 

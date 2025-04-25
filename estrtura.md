@@ -96,8 +96,18 @@ HOSTORE/
     │   ├── SetService.java
     │   └── VendaService.java
     │
-    ├── ui/
-    │   ├── ajustes/
+    ├── ui/ 
+    │   └── financeiro/
+    │   │ ├── painel/
+    │   │ │   ├── PainelFinanceiro.java
+    │   │ │   ├── PainelContasPagar.java
+    │   │ │   ├── PainelContasReceber.java
+    │   │ │   └── PainelResumoFinanceiro.java
+    │   │ └── dialog/
+    │   │     ├── ContaPagarDialog.java
+    │   │     └── ContaReceberDialog.java
+    │   │
+    │   │─── ajustes/
     │   │   ├── dialog/
     │   │   │   ├── AbstractCrudPainel.java
     │   │   │   ├── CategoriaProdutoDialog.java
