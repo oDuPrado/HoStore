@@ -128,4 +128,27 @@ public class FornecedorDAO {
             rs.getString("alterado_em")
         );
     }
+    public String obterIdPorNome(String nome) {
+        try (PreparedStatement ps = DB.get().prepareStatement("SELECT id FROM fornecedores WHERE nome = ? LIMIT 1")) {
+            ps.setString(1, nome);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("id");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public String obterNomePorId(String id) {
+        try (PreparedStatement ps = DB.get().prepareStatement("SELECT nome FROM fornecedores WHERE id = ? LIMIT 1")) {
+            ps.setString(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getString("nome");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Desconhecido";
+    }
+    
+    
 }

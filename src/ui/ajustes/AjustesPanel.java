@@ -15,6 +15,7 @@ import ui.ajustes.painel.FornecedorPainel;
 import ui.ajustes.painel.CategoriaProdutoPainel;
 import ui.ajustes.painel.CondicaoPainel;
 import ui.ajustes.painel.IdiomaPainel;
+import ui.ajustes.painel.PlanoContaPainel;
 import ui.ajustes.painel.TipoCartaPainel;
 import ui.ajustes.painel.PromocaoPainel;
 import ui.ajustes.painel.ClienteVipPainel;
@@ -40,7 +41,7 @@ public class AjustesPanel extends JPanel {
         // ==== CONFIGURAÇÕES DO SISTEMA ====
         container.add(criarBotao("🛍 Dados da Loja", () -> new ConfigLojaDialog(null).setVisible(true)));
         container.add(criarBotao("🖨 Impressão e PDF", () -> new ConfigImpressaoDialog(null).setVisible(true)));
-        container.add(criarBotao("💵 Configurações Financeiras", () -> new ConfigFinanceiroDialog(null).setVisible(true)));
+        container.add(criarBotao("🧾 Plano de Contas",       () -> new PlanoContaPainel().abrir()));
         container.add(criarBotao("🗄 Backup e Sistema", () -> new ConfigSistemaDialog(null).setVisible(true)));
         if (SessaoService.isAdmin()) {
             container.add(criarBotao("👥 Usuários e Permissões", () -> new UsuarioPainel().abrir()));

@@ -386,6 +386,29 @@ public class DB {
                                         "FOREIGN KEY(parcela_id) REFERENCES parcelas_contas_pagar(id)" +
                                         ")");
 
+                        // Cria tabela de Planos de Contas
+                        // ─── PLANOS DE CONTAS ───────────────────────────────────────────────────────
+                        st.execute("CREATE TABLE IF NOT EXISTS planos_contas ("
+                                        + "id TEXT PRIMARY KEY, "
+                                        + "codigo TEXT NOT NULL, "
+                                        + "descricao TEXT NOT NULL, "
+                                        + "tipo TEXT NOT NULL, " // Ativo, Passivo, Custo, Receita
+                                        + "parent_id TEXT, " // FK para planos_contas.id
+                                        + "observacoes TEXT, "
+                                        + "FOREIGN KEY(parent_id) REFERENCES planos_contas(id)"
+                                        + ")");
+
+                        // Cria tabela de Bancos (Contas Bancárias)
+                        st.execute("""
+                                            CREATE TABLE IF NOT EXISTS bancos (
+                                                id TEXT PRIMARY KEY,
+                                                nome TEXT NOT NULL,
+                                                agencia TEXT,
+                                                conta TEXT,
+                                                observacoes TEXT
+                                            )
+                                        """);
+
                         // Usuários do Sistema
                         st.execute("CREATE TABLE IF NOT EXISTS usuarios(" +
                                         "id TEXT PRIMARY KEY, nome TEXT, usuario TEXT, senha TEXT, tipo TEXT, ativo INTEGER DEFAULT 1)");

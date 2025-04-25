@@ -8,6 +8,7 @@
         "c:\\Users\\Marco Prado\\Documents\\APP\\ERP\\HoStore\\lib\\opencsv-5.10.jar",
         "c:\\Users\\Marco Prado\\Documents\\APP\\ERP\\HoStore\\lib\\pdfbox-app-3.0.4.jar",
         "c:\\Users\\Marco Prado\\Documents\\APP\\ERP\\HoStore\\lib\\commons-lang3-3.17.0.jar",
-        "c:\\Users\\Marco Prado\\Documents\\APP\\ERP\\HoStore\\lib\\jcalendar-1.4.jar"
+        "c:\\Users\\Marco Prado\\Documents\\APP\\ERP\\HoStore\\lib\\jcalendar-1.4.jar",
+        "c:\\Users\\Marco Prado\\Documents\\APP\\ERP\\HoStore\\lib\\postgresql-42.7.5.jar"
     ]
 }
