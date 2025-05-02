@@ -184,10 +184,3 @@ HOSTORE/
         ├── PDFGenerator.java
         └── PythonCaller.java
 
-.gitignore
-.gitattributes
-LICENSE
-README.md
-estrutura.md
-```
-

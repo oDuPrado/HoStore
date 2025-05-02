@@ -124,6 +124,11 @@ public class PainelEstoque extends JPanel {
         JButton btDel = new JButton("🗑️ Excluir");
         rodape.add(btEditar);
         rodape.add(btDel);
+        // Botão de criar pedido
+        JButton btPedido = new JButton("📦 Criar Pedido");
+        btPedido.addActionListener(e -> abrirCriarPedido());
+        rodape.add(btPedido);
+
         btEditar.addActionListener(e -> abrirEditar());
         btDel.addActionListener(e -> deletarSelecionado());
         add(rodape, BorderLayout.SOUTH);
@@ -188,11 +193,11 @@ public class PainelEstoque extends JPanel {
             // Filtro inteligente (categoria visual pode diferir do tipo armazenado)
             boolean corresponde = switch (categoriaFiltro) {
                 case "ETB" -> tipo.equalsIgnoreCase("ETB")
-                           || tipoExibido.equalsIgnoreCase("Booster Box")
-                           || tipoExibido.equalsIgnoreCase("Pokémon Center");
+                        || tipoExibido.equalsIgnoreCase("Booster Box")
+                        || tipoExibido.equalsIgnoreCase("Pokémon Center");
                 case "Alimento" -> tipo.equalsIgnoreCase("Alimento");
                 default -> "Todos".equalsIgnoreCase(categoriaFiltro)
-                           || tipo.equalsIgnoreCase(categoriaFiltro);
+                        || tipo.equalsIgnoreCase(categoriaFiltro);
             };
 
             if (!corresponde)
@@ -337,6 +342,24 @@ public class PainelEstoque extends JPanel {
             ctrl.remover(id);
             listar();
         }
-
     }
+
+    // Abre dialog para criar pedido com os produtos da categoria atual
+    private void abrirCriarPedido() {
+        List<ProdutoModel> produtos = ctrl.listar(tfBusca.getText().trim());
+
+        List<ProdutoModel> filtrados = produtos.stream().filter(p -> {
+            String tipo = p.getTipo();
+            return "Todos".equalsIgnoreCase(categoriaFiltro) || tipo.equalsIgnoreCase(categoriaFiltro);
+        }).toList();
+
+        if (filtrados.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nenhum produto encontrado para essa categoria.");
+            return;
+        }
+
+        JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
+        new ui.estoque.dialog.CriarPedidoEstoqueDialog(owner, categoriaFiltro, filtrados).setVisible(true);
+    }
+
 }

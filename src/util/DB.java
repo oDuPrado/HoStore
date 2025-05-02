@@ -345,6 +345,33 @@ public class DB {
                                         "FOREIGN KEY(parcela_id) REFERENCES parcelas_contas_receber(id)" +
                                         ")");
 
+                        // ──────── TABELA DE PEDIDOS DE COMPRA ────────
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS pedidos_compras (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT, " +
+                                                        "data TEXT, " +
+                                                        "status TEXT, " + // rascunho, enviado, recebido, etc.
+                                                        "fornecedor_id TEXT, " +
+                                                        "observacoes TEXT, " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                                                        ")");
+
+                        
+
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS pedido_produtos (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "pedido_id TEXT NOT NULL, " +
+                                                        "produto_id TEXT NOT NULL, " +
+                                                        "quantidade_pedida INTEGER NOT NULL, " +
+                                                        "quantidade_recebida INTEGER DEFAULT 0, " +
+                                                        "status TEXT DEFAULT 'pendente', " + // 'pendente', 'parcial',
+                                                                                             // 'completo'
+                                                        "FOREIGN KEY(pedido_id) REFERENCES pedidos_compras(id), " +
+                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
+                                                        ")");
+
                         // TITULOS - CONTAS A PAGAR
 
                         st.execute(
@@ -357,6 +384,8 @@ public class DB {
                                                         "valor_total REAL, " +
                                                         "status TEXT, " + // aberto, quitado, vencido, cancelado
                                                         "observacoes TEXT, " +
+                                                        "pedido_id TEXT, " +
+                                                        "FOREIGN KEY(pedido_id) REFERENCES pedidos_compras(id)" +
                                                         "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id), " +
                                                         "FOREIGN KEY(plano_conta_id) REFERENCES planos_contas(id)" +
                                                         ")");

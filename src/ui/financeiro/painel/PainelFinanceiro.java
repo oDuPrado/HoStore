@@ -95,9 +95,20 @@ public class PainelFinanceiro extends JPanel {
         /* Botões */
         JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         JButton btNovo = new JButton("Novo");
-        JButton btEditar = new JButton("Editar");
+        JButton btEditar = new JButton("Parcelas");
+        JButton btPedidos = new JButton("📦 Pedidos");
+        btPedidos.addActionListener(e -> {
+            PedidosCompraDialog dlg = new PedidosCompraDialog(
+                    SwingUtilities.getWindowAncestor(this) // janela pai
+            );
+            dlg.setVisible(true);
+            // você pode querer recarregar algo após aqui, se for necessário
+        });
+        acoes.add(btPedidos);
+
+        JButton btExcluir = new JButton("Excluir");
         JButton btRefresh = new JButton("Atualizar");
-        Arrays.asList(btNovo, btEditar, btRefresh).forEach(acoes::add);
+        Arrays.asList(btNovo, btEditar, btExcluir, btRefresh).forEach(acoes::add);
         painel.add(acoes, BorderLayout.SOUTH);
 
         /* Ações */
@@ -123,6 +134,40 @@ public class PainelFinanceiro extends JPanel {
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
+            }
+        });
+
+        btExcluir.addActionListener(e -> {
+            String id = idSelecionado();
+            if (id == null)
+                return;
+            int op = JOptionPane.showConfirmDialog(
+                    this,
+                    "Deseja realmente excluir este Título e todas as suas parcelas?",
+                    "Confirmar Exclusão",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if (op == JOptionPane.YES_OPTION) {
+                try {
+                    // excluir parcelas associadas
+                    parcelaDAO.listarPorTitulo(id)
+                            .forEach(p -> {
+                                try {
+                                    parcelaDAO.excluir(p.getId());
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
+                            });
+                    // excluir título
+                    tituloDAO.excluir(id);
+                    carregarTabela();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Erro ao excluir:\n" + ex.getMessage(),
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 

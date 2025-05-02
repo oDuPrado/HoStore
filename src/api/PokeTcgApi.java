@@ -40,7 +40,6 @@ public class PokeTcgApi {
         return get("/sets"); // retorna JSON completo
     }
 
-    // Exemplo futuro:
     // public static String buscarCartasPorNome(String nome) throws Exception {
     //     return get("/cards?q=name:" + URLEncoder.encode(nome, "UTF-8"));
     // }

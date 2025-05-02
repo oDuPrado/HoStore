@@ -84,15 +84,17 @@ public class ContaPagarService {
         String tituloId   = UUID.randomUUID().toString();
         String dataGeracao= fmtSQL.format(new Date());
         TituloContaPagarModel titulo = new TituloContaPagarModel(
-            tituloId,
-            fornecedorId,
-            planoContaId,
-            tituloId,        // usamos o mesmo UUID como códigoSelecao
-            dataGeracao,
-            valorTotal,
-            "aberto",
-            obs
-        );
+    tituloId,
+    fornecedorId,
+    planoContaId,
+    tituloId,
+    dataGeracao,
+    valorTotal,
+    "aberto",
+    null, // ou pedidoId se você for passar depois
+    obs
+);
+
         tituloDAO.inserir(titulo);
 
         // grava parcelas
