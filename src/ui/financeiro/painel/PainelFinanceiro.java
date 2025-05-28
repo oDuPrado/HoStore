@@ -96,16 +96,6 @@ public class PainelFinanceiro extends JPanel {
         JPanel acoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
         JButton btNovo = new JButton("Novo");
         JButton btEditar = new JButton("Parcelas");
-        JButton btPedidos = new JButton("📦 Pedidos");
-        btPedidos.addActionListener(e -> {
-            PedidosCompraDialog dlg = new PedidosCompraDialog(
-                    SwingUtilities.getWindowAncestor(this) // janela pai
-            );
-            dlg.setVisible(true);
-            // você pode querer recarregar algo após aqui, se for necessário
-        });
-        acoes.add(btPedidos);
-
         JButton btExcluir = new JButton("Excluir");
         JButton btRefresh = new JButton("Atualizar");
         Arrays.asList(btNovo, btEditar, btExcluir, btRefresh).forEach(acoes::add);

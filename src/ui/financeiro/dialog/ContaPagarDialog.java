@@ -11,14 +11,21 @@ import model.PedidoCompraModel;
 import service.ContaPagarService;
 
 import javax.swing.*;
+
+import java.util.Arrays;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Collections;
 
 /**
  * Dialog – cria um novo título a pagar (ou edita parcela),
@@ -49,9 +56,10 @@ public class ContaPagarDialog extends JDialog {
 
     private final JButton btnSelecionarConta = new JButton("Selecionar Conta Contábil…");
     // botão para vincular pedido
-    private final JButton btnSelecionarPedido = new JButton("Selecionar Pedido…");
-    // armazena o pedido escolhido
-    private PedidoCompraModel pedidoSelecionado = null;
+    // botão para vincular pedidos
+    private final JButton btnSelecionarPedidos = new JButton("Vincular Pedidos…");
+    // IDs dos pedidos vinculados
+    private final Set<String> pedidosVinculados = new HashSet<>();
 
     private PlanoContaModel contaSelecionada = null;
 
@@ -117,20 +125,15 @@ public class ContaPagarDialog extends JDialog {
             }
         });
 
-        btnSelecionarPedido.addActionListener(evt -> {
-            PedidosCompraDialog dlg = new PedidosCompraDialog(
-                ContaPagarDialog.this,
-                true, // modo seleção
-                pedido -> {
-                    pedidoSelecionado = pedido;
-                    btnSelecionarPedido.setText(
-                        "🔗 " + pedido.getNome() + " [" + pedido.getData() + "]"
-                    );
-                }
-            );
-            dlg.setVisible(true);
+        btnSelecionarPedidos.addActionListener(evt -> {
+            VincularPedidosDialog dlg = new VincularPedidosDialog((Frame) SwingUtilities.getWindowAncestor(this));
+            Set<String> selecionados = dlg.showDialog();
+            if (!selecionados.isEmpty()) {
+                pedidosVinculados.clear();
+                pedidosVinculados.addAll(selecionados);
+                btnSelecionarPedidos.setText("🔗 " + pedidosVinculados.size() + " pedido(s) vinculado(s)");
+            }
         });
-        
 
         // layout
         JPanel root = new JPanel();
@@ -169,7 +172,7 @@ public class ContaPagarDialog extends JDialog {
                                         .addComponent(lQtd)
                                         .addComponent(lPlano)
                                         .addComponent(lBase)
-                                        .addComponent(lPedido) // ✅ ADICIONADO
+                                        .addComponent(lPedido)
                                         .addComponent(lObs))
                                 .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
                                         .addComponent(cbFornecedor, 200, 200, 200)
@@ -182,8 +185,8 @@ public class ContaPagarDialog extends JDialog {
                                                 .addComponent(ftDiasCustom, 60, 60, 60)
                                                 .addComponent(cbIntervalo, 150, 150, 150))
                                         .addComponent(dtBase, 200, 200, 200)
-                                        .addComponent(btnSelecionarPedido, 250, 250, 250)
                                         .addComponent(btnSelecionarConta, 250, 250, 250)
+                                        .addComponent(btnSelecionarPedidos, 250, 250, 250)
                                         .addComponent(spObs, 200, 200, 200)))
                         .addGroup(GroupLayout.Alignment.TRAILING,
                                 gl.createSequentialGroup()
@@ -213,7 +216,7 @@ public class ContaPagarDialog extends JDialog {
                                 .addComponent(btnSelecionarConta))
                         .addGroup(gl.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                 .addComponent(lPedido)
-                                .addComponent(btnSelecionarPedido))
+                                .addComponent(btnSelecionarPedidos))
                         .addGroup(gl.createParallelGroup(GroupLayout.Alignment.LEADING)
                                 .addComponent(lObs).addComponent(spObs))
                         .addGap(10)
@@ -304,10 +307,6 @@ public class ContaPagarDialog extends JDialog {
                     this, "Deseja pré-visualizar as parcelas geradas?",
                     "Pré-visualização", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 
-                    String pedidoId = pedidoSelecionado != null
-                    ? pedidoSelecionado.getId()
-                    : null;
-                
             if (parcelaEdit == null) {
                 service.gerarTituloComDatas(
                         fornecedorId,

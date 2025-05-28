@@ -357,8 +357,6 @@ public class DB {
                                                         "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")");
 
-                        
-
                         st.execute(
                                         "CREATE TABLE IF NOT EXISTS pedido_produtos (" +
                                                         "id TEXT PRIMARY KEY, " +
@@ -418,6 +416,16 @@ public class DB {
                                         "data_pagamento TEXT, " +
                                         "FOREIGN KEY(parcela_id) REFERENCES parcelas_contas_pagar(id)" +
                                         ")");
+
+                        // ──────── VÍNCULO ENTRE CONTAS A PAGAR E PEDIDOS ────────
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS contas_pagar_pedidos (" +
+                                                        "conta_pagar_id TEXT NOT NULL, " +
+                                                        "pedido_id TEXT NOT NULL, " +
+                                                        "PRIMARY KEY (conta_pagar_id, pedido_id), " +
+                                                        "FOREIGN KEY (conta_pagar_id) REFERENCES contas_pagar(id), " +
+                                                        "FOREIGN KEY (pedido_id) REFERENCES pedidos_compras(id)" +
+                                                        ")");
 
                         // Cria tabela de Planos de Contas
                         // ─── PLANOS DE CONTAS ───────────────────────────────────────────────────────

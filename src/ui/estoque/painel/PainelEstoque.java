@@ -129,6 +129,14 @@ public class PainelEstoque extends JPanel {
         btPedido.addActionListener(e -> abrirCriarPedido());
         rodape.add(btPedido);
 
+        JButton btVerPedidos = new JButton("📄 Ver Pedidos");
+        btVerPedidos.addActionListener(e -> {
+            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
+            new ui.estoque.painel.PainelPedidosEstoque(owner).setVisible(true);
+            listar();
+        });
+        rodape.add(btVerPedidos);
+
         btEditar.addActionListener(e -> abrirEditar());
         btDel.addActionListener(e -> deletarSelecionado());
         add(rodape, BorderLayout.SOUTH);
@@ -359,7 +367,7 @@ public class PainelEstoque extends JPanel {
         }
 
         JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
-        new ui.estoque.dialog.CriarPedidoEstoqueDialog(owner, categoriaFiltro, filtrados).setVisible(true);
+        new ui.estoque.dialog.CriarPedidoEstoqueDialog(owner, filtrados).setVisible(true);
     }
 
 }
