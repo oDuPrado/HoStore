@@ -87,4 +87,5 @@ public class ProdutoDAO {
         ps.setString(7, p.getCriadoEm().toString());
         ps.setString(8, p.getAlteradoEm().toString());
     }
+    
 }

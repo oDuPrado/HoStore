@@ -1,9 +1,10 @@
+// src/service/VendaService.java
 package service;
 
 import dao.VendaDAO;
 import dao.VendaItemDAO;
-import model.VendaModel;
 import model.VendaItemModel;
+import model.VendaModel;
 import util.DB;
 import util.LogService;
 import util.PDFGenerator;
@@ -11,55 +12,62 @@ import util.PDFGenerator;
 import java.sql.Connection;
 import java.util.List;
 
+/**
+ * Serviço que garante transação única na finalização da venda.
+ * Suporta produtos genéricos (não apenas cartas).
+ */
 public class VendaService {
-    private EstoqueService estoqueService = new EstoqueService();
-    private VendaDAO vendaDAO = new VendaDAO();
-    private VendaItemDAO itemDAO = new VendaItemDAO();
+
+    private final EstoqueService estoqueService = new EstoqueService();
+    private final VendaDAO       vendaDAO       = new VendaDAO();
+    private final VendaItemDAO   itemDAO        = new VendaItemDAO();
 
     /**
-     * Finaliza a venda em uma transação única:
-     *   – valida estoque
-     *   – insere venda
-     *   – insere itens + baixa estoque
-     *   – faz commit
-     *   – gera PDF
+     * Finaliza a venda:
+     *  - valida estoque
+     *  - grava cabeçalho, itens e baixa estoque
+     *  - gera PDF
+     * Retorna o ID da venda.
      */
     public int finalizarVenda(VendaModel venda, List<VendaItemModel> itens) throws Exception {
-        if (itens.isEmpty()) {
+
+        if (itens == null || itens.isEmpty()) {
             throw new Exception("Carrinho vazio");
         }
 
-        int vendaId;
         try (Connection c = DB.get()) {
             c.setAutoCommit(false);
 
-            // 1) valida estoques
+            // 1) valida estoque
             for (VendaItemModel it : itens) {
-                if (!estoqueService.possuiEstoque(c, it.getCartaId(), it.getQtd())) {
-                    throw new Exception("Estoque insuficiente para " + it.getCartaId());
+                String produtoId = it.getProdutoId(); // <--- AGORA genérico
+                if (!estoqueService.possuiEstoque(c, produtoId, it.getQtd())) {
+                    throw new Exception("Estoque insuficiente para o produto " + produtoId);
                 }
             }
 
-            // 2) insere venda (agora com o método que aceita Connection)
-            vendaId = vendaDAO.insert(venda, c);
+            // 2) grava venda
+            int vendaId = vendaDAO.insert(venda, c);
 
-            // 3) insere itens + baixa estoque
+            // 3) grava itens e baixa estoque
             for (VendaItemModel it : itens) {
                 itemDAO.insert(it, vendaId, c);
-                estoqueService.baixarEstoque(c, it.getCartaId(), it.getQtd());
+                estoqueService.baixarEstoque(c, it.getProdutoId(), it.getQtd());
             }
 
             // 4) commit
             c.commit();
             LogService.info("Venda " + vendaId + " finalizada com sucesso");
 
+            // 5) PDF
+            venda.setItens(itens);      // para o gerador ter acesso
+            PDFGenerator.gerarComprovanteVenda(venda, itens);
+
+            return vendaId;
+
         } catch (Exception ex) {
-            throw new Exception("Erro ao finalizar venda: " + ex.getMessage(), ex);
+            LogService.error("Erro ao finalizar venda", ex);
+            throw ex;
         }
-
-        // 5) só depois do commit geramos o PDF para não travar o DB
-        PDFGenerator.gerarComprovanteVenda(venda, itens);
-
-        return vendaId;
     }
 }

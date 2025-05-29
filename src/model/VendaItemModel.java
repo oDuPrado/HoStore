@@ -1,54 +1,62 @@
+// src/model/VendaItemModel.java
 package model;
 
+/**
+ * Item de venda.
+ *
+ * Agora usa o campo generificado <produtoId>. Mantive os antigos
+ * métodos getCartaId() apenas como *alias* para não quebrar
+ * referências soltas no código legado.
+ */
 public class VendaItemModel {
-    private int id;
-    private int vendaId;
-    private String cartaId;
-    private int qtd;
-    private double preco;
-    private double desconto;
-    private double totalItem; // novo campo
 
-    public VendaItemModel(String cartaId, int qtd, double preco, double desconto) {
-        this.cartaId = cartaId;
-        this.qtd = qtd;
-        this.preco = preco;
-        this.desconto = desconto;
-        calcularTotal(); // já calcula no construtor
+    /* ---------- Campos ---------- */
+    private int    id;
+    private int    vendaId;
+    private String produtoId;   // <- AGORA É genérico!
+    private int    qtd;
+    private double preco;
+    private double desconto;    // % (0-100)
+    private double totalItem;   // calculado
+
+    /* ---------- Construtores ---------- */
+    public VendaItemModel(String produtoId, int qtd,
+                          double preco, double desconto) {
+        this.produtoId = produtoId;
+        this.qtd       = qtd;
+        this.preco     = preco;
+        this.desconto  = desconto;
+        calcularTotal();
     }
 
+    /* ---------- Cálculo ---------- */
     private void calcularTotal() {
         double bruto = qtd * preco;
         this.totalItem = bruto * (1 - desconto / 100.0);
     }
 
-    // setters e getters
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    /* ---------- Getters / Setters ---------- */
+    public int    getId()            { return id; }
+    public void   setId(int id)      { this.id = id; }
 
-    public int getVendaId() { return vendaId; }
-    public void setVendaId(int id) { this.vendaId = id; }
+    public int    getVendaId()       { return vendaId; }
+    public void   setVendaId(int id) { this.vendaId = id; }
 
-    public String getCartaId() { return cartaId; }
+    /** NOVO campo principal */
+    public String getProdutoId()     { return produtoId; }
 
-    public int getQtd() { return qtd; }
-    public void setQtd(int qtd) {
-        this.qtd = qtd;
-        calcularTotal();
-    }
+    /** Alias p/ legado (não use em código novo) */
+    public String getCartaId()       { return produtoId; }
 
-    public double getPreco() { return preco; }
-    public void setPreco(double preco) {
-        this.preco = preco;
-        calcularTotal();
-    }
+    public int    getQtd()           { return qtd; }
+    public void   setQtd(int q)      { this.qtd = q; calcularTotal(); }
 
-    public double getDesconto() { return desconto; }
-    public void setDesconto(double desconto) {
-        this.desconto = desconto;
-        calcularTotal();
-    }
+    public double getPreco()         { return preco; }
+    public void   setPreco(double p) { this.preco = p; calcularTotal(); }
 
-    public double getTotalItem() { return totalItem; }
-    public void setTotalItem(double totalItem) { this.totalItem = totalItem; }
+    public double getDesconto()         { return desconto; }
+    public void   setDesconto(double d) { this.desconto = d; calcularTotal(); }
+
+    public double getTotalItem()        { return totalItem; }
+    public void   setTotalItem(double t){ this.totalItem = t; }
 }

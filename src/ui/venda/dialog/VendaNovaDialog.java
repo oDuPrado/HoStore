@@ -1,282 +1,367 @@
+// src/ui/venda/dialog/VendaNovaDialog.java
 package ui.venda.dialog;
 
 import controller.VendaController;
 import dao.ClienteDAO;
-import dao.CartaDAO;
-import model.Carta;
+import dao.ProdutoDAO;
+import model.ProdutoModel;
 import model.VendaItemModel;
-import ui.dialog.SelectCartaDialog;
 import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.table.*;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
-import java.text.NumberFormat;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import ui.dialog.SelectCartaDialog;
 
 /**
- * Diálogo de criação da venda – edição inline com Salvar e Excluir por linha.
+ * Carrinho de venda genérico (qualquer produto).
  */
 public class VendaNovaDialog extends JDialog {
 
-    private final ClienteDAO clienteDAO   = new ClienteDAO();
-    private final CartaDAO   cartaDAO     = new CartaDAO();
+    /* ---------- DAOs & Controller ---------- */
+    private final ClienteDAO clienteDAO = new ClienteDAO();
+    private final ProdutoDAO produtoDAO = new ProdutoDAO();
     private final VendaController controller = new VendaController();
     private final PainelVendas painelPai;
 
+    /* ---------- Combos e tabela ---------- */
     private final JComboBox<String> clienteCombo;
     private final DefaultTableModel carrinhoModel = new DefaultTableModel(
-        new String[]{ "Carta", "Qtd", "R$ Unit.", "Desc (%)", "R$ Total", "Salvar", "Excluir" }, 0
-    ) {
-        @Override public boolean isCellEditable(int row, int col) {
-            return (col >= 1 && col <= 3) || col == 5 || col == 6;
+            new String[] { "Produto", "Qtd", "R$ Unit.", "% Desc", "R$ Total", "R$ Desc", "" }, 0) {
+        @Override
+        public boolean isCellEditable(int r, int c) {
+            return c >= 1 && c <= 3; // apenas qtd, unit e desconto são editáveis
         }
 
-        @Override public Class<?> getColumnClass(int col) {
-            switch (col) {
-                case 1: return Integer.class;
-                case 2:
-                case 3:
-                case 4: return Double.class;
-                default: return String.class;
-            }
+        @Override
+        public Class<?> getColumnClass(int c) {
+            return switch (c) {
+                case 1 -> Integer.class;
+                case 2, 3, 4, 5 -> Double.class;
+                default -> String.class;
+            };
         }
     };
+    private final JTable carrinhoTable = new JTable(carrinhoModel);
 
-    private final JTable carrinhoTable;
-    private final JLabel totalCarrinhoLbl = new JLabel("Total: R$ 0,00");
+    // ⚠️ Adiciona o listener de atualização automática
+    {
+        carrinhoModel.addTableModelListener(e -> {
+            int col = e.getColumn();
+            // Só recalcula se for uma das colunas editáveis
+            if (col >= 1 && col <= 3) {
+                atualizarTodosTotais();
+            }
+        });
+    }
+
+    /* ---------- Resumo/rodapé ---------- */
+    private final JLabel resumoLbl = new JLabel();
 
     public VendaNovaDialog(JFrame owner, PainelVendas painelPai) {
         super(owner, "Nova Venda", true);
         this.painelPai = painelPai;
 
-        setSize(800, 600);
+        setSize(900, 650);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(10, 10));
-        ((JComponent) getContentPane()).setBorder(new EmptyBorder(10,10,10,10));
+        ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // --- Topo: Cliente + "Adicionar Cartas" ---
-        clienteCombo = new JComboBox<>(
-            clienteDAO.listarTodosNomes().toArray(new String[0])
-        );
+        /* ===== TOP: Cliente + botões ===== */
+        clienteCombo = new JComboBox<>(clienteDAO.listarTodosNomes().toArray(new String[0]));
         clienteCombo.setEditable(true);
-        JButton btnAddCartas = new JButton("Adicionar Cartas");
-        btnAddCartas.addActionListener(e -> {
-            SelectCartaDialog dlg = new SelectCartaDialog(owner);
-            dlg.setVisible(true);
-            List<Carta> sel = dlg.getSelecionadas();
-            for (Carta c : sel) {
-                controller.adicionarItem(new VendaItemModel(c.getId(), 0, c.getPrecoLoja(), 0));
-                carrinhoModel.addRow(new Object[]{ c.getNome(), 0, c.getPrecoLoja(), 0, 0, "", "" });
-            }
-            atualizarTotalCarrinho();
-        });
-        JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT,8,4));
+
+        JButton btnAddProd = new JButton("➕ Adicionar Produto");
+        btnAddProd.addActionListener(e -> abrirSelectProduto());
+
+        JButton btnAddCarta = new JButton("🎴 Adicionar Cartas");
+        btnAddCarta.addActionListener(e -> abrirSelectCarta());
+
+        JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         topo.add(new JLabel("Cliente:"));
         topo.add(clienteCombo);
-        topo.add(btnAddCartas);
+        topo.add(btnAddProd);
+        topo.add(btnAddCarta);
         add(topo, BorderLayout.NORTH);
 
-        // --- Tabela de carrinho ---
-        carrinhoTable = new JTable(carrinhoModel);
+        /* ===== Tabela ===== */
+        personalizarTabela();
         add(new JScrollPane(carrinhoTable), BorderLayout.CENTER);
 
-        // --- Cell Editors para Qtd / Preço / Desconto ---
+        /* ===== Rodapé ===== */
+        JPanel rodape = new JPanel(new BorderLayout());
+
+        resumoLbl.setFont(resumoLbl.getFont().deriveFont(Font.BOLD, 14f));
+        rodape.add(resumoLbl, BorderLayout.WEST);
+
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+        JButton btnExcluir = new JButton("🗑️ Excluir Linha");
+        btnExcluir.addActionListener(e -> excluirLinhaSelecionada());
+        JButton btnFinalizar = new JButton("✅ Finalizar");
+        btnFinalizar.addActionListener(e -> finalizarVenda());
+
+        botoes.add(btnExcluir);
+        botoes.add(btnFinalizar);
+        rodape.add(botoes, BorderLayout.EAST);
+        add(rodape, BorderLayout.SOUTH);
+        atualizarResumo();
+
+        // Atalhos de teclado globais
+        InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getRootPane().getActionMap();
+
+        // F2 - Adicionar Produto
+        im.put(KeyStroke.getKeyStroke("F2"), "addProduto");
+        am.put("addProduto", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                btnAddProd.doClick();
+            }
+        });
+
+        // F3 - Adicionar Carta
+        im.put(KeyStroke.getKeyStroke("F3"), "addCarta");
+        am.put("addCarta", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                btnAddCarta.doClick();
+            }
+        });
+
+        // DELETE - Excluir linha
+        im.put(KeyStroke.getKeyStroke("DELETE"), "excluirLinha");
+        am.put("excluirLinha", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                btnExcluir.doClick();
+            }
+        });
+
+        // ENTER - Finalizar
+        im.put(KeyStroke.getKeyStroke("ENTER"), "finalizarVenda");
+        am.put("finalizarVenda", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                btnFinalizar.doClick();
+            }
+        });
+
+    }
+
+    /* ==================================================================== */
+    /* ================ MÉTODOS AUXILIARES ================================= */
+    /* ==================================================================== */
+
+    private void personalizarTabela() {
         TableColumnModel tcm = carrinhoTable.getColumnModel();
 
-        // --- Quantidade (Integer) ---
+        // --------- Qtd (int) ---------
         NumberFormatter intFmt = new NumberFormatter(new DecimalFormat("#0"));
         intFmt.setValueClass(Integer.class);
-        intFmt.setAllowsInvalid(true); // mais permissivo pra edição direta
-        JFormattedTextField intField = new JFormattedTextField(intFmt);
-        intField.setHorizontalAlignment(JTextField.RIGHT);
-        intField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
-        intField.addFocusListener(new FocusAdapter() {
-            @Override public void focusGained(FocusEvent e) {
-                SwingUtilities.invokeLater(intField::selectAll);
-            }
-        });
-        tcm.getColumn(1).setCellEditor(new DefaultCellEditor(intField) {
-            @Override public Object getCellEditorValue() {
-                return intField.getValue();
+        intFmt.setAllowsInvalid(false);
+        JFormattedTextField qtdField = new JFormattedTextField(intFmt);
+        qtdField.setHorizontalAlignment(JTextField.RIGHT);
+        qtdField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        qtdField.addFocusListener(selAll(qtdField));
+        tcm.getColumn(1).setCellEditor(new DefaultCellEditor(qtdField) {
+            @Override
+            public Object getCellEditorValue() {
+                return qtdField.getValue();
             }
         });
 
-        // --- Preço unitário ---
+        // --------- Preço unitário ---------
         NumberFormat moneyFmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
         moneyFmt.setMinimumFractionDigits(2);
         moneyFmt.setMaximumFractionDigits(2);
+        NumberFormatter moneyEditor = new NumberFormatter(moneyFmt);
+        moneyEditor.setValueClass(Double.class);
+        moneyEditor.setAllowsInvalid(false);
 
-        NumberFormatter priceFmt = new NumberFormatter(moneyFmt);
-        priceFmt.setValueClass(Double.class);
-        priceFmt.setAllowsInvalid(true);
-        JFormattedTextField priceField = new JFormattedTextField(priceFmt);
-        priceField.setHorizontalAlignment(JTextField.RIGHT);
-        priceField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
-        priceField.addFocusListener(new FocusAdapter() {
-            @Override public void focusGained(FocusEvent e) {
-                SwingUtilities.invokeLater(priceField::selectAll);
-            }
-        });
-        tcm.getColumn(2).setCellEditor(new DefaultCellEditor(priceField) {
-            @Override public Object getCellEditorValue() {
-                return priceField.getValue();
+        JFormattedTextField unitField = new JFormattedTextField(moneyEditor);
+        unitField.setHorizontalAlignment(JTextField.RIGHT);
+        unitField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        unitField.addFocusListener(selAll(unitField));
+        tcm.getColumn(2).setCellEditor(new DefaultCellEditor(unitField) {
+            @Override
+            public Object getCellEditorValue() {
+                return unitField.getValue();
             }
         });
 
-        // --- Desconto (%) ---
-        NumberFormatter discFmt = new NumberFormatter(moneyFmt);
-        discFmt.setValueClass(Double.class);
-        discFmt.setAllowsInvalid(true);
-        JFormattedTextField discField = new JFormattedTextField(discFmt);
-        discField.setHorizontalAlignment(JTextField.RIGHT);
-        discField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
-        discField.addFocusListener(new FocusAdapter() {
-            @Override public void focusGained(FocusEvent e) {
-                SwingUtilities.invokeLater(discField::selectAll);
+        // --------- Desconto % ---------
+        NumberFormatter pctEditor = new NumberFormatter(NumberFormat.getNumberInstance(new Locale("pt", "BR")));
+        pctEditor.setValueClass(Double.class);
+        pctEditor.setMinimum(0.0);
+        pctEditor.setMaximum(100.0);
+        pctEditor.setAllowsInvalid(false);
+        pctEditor.setOverwriteMode(false); // permite digitação parcial
+
+        JFormattedTextField pctField = new JFormattedTextField(pctEditor);
+        pctField.setHorizontalAlignment(JTextField.RIGHT);
+        pctField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        pctField.addFocusListener(selAll(pctField));
+        tcm.getColumn(3).setCellEditor(new DefaultCellEditor(pctField) {
+            @Override
+            public Object getCellEditorValue() {
+                return pctField.getValue();
             }
         });
-        tcm.getColumn(3).setCellEditor(new DefaultCellEditor(discField) {
-            @Override public Object getCellEditorValue() {
-                return discField.getValue();
-            }
-        });
 
+        tcm.getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        double desc = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
+        if (desc > 0) {
+            c.setBackground(new Color(255, 240, 200)); // amarelo claro
+        } else {
+            c.setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
+        }
+        return c;
+    }
+});
 
-        // --- Coluna Salvar ---
-        tcm.getColumn(5).setCellRenderer(new SalvarCellRenderer());
-        tcm.getColumn(5).setCellEditor(new SalvarCellEditor());
+        /* Atualiza totais sempre que uma edição é concluída */
+        carrinhoTable.getDefaultEditor(Integer.class)
+                .addCellEditorListener(new CellEditorListener() {
+                    public void editingStopped(ChangeEvent e) {
+                        atualizarTodosTotais();
+                    }
 
-        // --- Coluna Excluir ---
-        tcm.getColumn(6).setCellRenderer(new ExcluirCellRenderer());
-        tcm.getColumn(6).setCellEditor(new ExcluirCellEditor());
+                    public void editingCanceled(ChangeEvent e) {
+                    }
+                });
 
-        // --- Rodapé: Total + Finalizar ---
-        JPanel rodape = new JPanel(new BorderLayout());
-        totalCarrinhoLbl.setFont(totalCarrinhoLbl.getFont().deriveFont(Font.BOLD,14f));
-        rodape.add(totalCarrinhoLbl, BorderLayout.WEST);
-        JButton btnFinalizar = new JButton("Finalizar");
-        btnFinalizar.addActionListener(e -> {
-            if (controller.getCarrinho().isEmpty()) {
-                AlertUtils.error("Carrinho vazio!");
-                return;
-            }
-            String nome = ((String)clienteCombo.getEditor().getItem()).trim();
-            String id = clienteDAO.obterIdPorNome(nome);
-            if (id == null) {
-                AlertUtils.error("Cliente inválido.");
-                return;
-            }
-            new VendaFinalizarDialog(this, controller, id, painelPai).setVisible(true);
-        });
-        rodape.add(btnFinalizar, BorderLayout.EAST);
-        add(rodape, BorderLayout.SOUTH);
+        carrinhoTable.getDefaultEditor(Double.class)
+                .addCellEditorListener(new CellEditorListener() {
+                    public void editingStopped(ChangeEvent e) {
+                        atualizarTodosTotais();
+                    }
+
+                    public void editingCanceled(ChangeEvent e) {
+                    }
+                });
+
+        // --------- Formatação de moeda nas colunas 4/5 ---------
+        tcm.getColumn(4).setCellRenderer(moedaRenderer());
+        tcm.getColumn(5).setCellRenderer(moedaRenderer());
+
+        // --------- Coluna vazia (expansão) ----------
+        tcm.getColumn(6).setPreferredWidth(50);
     }
 
-    // Recalcula total
-    private void atualizarTotalCarrinho() {
-        double soma = 0;
+    private static DefaultTableCellRenderer moedaRenderer() {
+        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        return new DefaultTableCellRenderer() {
+            @Override
+            public void setValue(Object v) {
+                setHorizontalAlignment(SwingConstants.RIGHT);
+                super.setText(cf.format((Double) v));
+            }
+        };
+    }
+
+    private static FocusAdapter selAll(JFormattedTextField f) {
+        return new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                SwingUtilities.invokeLater(f::selectAll);
+            }
+        };
+    }
+
+    /* ---------- Selecionar Produtos ---------- */
+    private void abrirSelectProduto() {
+        SelectProdutoDialog dlg = new SelectProdutoDialog((JFrame) getOwner());
+        dlg.setVisible(true);
+        List<ProdutoModel> prod = dlg.getSelecionados();
+        for (ProdutoModel p : prod) {
+            controller.adicionarItem(new VendaItemModel(
+                    p.getId(), 1, p.getPrecoVenda(), 0));
+            carrinhoModel.addRow(new Object[] {
+                    p.getNome(), 1, p.getPrecoVenda(), 0.0,
+                    p.getPrecoVenda(), 0.0, ""
+            });
+        }
+        atualizarTodosTotais();
+    }
+
+    /* ---------- Selecionar Cartas (dialog antigo) ---------- */
+    private void abrirSelectCarta() {
+        SelectCartaDialog dlg = new SelectCartaDialog((JFrame) getOwner());
+        dlg.setVisible(true);
+        dlg.getSelecionadas().forEach(c -> {
+            controller.adicionarItem(new VendaItemModel(
+                    c.getId(), 1, c.getPrecoLoja(), 0));
+            carrinhoModel.addRow(new Object[] {
+                    c.getNome(), 1, c.getPrecoLoja(), 0.0,
+                    c.getPrecoLoja(), 0.0, ""
+            });
+        });
+        atualizarTodosTotais();
+    }
+
+    /* ---------- Recalcula totais linha a linha ---------- */
+    private void atualizarTodosTotais() {
+        double totalVenda = 0, totalDesc = 0;
         for (int r = 0; r < carrinhoModel.getRowCount(); r++) {
-            Object qObj = carrinhoModel.getValueAt(r,1);
-            Object uObj = carrinhoModel.getValueAt(r,2);
-            Object dObj = carrinhoModel.getValueAt(r,3);
-            String qs = qObj==null?"0":qObj.toString().replaceAll("[^0-9]","");
-            String us = uObj==null?"0":uObj.toString().replace(",",".").replaceAll("[^0-9.]","");
-            String ds = dObj==null?"0":dObj.toString().replace(",",".").replaceAll("[^0-9.]","");
-            int    qtd   = qs.isEmpty()?0:Integer.parseInt(qs);
-            double unit  = us.isEmpty()?0:Double.parseDouble(us);
-            double desc  = ds.isEmpty()?0:Double.parseDouble(ds);
-            double tot = qtd * unit * (1 - desc/100);
+            int qtd = (Integer) carrinhoModel.getValueAt(r, 1);
+            double unit = (Double) carrinhoModel.getValueAt(r, 2);
+            double pct = (Double) carrinhoModel.getValueAt(r, 3);
+            double bruto = qtd * unit;
+            double descV = bruto * pct / 100.0;
+            double tot = bruto - descV;
             carrinhoModel.setValueAt(tot, r, 4);
-            soma += tot;
+            carrinhoModel.setValueAt(descV, r, 5);
+            totalVenda += tot;
+            totalDesc += descV;
+            // Atualiza model na lista do controller
+            VendaItemModel m = controller.getCarrinho().get(r);
+            m.setQtd(qtd);
+            m.setPreco(unit);
+            m.setDesconto(pct);
         }
-        totalCarrinhoLbl.setText(String.format("Total: R$ %.2f", soma));
+        resumoLbl.setText(String.format("Total: R$ %.2f | Desconto: R$ %.2f",
+                totalVenda, totalDesc));
     }
 
-    // Renderer e Editor do Salvar
-    private class SalvarCellRenderer extends JButton implements TableCellRenderer {
-        SalvarCellRenderer() {
-            setText("Salvar");
-            setFocusable(false);
-        }
-        @Override public Component getTableCellRendererComponent(JTable table, Object value,
-                                                                  boolean isSelected, boolean hasFocus,
-                                                                  int row, int column) {
-            return this;
-        }
-    }
-    private class SalvarCellEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JButton btn = new JButton("Salvar");
-        private int row;
-        SalvarCellEditor() {
-            btn.setFocusable(false);
-            btn.addActionListener(e -> {
-                try {
-                    Object qO = carrinhoModel.getValueAt(row,1);
-                    Object uO = carrinhoModel.getValueAt(row,2);
-                    Object dO = carrinhoModel.getValueAt(row,3);
-                    String qs = qO==null?"0":qO.toString().replaceAll("[^0-9]","");
-                    String us = uO==null?"0":uO.toString().replace(",",".").replaceAll("[^0-9.]","");
-                    String ds = dO==null?"0":dO.toString().replace(",",".").replaceAll("[^0-9.]","");
-                    int    qtd = qs.isEmpty()?0:Integer.parseInt(qs);
-                    double unit= us.isEmpty()?0:Double.parseDouble(us);
-                    double desc= ds.isEmpty()?0:Double.parseDouble(ds);
-                    double tot = qtd*unit*(1-desc/100);
-                    carrinhoModel.setValueAt(tot, row, 4);
-                    VendaItemModel item = controller.getCarrinho().get(row);
-                    item.setQtd(qtd);
-                    item.setPreco(unit);
-                    item.setDesconto(desc);
-                    atualizarTotalCarrinho();
-                } catch(Exception ex){
-                    AlertUtils.error("Erro ao salvar: " + ex.getMessage());
-                }
-                fireEditingStopped();
-            });
-        }
-        @Override public Component getTableCellEditorComponent(JTable table, Object value,
-                                                               boolean isSelected, int row, int column) {
-            this.row = row;
-            return btn;
-        }
-        @Override public Object getCellEditorValue() { return ""; }
+    private void atualizarResumo() {
+        atualizarTodosTotais();
     }
 
-    // Renderer e Editor do Excluir
-    private class ExcluirCellRenderer extends JButton implements TableCellRenderer {
-        ExcluirCellRenderer() {
-            setText("Excluir");
-            setFocusable(false);
+    /* ---------- Excluir linha ---------- */
+    private void excluirLinhaSelecionada() {
+        int r = carrinhoTable.getSelectedRow();
+        if (r < 0) {
+            AlertUtils.info("Selecione uma linha.");
+            return;
         }
-        @Override public Component getTableCellRendererComponent(JTable table, Object value,
-                                                                  boolean isSelected, boolean hasFocus,
-                                                                  int row, int column) {
-            return this;
-        }
+        controller.getCarrinho().remove(r);
+        carrinhoModel.removeRow(r);
+        atualizarResumo();
     }
-    private class ExcluirCellEditor extends AbstractCellEditor implements TableCellEditor {
-        private final JButton btn = new JButton("Excluir");
-        private int row;
-        ExcluirCellEditor() {
-            btn.setFocusable(false);
-            btn.addActionListener(e -> {
-                controller.getCarrinho().remove(row);
-                carrinhoModel.removeRow(row);
-                atualizarTotalCarrinho();
-                fireEditingStopped();
-            });
+
+    /* ---------- Finalizar ---------- */
+    private void finalizarVenda() {
+        if (controller.getCarrinho().isEmpty()) {
+            AlertUtils.error("Carrinho vazio!");
+            return;
         }
-        @Override public Component getTableCellEditorComponent(JTable table, Object value,
-                                                               boolean isSelected, int row, int column) {
-            this.row = row;
-            return btn;
+        String nomeCliente = ((String) clienteCombo.getEditor().getItem()).trim();
+        String clienteId = clienteDAO.obterIdPorNome(nomeCliente);
+        if (clienteId == null) {
+            AlertUtils.error("Cliente inválido.");
+            return;
         }
-        @Override public Object getCellEditorValue() { return ""; }
+        new VendaFinalizarDialog(this, controller, clienteId, painelPai)
+                .setVisible(true);
     }
 }

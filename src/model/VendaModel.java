@@ -1,22 +1,31 @@
 package model;
 
+import java.util.List;
+
+/**
+ * Cabeçalho de venda.
+ * Mantido igual, mas com setter opcional de itens.
+ */
 public class VendaModel {
+
     private int id;
     private String dataVenda;
     private String clienteId;
-
-    private double totalBruto;     // valor total antes do desconto
-    private double desconto;       // valor em reais (não %)
-    private double totalLiquido;   // valor final (bruto - desconto)
-
+    private double totalBruto;
+    private double desconto;
+    private double totalLiquido;
     private String formaPagamento;
     private int parcelas;
     private String status;
 
-    // ==== Construtores ====
+    /* --- Novo: itens da venda (útil para gerar PDF) --- */
+    private transient List<VendaItemModel> itens;
+
+    /* ---------- Construtores ---------- */
     public VendaModel(int id, String data, String cliente,
                       double totalBruto, double desconto, double totalLiquido,
                       String forma, int parcelas, String status) {
+
         this.id = id;
         this.dataVenda = data;
         this.clienteId = cliente;
@@ -34,27 +43,28 @@ public class VendaModel {
         this(-1, data, cliente, totalBruto, desconto, totalLiquido, forma, parcelas, status);
     }
 
-    // ==== Getters e Setters ====
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    /* ---------- Getters / Setters ---------- */
+    public int getId()                  { return id; }
+    public void setId(int id)           { this.id = id; }
 
-    public String getDataVenda() { return dataVenda; }
+    public String getDataVenda()        { return dataVenda; }
+    public String getClienteId()        { return clienteId; }
 
-    public String getClienteId() { return clienteId; }
+    public double getTotalBruto()       { return totalBruto; }
+    public void setTotalBruto(double v) { this.totalBruto = v; }
 
-    public double getTotalBruto() { return totalBruto; }
-    public void setTotalBruto(double totalBruto) { this.totalBruto = totalBruto; }
+    public double getDesconto()         { return desconto; }
+    public void setDesconto(double v)   { this.desconto = v; }
 
-    public double getDesconto() { return desconto; }
-    public void setDesconto(double desconto) { this.desconto = desconto; }
+    public double getTotalLiquido()     { return totalLiquido; }
+    public void setTotalLiquido(double v){ this.totalLiquido = v; }
 
-    public double getTotalLiquido() { return totalLiquido; }
-    public void setTotalLiquido(double totalLiquido) { this.totalLiquido = totalLiquido; }
+    public String getFormaPagamento()   { return formaPagamento; }
+    public int getParcelas()            { return parcelas; }
 
-    public String getFormaPagamento() { return formaPagamento; }
+    public String getStatus()           { return status; }
+    public void setStatus(String s)     { this.status = s; }
 
-    public int getParcelas() { return parcelas; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public List<VendaItemModel> getItens() { return itens; }
+    public void setItens(List<VendaItemModel> itens) { this.itens = itens; }
 }

@@ -1,15 +1,20 @@
 package dao;
 
 import model.VendaModel;
-import java.sql.*;
 import util.DateUtils;
 
+import java.sql.*;
+
 public class VendaDAO {
-    /** Agora recebe a conexão já aberta e faz seu trabalho nela */
+
+    /**
+     * Insere a venda usando a conexão da transação já aberta.
+     * Retorna o ID gerado.
+     */
     public int insert(VendaModel v, Connection c) throws SQLException {
-        String sql = "INSERT INTO vendas(data_venda, cliente_id, total_bruto, total_liquido, desconto,"
-                   + " forma_pagamento, parcelas, status, criado_em, criado_por) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO vendas(data_venda, cliente_id, total_bruto, total_liquido," +
+                     " desconto, forma_pagamento, parcelas, status, criado_em, criado_por) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, v.getDataVenda());
@@ -22,8 +27,8 @@ public class VendaDAO {
             ps.setString(8, v.getStatus());
             ps.setString(9, DateUtils.now());
             ps.setString(10, "admin");
-
             ps.executeUpdate();
+
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
                     v.setId(keys.getInt(1));

@@ -1,16 +1,27 @@
+// src/controller/VendaController.java
 package controller;
 
 import service.VendaService;
-import model.*;
+import model.VendaItemModel;
+import model.VendaModel;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Controlador de venda – mantém o carrinho em memória
+ * e delega o fechamento à camada de serviço.
+ */
 public class VendaController {
-    private VendaService vendaService = new VendaService();
-    private List<VendaItemModel> carrinho = new ArrayList<>();
 
-    public void adicionarItem(VendaItemModel it) {
-        carrinho.add(it);
+    private final VendaService vendaService = new VendaService();
+    private final List<VendaItemModel> carrinho = new ArrayList<>();
+
+    // =========================
+    // Carrinho (produtos selecionados)
+    // =========================
+    public void adicionarItem(VendaItemModel item) {
+        carrinho.add(item);
     }
 
     public void limparCarrinho() {
@@ -21,17 +32,33 @@ public class VendaController {
         return carrinho;
     }
 
+    // =========================
+    // Resumo financeiro (usado na UI)
+    // =========================
+    public double getTotalBruto() {
+        return carrinho.stream()
+                .mapToDouble(it -> it.getQtd() * it.getPreco())
+                .sum();
+    }
+
+    public double getTotalDesconto() {
+        return carrinho.stream()
+                .mapToDouble(it -> it.getQtd() * it.getPreco() * it.getDesconto() / 100.0)
+                .sum();
+    }
+
+    public double getTotalLiquido() {
+        return getTotalBruto() - getTotalDesconto();
+    }
+
+    // =========================
+    // Finaliza e grava a venda
+    // =========================
     public int finalizar(String clienteId, String forma, int parcelas) throws Exception {
-        double totalBruto = 0;
-        double totalDesconto = 0;
 
-        for (VendaItemModel item : carrinho) {
-            double itemBruto = item.getQtd() * item.getPreco();
-            totalBruto += itemBruto;
-            totalDesconto += itemBruto * item.getDesconto() / 100.0;
-        }
-
-        double totalLiquido = totalBruto - totalDesconto;
+        double totalBruto    = getTotalBruto();
+        double totalDesconto = getTotalDesconto();
+        double totalLiquido  = getTotalLiquido();
 
         VendaModel venda = factory.VendaFactory.criarVenda(
             clienteId,

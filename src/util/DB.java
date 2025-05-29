@@ -51,11 +51,15 @@ public class DB {
                                                         "forma_pagamento TEXT NOT NULL, " +
                                                         "parcelas INTEGER DEFAULT 1, " +
                                                         "desconto REAL DEFAULT 0, " +
+                                                        "acrescimo REAL DEFAULT 0, " +
                                                         "total_bruto REAL NOT NULL, " +
                                                         "total_liquido REAL NOT NULL, " +
-                                                        "status TEXT DEFAULT 'fechada', " + // << AQUI
+                                                        "status TEXT DEFAULT 'fechada', " +
+                                                        "observacoes TEXT, " +
                                                         "criado_em TEXT, " +
                                                         "criado_por TEXT, " +
+                                                        "cancelado_em TEXT, " +
+                                                        "cancelado_por TEXT, " +
                                                         "FOREIGN KEY (cliente_id) REFERENCES clientes(id)" +
                                                         ")");
 
@@ -64,11 +68,23 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS vendas_itens (" +
                                                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                                         "venda_id INTEGER NOT NULL, " +
-                                                        "carta_id TEXT NOT NULL, " +
+                                                        "produto_id TEXT NOT NULL, " +
                                                         "qtd INTEGER NOT NULL, " +
                                                         "preco REAL NOT NULL, " +
-                                                        "desconto REAL DEFAULT 0, " + // % individual do item
+                                                        "desconto REAL DEFAULT 0, " +
+                                                        "acrescimo REAL DEFAULT 0, " +
                                                         "total_item REAL NOT NULL, " +
+                                                        "observacoes TEXT, " +
+                                                        "FOREIGN KEY (venda_id) REFERENCES vendas(id)" +
+                                                        ")");
+
+                        // pagamentos de venda
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS vendas_pagamentos (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "venda_id INTEGER NOT NULL, " +
+                                                        "tipo TEXT NOT NULL, " + // ex: pix, dinheiro, cartão
+                                                        "valor REAL NOT NULL, " +
                                                         "FOREIGN KEY (venda_id) REFERENCES vendas(id)" +
                                                         ")");
 
