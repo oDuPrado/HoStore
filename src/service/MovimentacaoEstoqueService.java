@@ -3,6 +3,7 @@ package service;
 import dao.MovimentacaoEstoqueDAO;
 import model.MovimentacaoEstoqueModel;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,27 +21,36 @@ public class MovimentacaoEstoqueService {
     private final MovimentacaoEstoqueDAO dao = new MovimentacaoEstoqueDAO();
 
     /**
-     * Registra a movimentação no histórico.
+     * Registra a movimentação no histórico, criando nova conexão.
      * 
-     * ⚠️ Não altera a quantidade em estoque!
+     * ⚠️ Use somente fora de transações.
      * 
      * @param mov movimentação (sem ID e sem data)
-     * @return o mesmo objeto com ID e data preenchidos
+     * @return o mesmo objeto com data preenchida
      * @throws Exception se falhar ao salvar
      */
     public MovimentacaoEstoqueModel registrar(MovimentacaoEstoqueModel mov) throws Exception {
-        // Define data atual da movimentação
         mov.setData(LocalDateTime.now());
+        return dao.inserir(mov); // abre nova conexão interna
+    }
 
-        // Apenas registra no histórico, sem alterar estoque
-        return dao.inserir(mov);
+    /**
+     * Registra a movimentação no histórico usando uma conexão existente.
+     * 
+     * ✅ Use este dentro de transações (como venda ou devolução).
+     * 
+     * @param mov movimentação
+     * @param c conexão ativa (transacional)
+     * @return movimentação com data preenchida
+     * @throws Exception se falhar ao salvar
+     */
+    public MovimentacaoEstoqueModel registrar(MovimentacaoEstoqueModel mov, Connection c) throws Exception {
+        mov.setData(LocalDateTime.now());
+        return dao.inserir(mov, c); // usa conexão da transação
     }
 
     /**
      * Lista todas as movimentações registradas.
-     * 
-     * @return lista completa
-     * @throws Exception se falhar ao listar
      */
     public List<MovimentacaoEstoqueModel> listarTodas() throws Exception {
         return dao.listarTodas();
@@ -48,10 +58,6 @@ public class MovimentacaoEstoqueService {
 
     /**
      * Lista todas as movimentações de um produto específico.
-     * 
-     * @param produtoId ID do produto
-     * @return lista de movimentações
-     * @throws Exception se falhar ao listar
      */
     public List<MovimentacaoEstoqueModel> listarPorProduto(String produtoId) throws Exception {
         return dao.listarPorProduto(produtoId);

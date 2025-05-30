@@ -12,6 +12,10 @@ import util.PDFGenerator;
 import java.sql.Connection;
 import java.util.List;
 
+import dao.VendaDevolucaoDAO;
+import model.VendaDevolucaoModel;
+
+
 /**
  * Serviço que garante transação única na finalização da venda.
  * Suporta produtos genéricos (não apenas cartas).
@@ -52,7 +56,7 @@ public class VendaService {
             // 3) grava itens e baixa estoque
             for (VendaItemModel it : itens) {
                 itemDAO.insert(it, vendaId, c);
-                estoqueService.baixarEstoque(c, it.getProdutoId(), it.getQtd());
+                estoqueService.baixarEstoqueProduto(c, it.getProdutoId(), it.getQtd());
             }
 
             // 4) commit
@@ -70,4 +74,30 @@ public class VendaService {
             throw ex;
         }
     }
+        private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
+
+    /**
+     * Registra uma devolução:
+     *  - grava na tabela de devoluções
+     *  - devolve ao estoque
+     */
+    public void registrarDevolucao(VendaDevolucaoModel devolucao) throws Exception {
+        try (Connection c = DB.get()) {
+            c.setAutoCommit(false);
+
+            // 1) grava devolução
+            devolucaoDAO.inserir(devolucao);
+
+            // 2) devolve ao estoque
+            estoqueService.entrarEstoque(c, devolucao.getProdutoId(), devolucao.getQuantidade());
+
+            // 3) commit
+            c.commit();
+            LogService.info("Devolução registrada para venda " + devolucao.getVendaId());
+        } catch (Exception ex) {
+            LogService.error("Erro ao registrar devolução", ex);
+            throw ex;
+        }
+    }
+
 }

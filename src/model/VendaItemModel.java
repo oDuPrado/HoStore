@@ -20,6 +20,9 @@ public class VendaItemModel {
     private double totalItem;   // calculado
 
     /* ---------- Construtores ---------- */
+public VendaItemModel() {
+    // necessário para instanciar vazio e preencher com setters
+}
     public VendaItemModel(String produtoId, int qtd,
                           double preco, double desconto) {
         this.produtoId = produtoId;
@@ -59,4 +62,8 @@ public class VendaItemModel {
 
     public double getTotalItem()        { return totalItem; }
     public void   setTotalItem(double t){ this.totalItem = t; }
+
+    public void setProdutoId(String produtoId) {
+    this.produtoId = produtoId;
+}
 }

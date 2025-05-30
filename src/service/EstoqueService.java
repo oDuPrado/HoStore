@@ -41,68 +41,100 @@ public class EstoqueService {
         }
     }
 
-    
     /**
- * Dá baixa no estoque usando o ProdutoEstoqueService.
- * Valida se há estoque suficiente antes de registrar saída.
- */
-public void darBaixa(String tipoProduto, int produtoId, int quantidade) throws SQLException {
-    try {
-        int atual = produtoEstoqueService.obterQuantidade(String.valueOf(produtoId));
-        if (atual < quantidade) {
-            throw new SQLException("Estoque insuficiente para o produto " + produtoId +
-                                   " (Disponível: " + atual + ", Necessário: " + quantidade + ")");
+     * Dá baixa no estoque usando o ProdutoEstoqueService.
+     * Valida se há estoque suficiente antes de registrar saída.
+     */
+    public void darBaixa(String tipoProduto, int produtoId, int quantidade) throws SQLException {
+        try {
+            int atual = produtoEstoqueService.obterQuantidade(String.valueOf(produtoId));
+            if (atual < quantidade) {
+                throw new SQLException("Estoque insuficiente para o produto " + produtoId +
+                        " (Disponível: " + atual + ", Necessário: " + quantidade + ")");
+            }
+
+            produtoEstoqueService.registrarSaida(
+                    String.valueOf(produtoId),
+                    quantidade,
+                    "Venda de produto",
+                    "sistema");
+        } catch (Exception e) {
+            throw new SQLException("Erro ao dar baixa no estoque: " + e.getMessage(), e);
         }
-
-        produtoEstoqueService.registrarSaida(
-            String.valueOf(produtoId),
-            quantidade,
-            "Venda de produto",
-            "sistema"
-        );
-    } catch (Exception e) {
-        throw new SQLException("Erro ao dar baixa no estoque: " + e.getMessage(), e);
     }
-}
 
-/**
- * Valida se o produto tem estoque suficiente.
- */
-public boolean possuiEstoque(Connection c, String produtoId, int qtdNec) throws SQLException {
-    try {
-        int atual = produtoEstoqueService.obterQuantidade(produtoId);
-        return atual >= qtdNec;
-    } catch (Exception e) {
-        throw new SQLException("Erro ao verificar estoque do produto " + produtoId + ": " + e.getMessage(), e);
+    /**
+     * Valida se o produto tem estoque suficiente.
+     */
+    public boolean possuiEstoque(Connection c, String produtoId, int qtdNec) throws SQLException {
+        try {
+            int atual = produtoEstoqueService.obterQuantidade(produtoId);
+            return atual >= qtdNec;
+        } catch (Exception e) {
+            throw new SQLException("Erro ao verificar estoque do produto " + produtoId + ": " + e.getMessage(), e);
+        }
     }
-}
-    
+
     /**
      * Lista produtos disponíveis (com estoque > 0) com dados simplificados.
      */
     public List<ProdutoEstoqueDTO> buscarProdutosDisponiveis() {
-    return produtoEstoqueService.listarTudo().stream()
-        .filter(p -> p.getQuantidade() > 0)
-        .map(p -> {
-            ProdutoEstoqueDTO dto = new ProdutoEstoqueDTO();
-            try {
-                dto.setId(Integer.parseInt(p.getId()));
-            } catch (NumberFormatException e) {
-                dto.setId(-1); // fallback se o ID não for número
+        return produtoEstoqueService.listarTudo().stream()
+                .filter(p -> p.getQuantidade() > 0)
+                .map(p -> {
+                    ProdutoEstoqueDTO dto = new ProdutoEstoqueDTO();
+                    try {
+                        dto.setId(Integer.parseInt(p.getId()));
+                    } catch (NumberFormatException e) {
+                        dto.setId(-1); // fallback se o ID não for número
+                    }
+                    dto.setTipoDisplay(p.getTipo());
+                    dto.setNome(p.getNome());
+                    dto.setQuantidade(p.getQuantidade());
+                    dto.setPrecoVenda(BigDecimal.valueOf(p.getPrecoVenda()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Registra devolução de estoque via ProdutoEstoqueService.
+     * Útil para devoluções de venda.
+     */
+    public void entrarEstoque(Connection c, String produtoId, int quantidade) throws SQLException {
+        try {
+            produtoEstoqueService.registrarEntrada(
+                    produtoId,
+                    quantidade,
+                    "Devolução de venda",
+                    "sistema");
+        } catch (Exception e) {
+            throw new SQLException("Erro ao devolver produto ao estoque: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Dá baixa no estoque de um produto genérico, com `Connection` para controle
+     * transacional.
+     */
+    public void baixarEstoqueProduto(Connection c, String produtoId, int quantidade) throws SQLException {
+        try {
+            int atual = produtoEstoqueService.obterQuantidade(produtoId);
+            if (atual < quantidade) {
+                throw new SQLException("Estoque insuficiente para o produto " + produtoId +
+                        " (Disponível: " + atual + ", Necessário: " + quantidade + ")");
             }
-            dto.setTipoDisplay(p.getTipo());
-            dto.setNome(p.getNome());
-            dto.setQuantidade(p.getQuantidade());
-            dto.setPrecoVenda(BigDecimal.valueOf(p.getPrecoVenda()));
-            return dto;
-        })
-        .collect(Collectors.toList());
-}
+
+            produtoEstoqueService.registrarSaida(produtoId, quantidade, "Venda de produto", "sistema", c);
+
+        } catch (Exception e) {
+            throw new SQLException("Erro ao dar baixa no estoque: " + e.getMessage(), e);
+        }
+    }
 
     // ------------------------------------------------------------
     // 2) Métodos de carta (legado)
     // ------------------------------------------------------------
-
 
     @Deprecated
     public void baixarEstoque(Connection c, String cartaId, int qtd) throws Exception {

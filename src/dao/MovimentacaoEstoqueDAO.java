@@ -1,4 +1,3 @@
-// Procure no seu projeto (Ctrl+F) por "new DB().get()" e cole isto em src/dao/MovimentacaoEstoqueDAO.java
 package dao;
 
 import util.DB;
@@ -13,13 +12,18 @@ import java.util.List;
 public class MovimentacaoEstoqueDAO {
     private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    /** Insere nova movimentação e retorna o objeto com o ID gerado */
+    /** Insere nova movimentação e retorna o objeto com o ID gerado (com nova conexão) */
     public MovimentacaoEstoqueModel inserir(MovimentacaoEstoqueModel mov) throws SQLException {
+        try (Connection c = DB.get()) {
+            return inserir(mov, c);
+        }
+    }
+
+    /** Insere nova movimentação usando uma conexão existente (ideal para transações) */
+    public MovimentacaoEstoqueModel inserir(MovimentacaoEstoqueModel mov, Connection c) throws SQLException {
         String sql = "INSERT INTO estoque_movimentacoes(produto_id, tipo_mov, quantidade, motivo, data, usuario) "
                    + "VALUES(?,?,?,?,?,?)";
-        try (Connection c = DB.get();
-             PreparedStatement p = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
+        try (PreparedStatement p = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             p.setString(1, mov.getProdutoId());
             p.setString(2, mov.getTipoMov());
             p.setInt(3, mov.getQuantidade());

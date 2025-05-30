@@ -13,7 +13,7 @@ import model.EtbModel;
 import service.MovimentacaoEstoqueService;
 import model.MovimentacaoEstoqueModel;
 import java.time.LocalDateTime;
-
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,31 +25,35 @@ public class ProdutoEstoqueService {
     /* ==================== PRODUTOS GENÉRICOS ==================== */
 
     public void salvar(ProdutoModel p) throws SQLException {
-        ProdutoModel existente = dao.findById(p.getId());
-        boolean novo = (existente == null);
-    
-        if (novo) {
-            dao.insert(p);
-    
-            // Se tiver quantidade inicial, registrar como entrada
-            if (p.getQuantidade() > 0) {
-                try {
-                    registrarEntrada(
-                        p.getId(),
-                        p.getQuantidade(),
-                        "Cadastro inicial",
-                        "sistema"
-                    );
-                } catch (Exception e) {
-                    e.printStackTrace(); // ou logue em produção
-                }
+    ProdutoModel existente = dao.findById(p.getId());
+    boolean novo = (existente == null);
+
+    if (novo) {
+        int qtdInicial = p.getQuantidade();  // guarda a quantidade original
+        p.setQuantidade(0);                  // zera para não salvar duplicado
+
+        dao.insert(p); // insere o produto com estoque 0
+
+        // Se tiver quantidade inicial, registrar como entrada no histórico
+        if (qtdInicial > 0) {
+            try {
+                registrarEntrada(
+                    p.getId(),
+                    qtdInicial,
+                    "Cadastro inicial",
+                    "sistema"
+                );
+            } catch (Exception e) {
+                e.printStackTrace(); // em produção, use log
             }
-    
-        } else {
-            p.setAlteradoEmNow();
-            dao.update(p);
         }
-    }    
+
+    } else {
+        p.setAlteradoEmNow(); // atualiza timestamp de modificação
+        dao.update(p);        // apenas atualiza, sem mexer em estoque
+    }
+}
+    
 
     public void remover(String id) throws SQLException {
         dao.delete(id);
@@ -154,6 +158,24 @@ public void registrarEntrada(String produtoId, int quantidade, String motivo, St
     new MovimentacaoEstoqueService().registrar(mov);
 }
 
+public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c) throws Exception {
+    ProdutoModel produto = dao.findById(produtoId);
+    if (produto == null) throw new Exception("Produto não encontrado!");
+
+    // atualiza quantidade
+    produto.setQuantidade(produto.getQuantidade() + quantidade);
+    produto.setAlteradoEmNow();
+    dao.update(produto, c); // usa a mesma conexão
+
+    // registra movimentação com a mesma conexão
+    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+        produtoId, "entrada", quantidade, motivo, usuario
+    );
+    mov.setData(LocalDateTime.now());
+
+    new MovimentacaoEstoqueService().registrar(mov, c);
+}
+
 public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
     ProdutoModel produto = dao.findById(produtoId);
     if (produto == null) throw new Exception("Produto não encontrado!");
@@ -174,6 +196,29 @@ public void registrarSaida(String produtoId, int quantidade, String motivo, Stri
 
     new MovimentacaoEstoqueService().registrar(mov);
 }
+
+public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario, Connection c) throws Exception {
+    ProdutoModel produto = dao.findById(produtoId);
+    if (produto == null) throw new Exception("Produto não encontrado!");
+
+    if (produto.getQuantidade() < quantidade)
+        throw new Exception("Estoque insuficiente para saída!");
+
+    // atualiza quantidade
+    produto.setQuantidade(produto.getQuantidade() - quantidade);
+    produto.setAlteradoEmNow();
+    dao.update(produto, c); // ← usa a mesma conexão
+
+    // registra movimentação com a mesma conexão
+    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+        produtoId, "saida", quantidade, motivo, usuario
+    );
+    mov.setData(LocalDateTime.now());
+
+    new MovimentacaoEstoqueService().registrar(mov, c); // ← sem DB.get()
+}
+
+
 
 public int obterQuantidade(String produtoId) throws SQLException {
     ProdutoModel p = dao.findById(produtoId);

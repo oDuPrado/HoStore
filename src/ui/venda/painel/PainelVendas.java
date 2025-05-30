@@ -1,7 +1,7 @@
 // src/ui/venda/painel/PainelVendas.java
 package ui.venda.painel;
 
-import com.toedter.calendar.JDateChooser;           // picker de data
+import com.toedter.calendar.JDateChooser; // picker de data
 import dao.ClienteDAO;
 import model.ClienteModel;
 import ui.venda.dialog.VendaDetalhesDialog;
@@ -34,18 +34,17 @@ public class PainelVendas extends JPanel {
 
     // Componentes de filtro
     private final JDateChooser inicioChooser = new JDateChooser();
-    private final JDateChooser fimChooser    = new JDateChooser();
+    private final JDateChooser fimChooser = new JDateChooser();
     private final JComboBox<String> clienteCombo = new JComboBox<>();
-    private final JComboBox<String> statusCombo  = new JComboBox<>(
-        new String[]{ "Todos", "Fechada", "Cancelada", "Estornada", "Pendente" }
-    );
+    private final JComboBox<String> statusCombo = new JComboBox<>(
+            new String[] { "Todos", "Fechada", "Cancelada", "Estornada", "Pendente" });
 
     // Labels de resumo
     private final JLabel resumoLbl = new JLabel();
 
     // Formatter para SQL (yyyy-MM-dd) e BR (dd/MM/yyyy)
     private static final DateTimeFormatter SQL_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter BR_DATE  = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter BR_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final JFrame owner;
 
@@ -54,18 +53,24 @@ public class PainelVendas extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Modelo com colunas: ID, Data, Cliente, Total, Forma PG, Parc., Status, Detalhes
-        modelo = new DefaultTableModel(new String[]{
-            "ID", "Data", "Cliente", "Total Líquido", "Forma PG", "Parcelas", "Status", "Detalhes"
+        // Modelo com colunas: ID, Data, Cliente, Total, Forma PG, Parc., Status,
+        // Detalhes
+        modelo = new DefaultTableModel(new String[] {
+                "ID", "Data", "Cliente", "Total Líquido", "Forma PG", "Parcelas", "Status", "Detalhes"
         }, 0) {
-            @Override public boolean isCellEditable(int row, int col) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
                 // Apenas a coluna "Detalhes" será clicável
                 return col == 7;
             }
-            @Override public Class<?> getColumnClass(int col) {
+
+            @Override
+            public Class<?> getColumnClass(int col) {
                 // Define tipos para correto sort/render
-                if (col == 0) return Integer.class;
-                if (col == 3) return Double.class;
+                if (col == 0)
+                    return Integer.class;
+                if (col == 3)
+                    return Double.class;
                 return String.class;
             }
         };
@@ -79,7 +84,7 @@ public class PainelVendas extends JPanel {
         personalizarTabela();
         configurarEventos();
 
-        carregarClientes();      // popula lista de clientes no combo
+        carregarClientes(); // popula lista de clientes no combo
         // define formato de exibição dos pickers
         inicioChooser.setDateFormatString("dd/MM/yyyy");
         fimChooser.setDateFormatString("dd/MM/yyyy");
@@ -101,7 +106,7 @@ public class PainelVendas extends JPanel {
         toolbar.add(fimChooser);
 
         toolbar.add(new JLabel("Cliente:"));
-        clienteCombo.setEditable(true);  // permite digitar para buscar
+        clienteCombo.setEditable(true); // permite digitar para buscar
         toolbar.add(clienteCombo);
 
         toolbar.add(new JLabel("Status:"));
@@ -138,9 +143,7 @@ public class PainelVendas extends JPanel {
 
         // Nova Venda
         JButton btnNova = new JButton("➕ Nova Venda");
-        btnNova.addActionListener(e ->
-            new VendaNovaDialog(owner, this).setVisible(true)
-        );
+        btnNova.addActionListener(e -> new VendaNovaDialog(owner, this).setVisible(true));
         botoes.add(btnNova);
 
         // Editar (abre detalhes por enquanto)
@@ -152,7 +155,7 @@ public class PainelVendas extends JPanel {
                 return;
             }
             int id = (int) modelo.getValueAt(row, 0);
-            // TODO: substituir por dialog de edição real quando implementado
+
             new VendaDetalhesDialog(owner, id).setVisible(true);
         });
         botoes.add(btnEditar);
@@ -167,18 +170,17 @@ public class PainelVendas extends JPanel {
             }
             int id = (int) modelo.getValueAt(row, 0);
             int op = JOptionPane.showConfirmDialog(owner,
-                "Confirma exclusão da venda ID " + id + "?",
-                "Confirmar",
-                JOptionPane.YES_NO_OPTION
-            );
+                    "Confirma exclusão da venda ID " + id + "?",
+                    "Confirmar",
+                    JOptionPane.YES_NO_OPTION);
             if (op == JOptionPane.YES_OPTION) {
                 excluirVenda(id);
                 // recarrega mantendo filtros atuais
                 String d1 = formatarDataParaSQL(inicioChooser);
                 String d2 = formatarDataParaSQL(fimChooser);
                 carregarVendas(d1, d2,
-                              (String) clienteCombo.getSelectedItem(),
-                              (String) statusCombo.getSelectedItem());
+                        (String) clienteCombo.getSelectedItem(),
+                        (String) statusCombo.getSelectedItem());
             }
         });
         botoes.add(btnExcluir);
@@ -215,7 +217,7 @@ public class PainelVendas extends JPanel {
         tabela.getColumnModel().getColumn(0).setCellRenderer(center);
 
         // formata valores monetários à direita
-        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
+        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         tabela.getColumnModel().getColumn(3).setCellRenderer((tbl, val, isSel, hasFocus, row, col) -> {
             JLabel l = new JLabel(cf.format((Double) val));
             l.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -230,10 +232,25 @@ public class PainelVendas extends JPanel {
             l.setForeground(Color.WHITE);
             l.setHorizontalAlignment(SwingConstants.CENTER);
             switch (s.toLowerCase()) {
-                case "fechada":   l.setBackground(new Color(46,139,87)); break;
-                case "estornada": l.setBackground(new Color(178,34,34)); break;
-                case "cancelada": l.setBackground(new Color(184,134,11)); break;
-                default:          l.setBackground(Color.GRAY); break;
+                case "fechada":
+                    l.setBackground(new Color(46, 139, 87));
+                    break;
+                case "estornada":
+                    l.setBackground(new Color(178, 34, 34));
+                    break;
+                case "cancelada":
+                    l.setBackground(new Color(184, 134, 11));
+                    break;
+                default:
+                    l.setBackground(Color.GRAY);
+                    break;
+                case "pendente":
+                    l.setBackground(new Color(70, 130, 180));
+                    break; // azul
+                case "devolvida":
+                    l.setBackground(new Color(128, 0, 128));
+                    break; // roxo
+
             }
             return l;
         });
@@ -268,13 +285,13 @@ public class PainelVendas extends JPanel {
     public void carregarVendas(String dataIni, String dataFim, String cliente, String status) {
         modelo.setRowCount(0);
         double total = 0;
+
         try (Statement st = DB.get().createStatement()) {
 
             // monta SQL dinamicamente
             StringBuilder sql = new StringBuilder(
-                "SELECT v.*, c.nome AS cliente_nome " +
-                "FROM vendas v JOIN clientes c ON v.cliente_id = c.id"
-            );
+                    "SELECT v.*, c.nome AS cliente_nome " +
+                            "FROM vendas v JOIN clientes c ON v.cliente_id = c.id");
             StringJoiner where = new StringJoiner(" AND ");
             if (dataIni != null && !dataIni.isEmpty())
                 where.add("date(v.data_venda) >= '" + dataIni + "'");
@@ -290,20 +307,56 @@ public class PainelVendas extends JPanel {
 
             try (ResultSet rs = st.executeQuery(sql.toString())) {
                 while (rs.next()) {
-                    int    id      = rs.getInt("id");
-                    String rawDt   = rs.getString("data_venda");
-                    LocalDate dt   = LocalDate.parse(rawDt.substring(0,10));
-                    String data    = dt.format(BR_DATE);
+                    int id = rs.getInt("id");
+                    String rawDt = rs.getString("data_venda");
+                    LocalDate dt = LocalDate.parse(rawDt.substring(0, 10));
+                    String data = dt.format(BR_DATE);
                     String cliNome = rs.getString("cliente_nome");
-                    double val     = rs.getDouble("total_liquido");
-                    String pg      = rs.getString("forma_pagamento");
-                    int    parc    = rs.getInt("parcelas");
-                    String stat    = rs.getString("status");
+                    double val = rs.getDouble("total_liquido");
+                    String pg = rs.getString("forma_pagamento");
+                    int parc = rs.getInt("parcelas");
+                    String statusOriginal = rs.getString("status").toLowerCase();
 
-                    modelo.addRow(new Object[]{ id, data, cliNome, val, pg, parc, stat, "Detalhes" });
+                    // Verifica se tem devolução
+                    boolean teveDevolucao = false;
+                    try (Statement stDev = DB.get().createStatement();
+                            ResultSet rsDev = stDev
+                                    .executeQuery("SELECT COUNT(*) FROM vendas_devolucoes WHERE venda_id = " + id)) {
+                        if (rsDev.next() && rsDev.getInt(1) > 0) {
+                            teveDevolucao = true;
+                        }
+                    }
+
+                    // Verifica se há parcelas pendentes (status = 'aberto' em contas a receber)
+                    boolean temParcelasPendentes = false;
+                    try (Statement stParc = DB.get().createStatement();
+                            ResultSet rsParc = stParc.executeQuery(
+                                    "SELECT COUNT(*) FROM parcelas_contas_receber WHERE titulo_id = (" +
+                                            "  SELECT id FROM titulos_contas_receber WHERE codigo_selecao = 'venda-"
+                                            + id + "'" +
+                                            ") AND status = 'aberto'")) {
+                        if (rsParc.next() && rsParc.getInt(1) > 0) {
+                            temParcelasPendentes = true;
+                        }
+                    }
+
+                    // Define status final com base nas regras
+                    String statusFinal;
+                    if ("cancelada".equals(statusOriginal)) {
+                        statusFinal = "cancelada";
+                    } else if (teveDevolucao) {
+                        statusFinal = "devolvida";
+                    } else if (temParcelasPendentes) {
+                        statusFinal = "pendente";
+                    } else {
+                        statusFinal = "fechada";
+                    }
+
+                    modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "Detalhes" });
                     total += val;
                 }
             }
+
         } catch (Exception ex) {
             AlertUtils.error("Erro ao carregar vendas:\n" + ex.getMessage());
         }
@@ -311,12 +364,11 @@ public class PainelVendas extends JPanel {
         // atualiza resumo: total, qtd e ticket médio
         int qtd = modelo.getRowCount();
         double ticket = qtd > 0 ? total / qtd : 0;
-        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
+        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         resumoLbl.setText(
-            "Total: " + cf.format(total)
-          + " | Qtde: " + qtd
-          + " | Ticket Médio: " + cf.format(ticket)
-        );
+                "Total: " + cf.format(total)
+                        + " | Qtde: " + qtd
+                        + " | Ticket Médio: " + cf.format(ticket));
     }
 
     // =========================
@@ -335,26 +387,34 @@ public class PainelVendas extends JPanel {
     // Formata data do chooser para string SQL
     // =========================
     private String formatarDataParaSQL(JDateChooser chooser) {
-        if (chooser.getDate() == null) return "";
+        if (chooser.getDate() == null)
+            return "";
         LocalDate ld = chooser.getDate().toInstant()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate();
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
         return ld.format(SQL_DATE);
     }
 
     // Renderer para coluna de botão "Detalhes"
     private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
-        ButtonRenderer() { setText("Detalhes"); setFocusPainted(false); }
-        @Override public Component getTableCellRendererComponent(JTable tbl, Object val,
-                                                                 boolean sel, boolean foc,
-                                                                 int row, int col) {
+        ButtonRenderer() {
+            setText("Detalhes");
+            setFocusPainted(false);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable tbl, Object val,
+                boolean sel, boolean foc,
+                int row, int col) {
             return this;
         }
     }
+
     // Editor para coluna de botão "Detalhes"
     private class ButtonEditor extends DefaultCellEditor {
         private final JButton btn = new JButton("Detalhes");
         private int row;
+
         ButtonEditor() {
             super(new JCheckBox());
             btn.setFocusPainted(false);
@@ -364,8 +424,10 @@ public class PainelVendas extends JPanel {
                 fireEditingStopped();
             });
         }
-        @Override public Component getTableCellEditorComponent(JTable tbl, Object val,
-                                                               boolean sel, int row, int col) {
+
+        @Override
+        public Component getTableCellEditorComponent(JTable tbl, Object val,
+                boolean sel, int row, int col) {
             this.row = row;
             return btn;
         }

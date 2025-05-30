@@ -60,6 +60,9 @@ public class DB {
                                                         "criado_por TEXT, " +
                                                         "cancelado_em TEXT, " +
                                                         "cancelado_por TEXT, " +
+                                                        "juros REAL DEFAULT 0, " +
+                                                        "intervalo_dias INTEGER DEFAULT 30, " +
+
                                                         "FOREIGN KEY (cliente_id) REFERENCES clientes(id)" +
                                                         ")");
 
@@ -86,6 +89,21 @@ public class DB {
                                                         "tipo TEXT NOT NULL, " + // ex: pix, dinheiro, cartão
                                                         "valor REAL NOT NULL, " +
                                                         "FOREIGN KEY (venda_id) REFERENCES vendas(id)" +
+                                                        ")");
+
+                        // vendas_devolucoes – registra devoluções parciais ou totais por produto
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS vendas_devolucoes (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "venda_id INTEGER NOT NULL, " +
+                                                        "produto_id TEXT NOT NULL, " +
+                                                        "qtd INTEGER NOT NULL, " + // <- o nome correto agora é `qtd`
+                                                        "valor_unit REAL, " +
+                                                        "motivo TEXT, " +
+                                                        "data TEXT, " +
+                                                        "usuario TEXT, " +
+                                                        "FOREIGN KEY(venda_id) REFERENCES vendas(id), " +
+                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
                                                         ")");
 
                         // tipos de condição (novo, usado, etc.)
