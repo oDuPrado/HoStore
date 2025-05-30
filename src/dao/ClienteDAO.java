@@ -127,6 +127,27 @@ public class ClienteDAO {
             .findFirst()
             .orElse("Desconhecido");
     }    
+
+    public ClienteModel buscarPorId(String id) {
+    try (PreparedStatement ps = DB.get().prepareStatement("SELECT * FROM clientes WHERE id = ?")) {
+        ps.setString(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return map(rs);
+    } catch (SQLException e) { e.printStackTrace(); }
+    return null;
+}
+
+public ClienteModel buscarPorNome(String nome) {
+    try (PreparedStatement ps = DB.get().prepareStatement("SELECT * FROM clientes WHERE nome = ? LIMIT 1")) {
+        ps.setString(1, nome);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return map(rs);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
     
 }
 

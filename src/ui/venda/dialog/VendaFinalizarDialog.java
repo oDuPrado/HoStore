@@ -360,7 +360,12 @@ public class VendaFinalizarDialog extends JDialog {
             }
 
             /* 1) Grava venda */
-            int vendaId = controller.finalizar(clienteId, formaFinal, parcelas);
+            int vendaId = controller.finalizar(
+                    clienteId,
+                    formaFinal,
+                    parcelas,
+                    parcelamentoConfig.intervaloDias,
+                    calcularDataPrimeiroVencimentoISO());
 
             /* 2) Grava pagamentos */
             try (Connection c = DB.get()) {
@@ -393,6 +398,13 @@ public class VendaFinalizarDialog extends JDialog {
             AlertUtils.error("Erro ao finalizar venda:\n" + ex.getMessage());
         }
     }
+
+    private String calcularDataPrimeiroVencimentoISO() {
+    int dias = parcelamentoConfig.intervaloDias;
+    LocalDate venc = LocalDate.now().plusDays(dias);
+    return venc.format(DateTimeFormatter.ISO_DATE); // retorna yyyy-MM-dd
+}
+
 
     private JButton criarBotao(String txt) {
         JButton b = new JButton(txt);

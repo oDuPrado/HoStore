@@ -16,6 +16,9 @@ public class VendaModel {
     private double totalLiquido;
     private String formaPagamento;
     private int parcelas;
+    private String dataPrimeiroVencimento;
+    private int intervaloDias;
+
     private String status;
 
     /* --- Novo: itens da venda (útil para gerar PDF) --- */
@@ -23,8 +26,8 @@ public class VendaModel {
 
     /* ---------- Construtores ---------- */
     public VendaModel(int id, String data, String cliente,
-                      double totalBruto, double desconto, double totalLiquido,
-                      String forma, int parcelas, String status) {
+            double totalBruto, double desconto, double totalLiquido,
+            String forma, int parcelas, String status) {
 
         this.id = id;
         this.dataVenda = data;
@@ -38,33 +41,91 @@ public class VendaModel {
     }
 
     public VendaModel(String data, String cliente,
-                      double totalBruto, double desconto, double totalLiquido,
-                      String forma, int parcelas, String status) {
+            double totalBruto, double desconto, double totalLiquido,
+            String forma, int parcelas, String status) {
         this(-1, data, cliente, totalBruto, desconto, totalLiquido, forma, parcelas, status);
     }
+    
 
     /* ---------- Getters / Setters ---------- */
-    public int getId()                  { return id; }
-    public void setId(int id)           { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getDataVenda()        { return dataVenda; }
-    public String getClienteId()        { return clienteId; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public double getTotalBruto()       { return totalBruto; }
-    public void setTotalBruto(double v) { this.totalBruto = v; }
+    public String getDataVenda() {
+        return dataVenda;
+    }
 
-    public double getDesconto()         { return desconto; }
-    public void setDesconto(double v)   { this.desconto = v; }
+    public String getClienteId() {
+        return clienteId;
+    }
 
-    public double getTotalLiquido()     { return totalLiquido; }
-    public void setTotalLiquido(double v){ this.totalLiquido = v; }
+    public double getTotalBruto() {
+        return totalBruto;
+    }
 
-    public String getFormaPagamento()   { return formaPagamento; }
-    public int getParcelas()            { return parcelas; }
+    public void setTotalBruto(double v) {
+        this.totalBruto = v;
+    }
 
-    public String getStatus()           { return status; }
-    public void setStatus(String s)     { this.status = s; }
+    public double getDesconto() {
+        return desconto;
+    }
 
-    public List<VendaItemModel> getItens() { return itens; }
-    public void setItens(List<VendaItemModel> itens) { this.itens = itens; }
+    public void setDesconto(double v) {
+        this.desconto = v;
+    }
+
+    public double getTotalLiquido() {
+        return totalLiquido;
+    }
+
+    public void setTotalLiquido(double v) {
+        this.totalLiquido = v;
+    }
+
+    public String getFormaPagamento() {
+        return formaPagamento;
+    }
+
+    public int getParcelas() {
+        return parcelas;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String s) {
+        this.status = s;
+    }
+
+    public List<VendaItemModel> getItens() {
+        return itens;
+    }
+
+    public void setItens(List<VendaItemModel> itens) {
+        this.itens = itens;
+    }
+
+    public String getDataPrimeiroVencimento() {
+        return dataPrimeiroVencimento;
+    }
+
+    public void setDataPrimeiroVencimento(String data) {
+        this.dataPrimeiroVencimento = data;
+    }
+
+    public int getIntervaloDias() {
+        return intervaloDias;
+    }
+
+    public void setIntervaloDias(int dias) {
+        this.intervaloDias = dias;
+    }
+
 }

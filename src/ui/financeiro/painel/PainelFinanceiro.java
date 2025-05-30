@@ -257,10 +257,8 @@ public class PainelFinanceiro extends JPanel {
 
     /* ─────────────────────────── Contas a Receber e Resumo ── */
     private JPanel criarPainelContasReceber() {
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(new JLabel("Contas a Receber – em implementação", SwingConstants.CENTER), BorderLayout.CENTER);
-        return p;
-    }
+    return new ui.financeiro.painel.PainelContasReceber();
+}
 
     private JPanel criarPainelResumo() {
         JPanel p = new JPanel(new BorderLayout());

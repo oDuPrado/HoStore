@@ -54,19 +54,19 @@ public class VendaController {
     // =========================
     // Finaliza e grava a venda
     // =========================
-    public int finalizar(String clienteId, String forma, int parcelas) throws Exception {
+    public int finalizar(String clienteId, String forma, int parcelas,
+            int intervaloDias, String dataPrimeiroVencimento) throws Exception {
 
-        double totalBruto    = getTotalBruto();
+        double totalBruto = getTotalBruto();
         double totalDesconto = getTotalDesconto();
-        double totalLiquido  = getTotalLiquido();
+        double totalLiquido = getTotalLiquido();
 
         VendaModel venda = factory.VendaFactory.criarVenda(
-            clienteId,
-            totalBruto,
-            totalDesconto,
-            forma,
-            parcelas
-        );
+                clienteId,
+                totalBruto,
+                totalDesconto,
+                forma,
+                parcelas);
 
         return vendaService.finalizarVenda(venda, carrinho);
     }

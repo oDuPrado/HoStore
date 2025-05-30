@@ -15,6 +15,9 @@ import java.util.List;
 import dao.VendaDevolucaoDAO;
 import model.VendaDevolucaoModel;
 
+import service.ContaReceberService;
+
+
 
 /**
  * Serviço que garante transação única na finalização da venda.
@@ -52,6 +55,7 @@ public class VendaService {
 
             // 2) grava venda
             int vendaId = vendaDAO.insert(venda, c);
+            
 
             // 3) grava itens e baixa estoque
             for (VendaItemModel it : itens) {
