@@ -20,6 +20,7 @@ import javax.swing.JDialog;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -192,10 +193,60 @@ public class VendaDetalhesDialog extends JDialog {
                     itensDaVenda).setVisible(true);
         });
 
+        JButton btnCancelar = new JButton("❌ Cancelar Venda");
+
+        btnCancelar.addActionListener(e -> cancelarVenda(vendaId));
+
         JPanel bot = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        bot.add(btnCancelar);
         bot.add(btnDevolver);
         bot.add(fechar);
+
         add(bot, BorderLayout.SOUTH);
 
     }
+
+    private void cancelarVenda(int vendaId) {
+    int confirma = JOptionPane.showConfirmDialog(
+            this,
+            "Tem certeza que deseja cancelar esta venda?\nEssa ação não pode ser desfeita.",
+            "Confirmar Cancelamento",
+            JOptionPane.YES_NO_OPTION);
+
+    if (confirma != JOptionPane.YES_OPTION) return;
+
+    try (Connection c = DB.get()) {
+        c.setAutoCommit(false); // garante transação
+
+        // 1) Marca como cancelada
+        try (PreparedStatement ps = c.prepareStatement(
+                "UPDATE vendas SET status = 'cancelada' WHERE id = ?")) {
+            ps.setInt(1, vendaId);
+            ps.executeUpdate();
+        }
+
+        // 2) Opcional: devolver estoque via EstoqueService
+        int devolverEstoque = JOptionPane.showConfirmDialog(
+                this,
+                "Deseja devolver os itens ao estoque automaticamente?",
+                "Repor Estoque",
+                JOptionPane.YES_NO_OPTION);
+
+        if (devolverEstoque == JOptionPane.YES_OPTION) {
+            service.EstoqueService estoqueService = new service.EstoqueService();
+            for (model.VendaItemModel it : itensDaVenda) {
+                estoqueService.entrarEstoque(c, it.getProdutoId(), it.getQtd());
+            }
+        }
+
+        c.commit();
+        AlertUtils.info("Venda cancelada com sucesso.");
+        dispose();
+
+    } catch (Exception ex) {
+        AlertUtils.error("Erro ao cancelar venda:\n" + ex.getMessage());
+    }
+}
+
+
 }

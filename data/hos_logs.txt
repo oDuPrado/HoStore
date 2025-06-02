@@ -986,3 +986,5 @@ jun. 02, 2025 12:13:24 PM util.LogService info
 INFO: Venda 15 finalizada com sucesso
 jun. 02, 2025 12:29:43 PM util.LogService info
 INFO: Venda 16 finalizada com sucesso
+jun. 02, 2025 12:41:12 PM util.LogService info
+INFO: Venda 17 finalizada com sucesso

@@ -45,7 +45,16 @@ public class VendaModel {
             String forma, int parcelas, String status) {
         this(-1, data, cliente, totalBruto, desconto, totalLiquido, forma, parcelas, status);
     }
-    
+
+    private String usuario;
+
+    public String getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(String usuario) {
+        this.usuario = usuario;
+    }
 
     /* ---------- Getters / Setters ---------- */
     public int getId() {

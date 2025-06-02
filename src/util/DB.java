@@ -350,6 +350,20 @@ public class DB {
                                         "FOREIGN KEY(cliente_id) REFERENCES clientes(id)" +
                                         ")");
 
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS config_loja (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT NOT NULL, " +
+                                                        "cnpj TEXT NOT NULL, " +
+                                                        "telefone TEXT, " +
+                                                        "socios TEXT, " +
+                                                        "modelo_nota TEXT, " +
+                                                        "serie_nota TEXT, " +
+                                                        "numero_inicial_nota INTEGER, " +
+                                                        "nome_impressora TEXT, " +
+                                                        "texto_rodape_nota TEXT" +
+                                                        ")");
+
                         // PARCELAS - CONTAS A RECEBER
                         st.execute("CREATE TABLE IF NOT EXISTS parcelas_contas_receber (" +
                                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +

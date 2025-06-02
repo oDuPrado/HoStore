@@ -56,10 +56,22 @@ public class VendaService {
             // 2) grava venda
             int vendaId = vendaDAO.insert(venda, c);
 
-            // 3) grava itens e baixa estoque
+            // 3) grava itens, baixa estoque e registra movimentação
+            ProdutoEstoqueService produtoEstoqueService = new ProdutoEstoqueService();
+
             for (VendaItemModel it : itens) {
                 itemDAO.insert(it, vendaId, c);
+
+                // baixa o estoque
                 estoqueService.baixarEstoqueProduto(c, it.getProdutoId(), it.getQtd());
+
+                // registra a movimentação no histórico
+                produtoEstoqueService.registrarSaida(
+                        it.getProdutoId(),
+                        it.getQtd(),
+                        "Venda #" + vendaId,
+                        venda.getUsuario() != null ? venda.getUsuario() : "sistema",
+                        c);
             }
 
             // 4) commit
@@ -130,19 +142,25 @@ public class VendaService {
         try (Connection c = DB.get()) {
             c.setAutoCommit(false);
 
-            // 1) grava devolução
+            // 1) grava devolução no banco
             devolucaoDAO.inserir(devolucao);
 
             // 2) devolve ao estoque
             estoqueService.entrarEstoque(c, devolucao.getProdutoId(), devolucao.getQuantidade());
 
-            // 3) commit
+            // 3) registra movimentação de entrada
+            new ProdutoEstoqueService().registrarEntrada(
+                    devolucao.getProdutoId(),
+                    devolucao.getQuantidade(),
+                    "Devolução da venda #" + devolucao.getVendaId(),
+                    "sistema", // ou devolucao.getUsuario() se implementar
+                    c);
+
+            // 4) commit
             c.commit();
             LogService.info("Devolução registrada para venda " + devolucao.getVendaId());
-        } catch (Exception ex) {
-            LogService.error("Erro ao registrar devolução", ex);
-            throw ex;
         }
+
     }
 
 }

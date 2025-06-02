@@ -120,15 +120,18 @@ public class PainelEstoque extends JPanel {
 
         /* =============================== RODAPÉ =============================== */
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
+
         JButton btEditar = new JButton("✏️ Editar");
         JButton btDel = new JButton("🗑️ Excluir");
         rodape.add(btEditar);
         rodape.add(btDel);
+
         // Botão de criar pedido
         JButton btPedido = new JButton("📦 Criar Pedido");
         btPedido.addActionListener(e -> abrirCriarPedido());
         rodape.add(btPedido);
 
+        // Botão para visualizar pedidos
         JButton btVerPedidos = new JButton("📄 Ver Pedidos");
         btVerPedidos.addActionListener(e -> {
             JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
@@ -137,11 +140,24 @@ public class PainelEstoque extends JPanel {
         });
         rodape.add(btVerPedidos);
 
+        // ✅ NOVO: Botão para abrir movimentações de estoque
+        JButton btMovimentacoes = new JButton("📊 Movimentações");
+        btMovimentacoes.addActionListener(e -> {
+            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
+            new ui.estoque.dialog.MovimentacaoEstoqueDialog(owner).setVisible(true);
+        });
+        rodape.add(btMovimentacoes);
+
+        // Ações dos botões de edição e exclusão
         btEditar.addActionListener(e -> abrirEditar());
         btDel.addActionListener(e -> deletarSelecionado());
+
+        // Adiciona o rodapé ao painel principal
         add(rodape, BorderLayout.SOUTH);
 
+        // Carrega os produtos ao iniciar
         listar();
+
     }
 
     /*

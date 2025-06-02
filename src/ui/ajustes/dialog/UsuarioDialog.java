@@ -3,6 +3,7 @@ package ui.ajustes.dialog;
 
 import dao.UsuarioDAO;
 import model.UsuarioModel;
+import util.SenhaUtils; // ⚠️ IMPORTANTE: adicionar isso
 
 import javax.swing.*;
 import java.awt.*;
@@ -76,11 +77,11 @@ public class UsuarioDialog extends JDialog {
     private void onSave() {
         String nome    = tfNome.getText().trim();
         String usuario = tfUsuario.getText().trim();
-        String senha   = new String(pfSenha.getPassword()).trim();
+        String senhaOriginal = new String(pfSenha.getPassword()).trim();
         String tipo    = (String) cbTipo.getSelectedItem();
         boolean ativo  = chkAtivo.isSelected();
 
-        if (nome.isEmpty() || usuario.isEmpty() || senha.isEmpty()) {
+        if (nome.isEmpty() || usuario.isEmpty() || senhaOriginal.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "Preencha todos os campos", "Atenção",
                 JOptionPane.WARNING_MESSAGE
@@ -89,16 +90,21 @@ public class UsuarioDialog extends JDialog {
         }
 
         try {
+            // Aplica o hash na senha ANTES de salvar
+            String senhaHash = SenhaUtils.hashSenha(senhaOriginal);
+
             UsuarioModel usr = new UsuarioModel(
-                id, nome, usuario, senha, tipo, ativo
+                id, nome, usuario, senhaHash, tipo, ativo
             );
+
             if (isEdit) dao.atualizar(usr);
             else        dao.inserir(usr);
+
             dispose();
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Erro ao salvar: "+ex.getMessage(),
+                "Erro ao salvar: " + ex.getMessage(),
                 "Erro", JOptionPane.ERROR_MESSAGE
             );
         }
