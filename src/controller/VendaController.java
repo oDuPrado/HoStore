@@ -68,6 +68,9 @@ public class VendaController {
                 forma,
                 parcelas);
 
+        venda.setIntervaloDias(intervaloDias);
+        venda.setDataPrimeiroVencimento(dataPrimeiroVencimento);
+
         return vendaService.finalizarVenda(venda, carrinho);
     }
 }

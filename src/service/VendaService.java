@@ -17,8 +17,6 @@ import model.VendaDevolucaoModel;
 
 import service.ContaReceberService;
 
-
-
 /**
  * Serviço que garante transação única na finalização da venda.
  * Suporta produtos genéricos (não apenas cartas).
@@ -26,14 +24,16 @@ import service.ContaReceberService;
 public class VendaService {
 
     private final EstoqueService estoqueService = new EstoqueService();
-    private final VendaDAO       vendaDAO       = new VendaDAO();
-    private final VendaItemDAO   itemDAO        = new VendaItemDAO();
+    private final VendaDAO vendaDAO = new VendaDAO();
+    private final VendaItemDAO itemDAO = new VendaItemDAO();
+    private final ContaReceberService contaReceberService = new ContaReceberService(); // <— ADICIONADO
 
     /**
      * Finaliza a venda:
-     *  - valida estoque
-     *  - grava cabeçalho, itens e baixa estoque
-     *  - gera PDF
+     * - valida estoque
+     * - grava cabeçalho, itens e baixa estoque
+     * - gera PDF
+     * - cria título e parcelas em contas a receber
      * Retorna o ID da venda.
      */
     public int finalizarVenda(VendaModel venda, List<VendaItemModel> itens) throws Exception {
@@ -55,7 +55,6 @@ public class VendaService {
 
             // 2) grava venda
             int vendaId = vendaDAO.insert(venda, c);
-            
 
             // 3) grava itens e baixa estoque
             for (VendaItemModel it : itens) {
@@ -67,8 +66,49 @@ public class VendaService {
             c.commit();
             LogService.info("Venda " + vendaId + " finalizada com sucesso");
 
+            // =============================
+            // @INTEGRACAO: Contas a Receber
+            // =============================
+            try {
+                String tituloId = null;
+
+                // Se for DINHEIRO, cria título à vista e já registra pagamento
+                if ("DINHEIRO".equalsIgnoreCase(venda.getFormaPagamento())) {
+                    String hoje = java.time.LocalDate.now().toString();
+                    tituloId = contaReceberService.criarTituloParcelado(
+                            venda.getClienteId(),
+                            venda.getTotalLiquido(),
+                            1, // parcela única
+                            hoje,
+                            30, // intervalo irrelevante aqui
+                            "venda-" + vendaId); // <- ESSA É A MUDANÇA
+
+                    int parcelaId = contaReceberService.getPrimeiraParcelaId(tituloId);
+                    contaReceberService.registrarPagamento(parcelaId, venda.getTotalLiquido(), "DINHEIRO");
+
+                    // Para outras formas de pagamento: gera se dados estiverem preenchidos
+                } else if (venda.getDataPrimeiroVencimento() != null &&
+                        venda.getParcelas() > 0 &&
+                        venda.getIntervaloDias() > 0) {
+                    tituloId = contaReceberService.criarTituloParcelado(
+                            venda.getClienteId(),
+                            venda.getTotalLiquido(),
+                            venda.getParcelas(),
+                            venda.getDataPrimeiroVencimento(),
+                            venda.getIntervaloDias(),
+                            "venda-" + vendaId); // <- ESSA É A MUDANÇA
+                } else {
+                    LogService.info("Forma de pagamento parcelada mas dados incompletos — título não criado.");
+                }
+
+            } catch (Exception ex) {
+                LogService.error("Venda " + vendaId + " finalizada, mas erro ao gerar contas a receber", ex);
+            }
+
+            // =============================
+
             // 5) PDF
-            venda.setItens(itens);      // para o gerador ter acesso
+            venda.setItens(itens); // para o gerador ter acesso
             PDFGenerator.gerarComprovanteVenda(venda, itens);
 
             return vendaId;
@@ -78,12 +118,13 @@ public class VendaService {
             throw ex;
         }
     }
-        private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
+
+    private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
 
     /**
      * Registra uma devolução:
-     *  - grava na tabela de devoluções
-     *  - devolve ao estoque
+     * - grava na tabela de devoluções
+     * - devolve ao estoque
      */
     public void registrarDevolucao(VendaDevolucaoModel devolucao) throws Exception {
         try (Connection c = DB.get()) {

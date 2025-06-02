@@ -46,6 +46,7 @@ public class ContaReceberService {
         titulo.setDataGeracao(hojeISO());
         titulo.setValorTotal(total);
         titulo.setObservacoes(obs);
+        titulo.setCodigoSelecao(obs);
         tituloDAO.inserir(titulo);
 
         /* Gera parcelas */
@@ -132,4 +133,17 @@ public class ContaReceberService {
     private static double arredondar(double v) {
         return Math.round(v * 100) / 100.0;
     }
+
+    /**
+ * Retorna o ID da primeira parcela vinculada ao título.
+ * Útil para marcar como paga em vendas à vista (DINHEIRO).
+ */
+public int getPrimeiraParcelaId(String tituloId) throws SQLException {
+    List<ParcelaContaReceberModel> parcelas = parcelaDAO.listarPorTitulo(tituloId);
+    if (parcelas == null || parcelas.isEmpty()) {
+        throw new SQLException("Nenhuma parcela encontrada para o título: " + tituloId);
+    }
+    return parcelas.get(0).getId();
+}
+
 }
