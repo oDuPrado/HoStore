@@ -8,9 +8,10 @@ public class BoosterModel extends ProdutoModel {
     private String idioma;
     private String validade;
     private String codigoBarras;
+    private String jogoId;
 
-    private String fornecedorId;     // usado para salvar no banco
-    private String fornecedorNome;   // exibido na UI
+    private String fornecedorId; // usado para salvar no banco
+    private String fornecedorNome; // exibido na UI
 
     public BoosterModel(
             String id,
@@ -24,29 +25,66 @@ public class BoosterModel extends ProdutoModel {
             String tipoBooster,
             String idioma,
             String validade,
-            String codigoBarras
+            String codigoBarras,
+            String jogoId // NOVO
     ) {
         super(id, nome, "Booster", quantidade, custo, precoVenda);
-        this.fornecedorId   = fornecedorId;
-        this.colecao        = colecao;
-        this.set            = set;
-        this.tipoBooster    = tipoBooster;
-        this.idioma         = idioma;
-        this.validade       = validade;
-        this.codigoBarras   = codigoBarras;
+        this.fornecedorId = fornecedorId;
+        this.colecao = colecao;
+        this.set = set;
+        this.tipoBooster = tipoBooster;
+        this.idioma = idioma;
+        this.validade = validade;
+        this.codigoBarras = codigoBarras;
+        this.jogoId = jogoId;
     }
 
     // Getters específicos
-    public String getColecao()        { return colecao; }
-    public String getSet()            { return set; }
-    public String getTipoBooster()    { return tipoBooster; }
-    public String getIdioma()         { return idioma; }
-    public String getValidade()       { return validade; }
-    public String getCodigoBarras()   { return codigoBarras; }
+    public String getColecao() {
+        return colecao;
+    }
 
-    public String getFornecedor()     { return fornecedorId; }
-    public void setFornecedor(String id) { this.fornecedorId = id; }
+    public String getSet() {
+        return set;
+    }
 
-    public String getFornecedorNome()     { return fornecedorNome; }
-    public void setFornecedorNome(String nome) { this.fornecedorNome = nome; }
+    public String getTipoBooster() {
+        return tipoBooster;
+    }
+
+    public String getIdioma() {
+        return idioma;
+    }
+
+    public String getValidade() {
+        return validade;
+    }
+
+    public String getCodigoBarras() {
+        return codigoBarras;
+    }
+
+    public String getFornecedor() {
+        return fornecedorId;
+    }
+
+    public void setFornecedor(String id) {
+        this.fornecedorId = id;
+    }
+
+    public String getFornecedorNome() {
+        return fornecedorNome;
+    }
+
+    public void setFornecedorNome(String nome) {
+        this.fornecedorNome = nome;
+    }
+
+    public String getJogoId() {
+        return jogoId;
+    }
+
+    public void setJogoId(String jogoId) {
+        this.jogoId = jogoId;
+    }
 }

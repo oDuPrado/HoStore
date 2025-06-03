@@ -6,6 +6,7 @@ import dao.ProdutoDAO;
 import model.PedidoCompraModel;
 import model.PedidoEstoqueProdutoModel;
 import model.ProdutoModel;
+import service.PedidoCompraService;
 import service.ProdutoEstoqueService;
 
 import javax.swing.*;
@@ -13,6 +14,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Dialog para registrar entrada (total ou parcial) de um pedido.
@@ -98,109 +101,59 @@ public class EntradaPedidoDialog extends JDialog {
      * Confirma entrada de pedido COM LOGS detalhados para debugar estoque.
      */
     private void onConfirm() {
-        // 1) Confirmação do usuário
-        int opcao = JOptionPane.showConfirmDialog(this,
-                "Confirma a entrada? Esta ação ajustará o estoque.",
-                "Confirmar Entrada", JOptionPane.YES_NO_OPTION);
-        if (opcao != JOptionPane.YES_OPTION) {
-            System.out.println(">> [LOG] Entrada CANCELADA pelo usuário.");
-            return;
-        }
-
-        try {
-            // 2) Finaliza edição se estiver ativo
-            if (table.isEditing()) {
-                System.out.println(">> [LOG] Stop cell editing.");
-                table.getCellEditor().stopCellEditing();
-            }
-
-            // 3) Carrega itens do pedido
-            List<PedidoEstoqueProdutoModel> itens = pedProdDAO.listarPorPedido(pedido.getId());
-            System.out.println(">> [LOG] Itens carregados: " + itens.size());
-
-            // 4) Processa cada linha da tabela
-            for (int r = 0; r < tm.getRowCount(); r++) {
-                // 4.1) Lê valores da UI
-                int qtdPedida = Integer.parseInt(tm.getValueAt(r, 1).toString());
-                int qtdRecebidaUI = Integer.parseInt(tm.getValueAt(r, 2).toString());
-                System.out.println(">> [LOG] Linha " + r +
-                        " | Pedida=" + qtdPedida +
-                        " | Recebida(UI)=" + qtdRecebidaUI);
-
-                // 4.2) Busca o estado atual do item no banco
-                String itemId = itens.get(r).getId();
-                PedidoEstoqueProdutoModel itemDB = pedProdDAO.buscarPorId(itemId);
-                int qtdRecebidaDB = itemDB.getQuantidadeRecebida();
-                System.out.println(">> [LOG] ItemID=" + itemId +
-                        " | Recebida(DB) antes=" + qtdRecebidaDB);
-
-                // 4.3) Calcula delta REAL
-                int delta = qtdRecebidaUI - qtdRecebidaDB;
-                System.out.println(">> [LOG] Delta calculado = " + delta);
-
-                // 4.4) Atualiza o item no pedido_produtos
-                itemDB.setQuantidadeRecebida(qtdRecebidaUI);
-                itemDB.setStatus((qtdRecebidaUI == 0) ? "pendente"
-                        : (qtdRecebidaUI >= qtdPedida) ? "completo"
-                                : "parcial");
-                pedProdDAO.atualizar(itemDB);
-                System.out.println(">> [LOG] Atualizado pedido_produtos: Recebida agora="
-                        + itemDB.getQuantidadeRecebida() +
-                        " | Status=" + itemDB.getStatus());
-
-                // 4.5) Ajusta estoque conforme delta (positivo ou negativo)
-                String prodId = itemDB.getProdutoId();
-                if (delta != 0) {
-                    ProdutoModel antes = new ProdutoDAO().findById(prodId);
-                    System.out.println(">> [LOG] Antes ajuste: ProdutoID=" + prodId
-                            + " | Estoque=" + antes.getQuantidade());
-
-                    if (delta > 0) {
-                        prodSrv.registrarEntrada(prodId, delta,
-                                "Entrada de Pedido", "sistema");
-                        System.out.println(">> [LOG] Entrada registrada: +" + delta);
-                    } else {
-                        prodSrv.registrarSaida(prodId, Math.abs(delta),
-                                "Ajuste de Entrada de Pedido", "sistema");
-                        System.out.println(">> [LOG] Saída registrada: " + delta);
-                    }
-
-                    ProdutoModel depois = new ProdutoDAO().findById(prodId);
-                    System.out.println(">> [LOG] Depois ajuste: ProdutoID=" + prodId
-                            + " | Estoque=" + depois.getQuantidade());
-                } else {
-                    System.out.println(">> [LOG] Delta zero, estoque inalterado.");
-                }
-
-                // 4.6) Atualiza coluna Δ na tabela
-                int novoDelta = qtdRecebidaUI - qtdPedida;
-                String deltaStr = (novoDelta < 0) ? "Falta " + (-novoDelta)
-                        : (novoDelta > 0) ? "Excesso +" + novoDelta
-                                : "OK";
-                tm.setValueAt(deltaStr, r, 3);
-                System.out.println(">> [LOG] Coluna Δ atualizada para '" + deltaStr + "'.");
-            }
-
-            // 5) Recalcula status do pedido
-            pedDAO.recalcularStatus(pedido.getId());
-            System.out.println(">> [LOG] pedDAO.recalcularStatus executado.");
-
-            // 6) Sincroniza UI para evitar duplicação posterior
-            loadData();
-            System.out.println(">> [LOG] loadData() chamado para ressincronizar UI.");
-
-            // 7) Finalização
-            JOptionPane.showMessageDialog(this, "Entrada registrada!");
-            dispose();
-            System.out.println(">> [LOG] onConfirm() finalizado, diálogo fechado.");
-
-        } catch (Exception ex) {
-            System.err.println(">> [ERROR] ao registrar entrada: " + ex.getMessage());
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao registrar entrada:\n" + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
-        }
+    // 1) Pergunta ao usuário se ele confirma a entrada
+    int opcao = JOptionPane.showConfirmDialog(this,
+            "Confirma a entrada? Esta ação ajustará o estoque.",
+            "Confirmar Entrada", JOptionPane.YES_NO_OPTION);
+    if (opcao != JOptionPane.YES_OPTION) {
+        System.out.println(">> [LOG] Entrada CANCELADA pelo usuário.");
+        return;
     }
+
+    try {
+        // 2) Se a tabela estiver em edição, finalize a célula reaproveitada
+        if (table.isEditing()) {
+            System.out.println(">> [LOG] Stop cell editing.");
+            table.getCellEditor().stopCellEditing();
+        }
+
+        // 3) Carrega DA TABELA (só para saber quantas linhas existem; não usa os valores aqui)
+        List<PedidoEstoqueProdutoModel> itens = pedProdDAO.listarPorPedido(pedido.getId());
+        System.out.println(">> [LOG] Itens carregados: " + itens.size());
+
+        // 4) Monta um Map<itemId, quantidadeRecebidaNova> com os valores que o usuário digitou
+        Map<String, Integer> mapaRecebimento = new HashMap<>();
+        for (int r = 0; r < tm.getRowCount(); r++) {
+            String itemId = itens.get(r).getId(); 
+            // A coluna 2 (índice 2) é "Qtd Recebida"
+            int qtdRecebidaUI = Integer.parseInt(tm.getValueAt(r, 2).toString());
+            mapaRecebimento.put(itemId, qtdRecebidaUI);
+            System.out.println(">> [LOG] Linha " + r + " | ItemID=" + itemId
+                    + " | Recebida(UI)=" + qtdRecebidaUI);
+        }
+
+        // 5) Chama o service refatorado, passando apenas o mapa de recebimento
+        //    (Este método deve ser implementado em PedidoCompraService)
+        PedidoCompraService service = new PedidoCompraService();
+        service.receberPedido(pedido.getId(), mapaRecebimento, "sistema");
+        System.out.println(">> [LOG] PedidoCompraService.receberPedido() executado.");
+
+        // 6) Depois que o service ajustou estoque e atualizou status, recarrega a tabela
+        loadData();
+        System.out.println(">> [LOG] loadData() chamado para ressincronizar UI.");
+
+        // 7) Feedback para o usuário e fechamento do diálogo
+        JOptionPane.showMessageDialog(this, "Entrada registrada com sucesso!");
+        dispose();
+        System.out.println(">> [LOG] onConfirm() finalizado, diálogo fechado.");
+
+    } catch (Exception ex) {
+        System.err.println(">> [ERROR] ao registrar entrada: " + ex.getMessage());
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+                "Erro ao registrar entrada:\n" + ex.getMessage(),
+                "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+}
 
 }

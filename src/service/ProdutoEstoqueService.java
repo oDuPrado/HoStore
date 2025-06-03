@@ -25,35 +25,33 @@ public class ProdutoEstoqueService {
     /* ==================== PRODUTOS GENÉRICOS ==================== */
 
     public void salvar(ProdutoModel p) throws SQLException {
-    ProdutoModel existente = dao.findById(p.getId());
-    boolean novo = (existente == null);
+        ProdutoModel existente = dao.findById(p.getId());
+        boolean novo = (existente == null);
 
-    if (novo) {
-        int qtdInicial = p.getQuantidade();  // guarda a quantidade original
-        p.setQuantidade(0);                  // zera para não salvar duplicado
+        if (novo) {
+            int qtdInicial = p.getQuantidade(); // guarda a quantidade original
+            p.setQuantidade(0); // zera para não salvar duplicado
 
-        dao.insert(p); // insere o produto com estoque 0
+            dao.insert(p); // insere o produto com estoque 0
 
-        // Se tiver quantidade inicial, registrar como entrada no histórico
-        if (qtdInicial > 0) {
-            try {
-                registrarEntrada(
-                    p.getId(),
-                    qtdInicial,
-                    "Cadastro inicial",
-                    "sistema"
-                );
-            } catch (Exception e) {
-                e.printStackTrace(); // em produção, use log
+            // Se tiver quantidade inicial, registrar como entrada no histórico
+            if (qtdInicial > 0) {
+                try {
+                    registrarEntrada(
+                            p.getId(),
+                            qtdInicial,
+                            "Cadastro inicial",
+                            "sistema");
+                } catch (Exception e) {
+                    e.printStackTrace(); // em produção, use log
+                }
             }
-        }
 
-    } else {
-        p.setAlteradoEmNow(); // atualiza timestamp de modificação
-        dao.update(p);        // apenas atualiza, sem mexer em estoque
+        } else {
+            p.setAlteradoEmNow(); // atualiza timestamp de modificação
+            dao.update(p); // apenas atualiza, sem mexer em estoque
+        }
     }
-}
-    
 
     public void remover(String id) throws SQLException {
         dao.delete(id);
@@ -92,148 +90,153 @@ public class ProdutoEstoqueService {
 
     /** Insere um novo booster (ou REPLACE, se já existir) */
     public void salvarNovoBooster(BoosterModel b) throws Exception {
-        new BoosterDAO().insert(b);
+        new BoosterDAO().insert(b); // salva os detalhes específicos
+        salvar(b); // salva o resumo em produtos, incluindo jogoId
     }
 
     /** Atualiza um booster existente via INSERT OR REPLACE */
     public void atualizarBooster(BoosterModel b) throws Exception {
         new BoosterDAO().insert(b);
+        salvar(b); // ← ATUALIZA também na tabela produtos
     }
 
-    /** Salva um novo deck nas tabelas produtos e decks */
     public void salvarNovoDeck(DeckModel d) throws Exception {
         new DeckDAO().insert(d);
+        salvar(d); // ← ESSENCIAL
     }
 
-    /** Atualiza um deck nas tabelas produtos e decks */
     public void atualizarDeck(DeckModel d) throws Exception {
         new DeckDAO().update(d);
+        salvar(d); // ← ESSENCIAL
     }
 
     public void salvarNovoEtb(EtbModel e) throws Exception {
         new EtbDAO().insert(e);
+        salvar(e); // ← ESSENCIAL
     }
 
     public void atualizarEtb(EtbModel e) throws Exception {
         new EtbDAO().update(e);
+        salvar(e); // ← ESSENCIAL
     }
 
     public void salvarNovoAcessorio(AcessorioModel a) throws Exception {
-    new dao.AcessorioDAO().salvar(a); // salva na tabela acessorios (detalhes)
-    salvar(a); // salva na tabela produtos (resumo)
-}
+        new dao.AcessorioDAO().salvar(a); // salva na tabela acessorios (detalhes)
+        salvar(a); // salva na tabela produtos (resumo)
+    }
 
-public void atualizarAcessorio(AcessorioModel a) throws Exception {
-    new dao.AcessorioDAO().atualizar(a); // atualiza acessorios (detalhes)
-    salvar(a); // atualiza produtos (resumo)
-}
+    public void atualizarAcessorio(AcessorioModel a) throws Exception {
+        new dao.AcessorioDAO().atualizar(a); // atualiza acessorios (detalhes)
+        salvar(a); // atualiza produtos (resumo)
+    }
 
-/* ==================== ALIMENTO ==================== */
+    /* ==================== ALIMENTO ==================== */
 
-public void salvarNovoAlimento(model.AlimentoModel a) throws Exception {
-    new dao.AlimentoDAO().salvar(a); // salva na tabela produtos_alimenticios
-    salvar(a);                        // salva na tabela produtos
-}
+    public void salvarNovoAlimento(model.AlimentoModel a) throws Exception {
+        new dao.AlimentoDAO().salvar(a); // salva na tabela produtos_alimenticios
+        salvar(a); // salva na tabela produtos
+    }
 
-public void atualizarAlimento(model.AlimentoModel a) throws Exception {
-    new dao.AlimentoDAO().atualizar(a); // atualiza produtos_alimenticios
-    salvar(a);                           // atualiza produtos
-}
+    public void atualizarAlimento(model.AlimentoModel a) throws Exception {
+        new dao.AlimentoDAO().atualizar(a); // atualiza produtos_alimenticios
+        salvar(a); // atualiza produtos
+    }
 
-public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
-    ProdutoModel produto = dao.findById(produtoId);
-    if (produto == null) throw new Exception("Produto não encontrado!");
+    public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
+        ProdutoModel produto = dao.findById(produtoId);
+        if (produto == null)
+            throw new Exception("Produto não encontrado!");
 
-    // atualiza quantidade
-    produto.setQuantidade(produto.getQuantidade() + quantidade);
-    produto.setAlteradoEmNow();
-    dao.update(produto);
+        // atualiza quantidade
+        produto.setQuantidade(produto.getQuantidade() + quantidade);
+        produto.setAlteradoEmNow();
+        dao.update(produto);
 
-    // registra movimentação
-    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-        produtoId, "entrada", quantidade, motivo, usuario
-    );
-    mov.setData(LocalDateTime.now());
+        // registra movimentação
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, "entrada", quantidade, motivo, usuario);
+        mov.setData(LocalDateTime.now());
 
-    new MovimentacaoEstoqueService().registrar(mov);
-}
+        new MovimentacaoEstoqueService().registrar(mov);
+    }
 
-public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c) throws Exception {
-    ProdutoModel produto = dao.findById(produtoId);
-    if (produto == null) throw new Exception("Produto não encontrado!");
+    public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c)
+            throws Exception {
+        ProdutoModel produto = dao.findById(produtoId);
+        if (produto == null)
+            throw new Exception("Produto não encontrado!");
 
-    // atualiza quantidade
-    produto.setQuantidade(produto.getQuantidade() + quantidade);
-    produto.setAlteradoEmNow();
-    dao.update(produto, c); // usa a mesma conexão
+        // atualiza quantidade
+        produto.setQuantidade(produto.getQuantidade() + quantidade);
+        produto.setAlteradoEmNow();
+        dao.update(produto, c); // usa a mesma conexão
 
-    // registra movimentação com a mesma conexão
-    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-        produtoId, "entrada", quantidade, motivo, usuario
-    );
-    mov.setData(LocalDateTime.now());
+        // registra movimentação com a mesma conexão
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, "entrada", quantidade, motivo, usuario);
+        mov.setData(LocalDateTime.now());
 
-    new MovimentacaoEstoqueService().registrar(mov, c);
-}
+        new MovimentacaoEstoqueService().registrar(mov, c);
+    }
 
-public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
-    ProdutoModel produto = dao.findById(produtoId);
-    if (produto == null) throw new Exception("Produto não encontrado!");
+    public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
+        ProdutoModel produto = dao.findById(produtoId);
+        if (produto == null)
+            throw new Exception("Produto não encontrado!");
 
-    if (produto.getQuantidade() < quantidade)
-        throw new Exception("Estoque insuficiente para saída!");
+        if (produto.getQuantidade() < quantidade)
+            throw new Exception("Estoque insuficiente para saída!");
 
-    // atualiza quantidade
-    produto.setQuantidade(produto.getQuantidade() - quantidade);
-    produto.setAlteradoEmNow();
-    dao.update(produto);
+        // atualiza quantidade
+        produto.setQuantidade(produto.getQuantidade() - quantidade);
+        produto.setAlteradoEmNow();
+        dao.update(produto);
 
-    // registra movimentação
-    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-        produtoId, "saida", quantidade, motivo, usuario
-    );
-    mov.setData(LocalDateTime.now());
+        // registra movimentação
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, "saida", quantidade, motivo, usuario);
+        mov.setData(LocalDateTime.now());
 
-    new MovimentacaoEstoqueService().registrar(mov);
-}
+        new MovimentacaoEstoqueService().registrar(mov);
+    }
 
-public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario, Connection c) throws Exception {
-    ProdutoModel produto = dao.findById(produtoId);
-    if (produto == null) throw new Exception("Produto não encontrado!");
+    public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario, Connection c)
+            throws Exception {
+        ProdutoModel produto = dao.findById(produtoId);
+        if (produto == null)
+            throw new Exception("Produto não encontrado!");
 
-    if (produto.getQuantidade() < quantidade)
-        throw new Exception("Estoque insuficiente para saída!");
+        if (produto.getQuantidade() < quantidade)
+            throw new Exception("Estoque insuficiente para saída!");
 
-    // atualiza quantidade
-    produto.setQuantidade(produto.getQuantidade() - quantidade);
-    produto.setAlteradoEmNow();
-    dao.update(produto, c); // ← usa a mesma conexão
+        // atualiza quantidade
+        produto.setQuantidade(produto.getQuantidade() - quantidade);
+        produto.setAlteradoEmNow();
+        dao.update(produto, c); // ← usa a mesma conexão
 
-    // registra movimentação com a mesma conexão
-    MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-        produtoId, "saida", quantidade, motivo, usuario
-    );
-    mov.setData(LocalDateTime.now());
+        // registra movimentação com a mesma conexão
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, "saida", quantidade, motivo, usuario);
+        mov.setData(LocalDateTime.now());
 
-    new MovimentacaoEstoqueService().registrar(mov, c); // ← sem DB.get()
-}
+        new MovimentacaoEstoqueService().registrar(mov, c); // ← sem DB.get()
+    }
 
+    public int obterQuantidade(String produtoId) throws SQLException {
+        ProdutoModel p = dao.findById(produtoId);
+        if (p == null)
+            throw new SQLException("Produto não encontrado!");
+        return p.getQuantidade();
+    }
 
+    public void atualizarQuantidade(String produtoId, int novaQtd) throws SQLException {
+        ProdutoModel p = dao.findById(produtoId);
+        if (p == null)
+            throw new SQLException("Produto não encontrado!");
 
-public int obterQuantidade(String produtoId) throws SQLException {
-    ProdutoModel p = dao.findById(produtoId);
-    if (p == null) throw new SQLException("Produto não encontrado!");
-    return p.getQuantidade();
-}
-
-public void atualizarQuantidade(String produtoId, int novaQtd) throws SQLException {
-    ProdutoModel p = dao.findById(produtoId);
-    if (p == null) throw new SQLException("Produto não encontrado!");
-
-    p.setQuantidade(novaQtd);
-    p.setAlteradoEmNow();
-    dao.update(p);
-}
-
+        p.setQuantidade(novaQtd);
+        p.setAlteradoEmNow();
+        dao.update(p);
+    }
 
 }

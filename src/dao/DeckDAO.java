@@ -7,7 +7,7 @@ import java.sql.*;
 
 /**
  * DAO para Decks, estendendo as operações padrão de ProdutoDAO
- * e sincronizando detalhes na tabela `decks`.
+ * e sincronizando detalhes na tabela `decks`, agora com `jogo_id`.
  */
 public class DeckDAO extends ProdutoDAO {
 
@@ -16,35 +16,37 @@ public class DeckDAO extends ProdutoDAO {
         // 1) insere resumo na tabela produtos
         super.insert(d);
 
-        // 2) insere detalhes na tabela decks
-        String sql = "INSERT INTO decks "
-                   + "(id, fornecedor, colecao, tipo_deck, categoria) "
-                   + "VALUES (?, ?, ?, ?, ?)";
+        // 2) insere detalhes na tabela decks, incluindo jogo_id
+        String sql = "INSERT INTO decks " +
+                     "(id, fornecedor, colecao, tipo_deck, categoria, jogo_id) " +
+                     "VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             ps.setString(1, d.getId());
             ps.setString(2, d.getFornecedor());
             ps.setString(3, d.getColecao());
             ps.setString(4, d.getTipoDeck());
             ps.setString(5, d.getCategoria());
+            ps.setString(6, d.getJogoId()); // NOVO
             ps.executeUpdate();
         }
     }
 
-    /** Atualiza resumo e detalhes do deck. */
+    /** Atualiza resumo e detalhes do deck, incluindo `jogo_id`. */
     public void update(DeckModel d) throws SQLException {
         // 1) atualiza tabela produtos
         super.update(d);
 
         // 2) atualiza tabela decks
-        String sql = "UPDATE decks SET "
-                   + "fornecedor = ?, colecao = ?, tipo_deck = ?, categoria = ? "
-                   + "WHERE id = ?";
+        String sql = "UPDATE decks SET " +
+                     "fornecedor = ?, colecao = ?, tipo_deck = ?, categoria = ?, jogo_id = ? " +
+                     "WHERE id = ?";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             ps.setString(1, d.getFornecedor());
             ps.setString(2, d.getColecao());
             ps.setString(3, d.getTipoDeck());
             ps.setString(4, d.getCategoria());
-            ps.setString(5, d.getId());
+            ps.setString(5, d.getJogoId()); // NOVO
+            ps.setString(6, d.getId());
             ps.executeUpdate();
         }
     }
@@ -66,7 +68,7 @@ public class DeckDAO extends ProdutoDAO {
     public DeckModel buscarPorId(String id) throws SQLException {
         String sql = ""
             + "SELECT p.id, p.nome, p.quantidade, p.preco_compra, p.preco_venda, "
-            + "       d.fornecedor, d.colecao, d.tipo_deck, d.categoria "
+            + "       d.fornecedor, d.colecao, d.tipo_deck, d.categoria, d.jogo_id "
             + "FROM produtos p "
             + "JOIN decks d ON p.id = d.id "
             + "WHERE p.id = ?";
@@ -83,7 +85,8 @@ public class DeckDAO extends ProdutoDAO {
                     rs.getString("fornecedor"),
                     rs.getString("colecao"),
                     rs.getString("tipo_deck"),
-                    rs.getString("categoria")
+                    rs.getString("categoria"),
+                    rs.getString("jogo_id") // NOVO
                 );
             }
         }

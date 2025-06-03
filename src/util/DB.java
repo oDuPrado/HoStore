@@ -6,6 +6,11 @@ import java.util.List;
 import model.ColecaoModel;
 import model.SetModel;
 
+import model.SetJogoModel;
+import dao.SetJogoDAO;
+import service.SetJogoService;
+
+
 public class DB {
 
         private static final String URL = "jdbc:sqlite:data/hostore.db";
@@ -197,6 +202,7 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS produtos (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "nome TEXT NOT NULL, " +
+                                                        "jogo_id TEXT, " + // vincula ao jogo (Pokémon, etc)
                                                         "tipo TEXT NOT NULL, " +
                                                         "quantidade INTEGER NOT NULL, " +
                                                         "preco_compra REAL, " +
@@ -212,6 +218,7 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS boosters (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "nome TEXT, " +
+                                                        "jogo_id TEXT," +
                                                         "serie TEXT, " +
                                                         "colecao TEXT, " +
                                                         "tipo TEXT, " +
@@ -222,7 +229,8 @@ public class DB {
                                                         "preco_venda REAL, " +
                                                         "fornecedor_id TEXT, " +
                                                         "data_lancamento TEXT, " + // ✅ coluna que estava faltando
-                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id), " +
+                                                        "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
                                                         ")");
 
                         // Fornecedores
@@ -270,9 +278,11 @@ public class DB {
                                                         "id TEXT PRIMARY KEY, " +
                                                         "fornecedor TEXT, " + // pode ser ID ou nome
                                                         "colecao TEXT, " +
+                                                        "jogo_id TEXT, " + // vincula ao jogo (Pokémon, etc)
                                                         "tipo_deck TEXT, " +
                                                         "categoria TEXT, " +
-                                                        "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE" +
+                                                        "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
+                                                        "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
                                                         ")");
 
                         // etbs (entidade com detalhes de selados tipo ETB)
@@ -280,11 +290,13 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS etbs (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "fornecedor TEXT, " +
+                                                        "jogo_id TEXT, " + // vincula ao jogo (Pokémon, etc)
                                                         "serie TEXT, " +
                                                         "colecao TEXT, " +
                                                         "tipo TEXT, " +
                                                         "versao TEXT, " +
-                                                        "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE" +
+                                                        "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
+                                                        "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
                                                         ")");
 
                         // acessórios (detalhes por tipo)
@@ -585,6 +597,55 @@ public class DB {
                         st.execute("INSERT OR IGNORE INTO ilustracoes (id,nome) VALUES " +
                                         "('IL1','Regular'),('IL2','Full Art'),('IL3','Secreta')");
 
+                        // @TODO: TCG - Tabela de Jogos
+                        st.execute("""
+                                            CREATE TABLE IF NOT EXISTS jogos (
+                                                id TEXT PRIMARY KEY,           -- Ex: 'POKEMON', 'YUGIOH'
+                                                nome TEXT NOT NULL             -- Nome completo, ex: 'Pokémon TCG'
+                                            )
+                                        """);
+                        // @TODO: Jogos Padrão
+                        st.execute("""
+                                            INSERT OR IGNORE INTO jogos (id, nome) VALUES
+                                                ('POKEMON', 'Pokémon TCG'),
+                                                ('YUGIOH', 'Yu-Gi-Oh!'),
+                                                ('MAGIC', 'Magic: The Gathering'),
+                                                ('ONEPIECE', 'One Piece Card Game'),
+                                                ('DIGIMON', 'Digimon Card Game'),
+                                                ('DRAGONBALL', 'Dragon Ball Super Card Game')
+                                        """);
+
+                        st.execute("""
+                                            CREATE TABLE IF NOT EXISTS cartas_jogos (
+                                                id TEXT PRIMARY KEY,
+                                                jogo_id TEXT NOT NULL,
+                                                nome TEXT NOT NULL,
+                                                set_id TEXT,
+                                                numero TEXT,
+                                                linguagem TEXT,
+                                                raridade TEXT,
+                                                tipo TEXT,
+                                                subtipo TEXT,
+                                                ilustracao TEXT,
+                                                preco REAL,
+                                                observacoes TEXT,
+                                                FOREIGN KEY (jogo_id) REFERENCES jogos(id)
+                                            )
+                                        """);
+                        // Sets de jogos (exceto Pokémon)
+                        st.execute("""
+                                            CREATE TABLE IF NOT EXISTS sets_jogos (
+                                                set_id TEXT,
+                                                nome TEXT NOT NULL,
+                                                jogo_id TEXT NOT NULL,
+                                                data_lancamento TEXT,
+                                                qtd_cartas INTEGER,
+                                                codigo_externo TEXT,
+                                                PRIMARY KEY (set_id, jogo_id)
+                                                FOREIGN KEY (jogo_id) REFERENCES jogos(id)
+                                            )
+                                        """);
+
                         // No final do método init() em util/DB.java
                         try {
                                 dao.ColecaoDAO colecaoDAO = new dao.ColecaoDAO();
@@ -598,6 +659,27 @@ public class DB {
                                 System.out.println("✅ Coleções e Sets sincronizados com sucesso.");
                         } catch (Exception ex) {
                                 System.err.println("Erro ao sincronizar dados da API Pokémon:");
+                                ex.printStackTrace();
+                        }
+
+                        try {
+                                dao.SetJogoDAO setJogoDAO = new dao.SetJogoDAO();
+
+                                List<model.SetJogoModel> ygoSets = service.SetJogoService.listarSetsYugioh();
+                                setJogoDAO.sincronizarComApi(ygoSets);
+
+                                List<model.SetJogoModel> magicSets = service.SetJogoService.listarSetsMagic();
+                                setJogoDAO.sincronizarComApi(magicSets);
+
+                                List<model.SetJogoModel> digimonSets = service.SetJogoService.listarSetsDigimon();
+                                setJogoDAO.sincronizarComApi(digimonSets);
+
+                                List<model.SetJogoModel> onePieceSets = service.SetJogoService.listarSetsOnePiece();
+                                setJogoDAO.sincronizarComApi(onePieceSets);
+
+                                System.out.println("✅ Sets dos jogos TCG (exceto Pokémon) sincronizados com sucesso.");
+                        } catch (Exception ex) {
+                                System.err.println("Erro ao sincronizar sets_jogos:");
                                 ex.printStackTrace();
                         }
 

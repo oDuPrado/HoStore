@@ -7,6 +7,7 @@ public class ProdutoModel {
     private String id;              // mesmo id da entidade detalhada (ex: carta.id)
     private String nome;
     private String tipo;           // "Carta", "Booster", etc.
+    private String jogoId;
     private int quantidade;
     private double precoCompra;
     private double precoVenda;
@@ -53,4 +54,14 @@ public class ProdutoModel {
 
     public LocalDateTime getAlteradoEm() { return alteradoEm; }
     public void setAlteradoEmNow() { this.alteradoEm = LocalDateTime.now(); }
+
+    // Getter
+public String getJogoId() {
+    return jogoId;
+}
+
+// Setter
+public void setJogoId(String jogoId) {
+    this.jogoId = jogoId;
+}
 }

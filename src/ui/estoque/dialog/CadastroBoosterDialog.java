@@ -1,9 +1,11 @@
 package ui.estoque.dialog;
 
 import controller.ProdutoEstoqueController;
+import dao.JogoDAO;
 import model.BoosterModel;
 import model.ColecaoModel;
 import model.FornecedorModel;
+import model.JogoModel;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
 
@@ -14,15 +16,31 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Comparator;
+import java.util.ArrayList;
 
+/**
+ * Dialog para cadastro/edição de Boosters, agora com seleção de Jogo (TCG).
+ */
 public class CadastroBoosterDialog extends JDialog {
 
     private final boolean isEdicao;
     private final BoosterModel boosterOrig;
 
     private final JTextField tfNome = new JTextField(20);
+    private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
     private final JComboBox<String> cbSerie = new JComboBox<>();
     private final JComboBox<ColecaoModel> cbColecao = new JComboBox<>();
+    // Para jogos que não são Pokémon
+    private final JComboBox<String> cbSetJogo = new JComboBox<>();
+    private final JTextField tfSetManual = new JTextField();
+    // Painel com CardLayout para alternar entre ComboBox e campo manual
+    private final JPanel panelSetSwitcher = new JPanel(new CardLayout());
+    private final static String CARD_COMBO = "combo";
+    private final static String CARD_MANUAL = "manual";
+
+    private List<String> setsFiltrados = new ArrayList<>();
+
     private final JComboBox<String> cbTipo = new JComboBox<>(new String[] {
             "Unitário", "Quadri-pack", "Triple-pack", "Especial", "Blister"
     });
@@ -48,19 +66,22 @@ public class CadastroBoosterDialog extends JDialog {
         this.isEdicao = booster != null;
         this.boosterOrig = booster;
         buildUI(owner);
-        if (isEdicao)
+        if (isEdicao) {
             preencherCampos();
+        }
     }
 
     private void buildUI(JFrame owner) {
         setLayout(new GridLayout(0, 2, 8, 8));
 
-        // séries e coleções
+        // Carregamento inicial de séries, coleções, idiomas e jogos
         carregarSeries();
         cbSerie.addActionListener(e -> carregarColecoesPorSerie());
         carregarColecoesPorSerie();
+        carregarIdiomas();
+        carregarJogos(); // NOVO: popula cbJogo
 
-        // data não editável
+        // Data não editável
         tfDataLanc.setEditable(false);
         cbColecao.addActionListener(e -> {
             ColecaoModel c = (ColecaoModel) cbColecao.getSelectedItem();
@@ -73,10 +94,7 @@ public class CadastroBoosterDialog extends JDialog {
             }
         });
 
-        // idiomas
-        carregarIdiomas();
-
-        // fornecedor
+        // Fornecedor
         btnSelectFornec.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog(owner);
             dlg.setVisible(true);
@@ -87,13 +105,26 @@ public class CadastroBoosterDialog extends JDialog {
             }
         });
 
-        // montar formulário
+        // Montar formulário
         add(new JLabel("Nome:"));
         add(tfNome);
+
+        // NOVO: Campo Jogo
+        add(new JLabel("Jogo:"));
+        add(cbJogo);
+
         add(new JLabel("Série:"));
         add(cbSerie);
         add(new JLabel("Coleção:"));
         add(cbColecao);
+        add(new JLabel("Set:"));
+
+        // Adiciona os dois componentes ao painel com "cartões"
+        panelSetSwitcher.add(cbSetJogo, CARD_COMBO);
+        panelSetSwitcher.add(tfSetManual, CARD_MANUAL);
+
+        add(panelSetSwitcher); // adiciona o painel no layout
+
         add(new JLabel("Tipo:"));
         add(cbTipo);
         add(new JLabel("Idioma:"));
@@ -138,8 +169,9 @@ public class CadastroBoosterDialog extends JDialog {
             cbColecao.removeAllItems();
             if (serie == null)
                 return;
-            for (ColecaoModel c : new dao.ColecaoDAO().listarPorSerie(serie))
+            for (ColecaoModel c : new dao.ColecaoDAO().listarPorSerie(serie)) {
                 cbColecao.addItem(c);
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar coleções.");
         }
@@ -147,10 +179,89 @@ public class CadastroBoosterDialog extends JDialog {
 
     private void carregarIdiomas() {
         try {
-            for (Map<String, String> m : new dao.CadastroGenericoDAO("linguagens", "id", "nome").listar())
+            cbIdioma.removeAllItems();
+            for (Map<String, String> m : new dao.CadastroGenericoDAO("linguagens", "id", "nome").listar()) {
                 cbIdioma.addItem(m.get("nome"));
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar idiomas.");
+        }
+    }
+
+    private void carregarJogos() {
+        try {
+            cbJogo.removeAllItems();
+            cbJogo.addItem(new JogoModel(null, "Selecione..."));
+            List<JogoModel> jogos = new JogoDAO().listarTodos();
+            for (JogoModel jogo : jogos) {
+                cbJogo.addItem(jogo);
+            }
+
+            // 🔧 ESSENCIAL: atualizar visuais ao selecionar jogo
+            cbJogo.addActionListener(e -> atualizarCamposPorJogo());
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar jogos.");
+        }
+    }
+
+    private void atualizarCamposPorJogo() {
+        JogoModel jogo = (JogoModel) cbJogo.getSelectedItem();
+        if (jogo == null || jogo.getId() == null)
+            return;
+
+        boolean isPokemon = jogo.getId().equalsIgnoreCase("POKEMON");
+        boolean isOnePiece = jogo.getId().equalsIgnoreCase("ONEPIECE");
+        boolean isDragonBall = jogo.getId().equalsIgnoreCase("DRAGONBALL");
+
+        // Mostrar apenas os campos relevantes
+        cbSerie.setVisible(isPokemon);
+        cbColecao.setVisible(isPokemon);
+        CardLayout cl = (CardLayout) panelSetSwitcher.getLayout();
+
+        if (isOnePiece || isDragonBall) {
+            cl.show(panelSetSwitcher, CARD_MANUAL);
+        } else {
+            cl.show(panelSetSwitcher, CARD_COMBO);
+        }
+
+        if (isPokemon) {
+            carregarSeries();
+            carregarColecoesPorSerie();
+        } else if (!isOnePiece && !isDragonBall) {
+            carregarSetsJogo(jogo.getId());
+        }
+
+        revalidate();
+        repaint();
+    }
+
+    private void carregarSetsJogo(String jogoId) {
+        try {
+            cbSetJogo.removeAllItems();
+
+            var sets = new dao.SetJogoDAO().listarPorJogo(jogoId);
+            // Ordenar por nome (ignorando maiúsculas/minúsculas)
+            sets.sort(Comparator.comparing(s -> s.getNome().toLowerCase()));
+
+            // Guardar os nomes para uso no filtro
+            setsFiltrados = sets.stream()
+                    .map(s -> s.getNome())
+                    .toList();
+
+            // Atualizar combo com a lista inicial completa
+            atualizarComboBoxSet(setsFiltrados);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar sets do jogo.");
+            ex.printStackTrace();
+        }
+    }
+
+    private void atualizarComboBoxSet(List<String> lista) {
+        cbSetJogo.removeAllItems();
+        for (String nome : lista) {
+            cbSetJogo.addItem(nome);
         }
     }
 
@@ -159,7 +270,19 @@ public class CadastroBoosterDialog extends JDialog {
         tfQtd.setValue(boosterOrig.getQuantidade());
         tfCusto.setValue(boosterOrig.getPrecoCompra());
         tfPreco.setValue(boosterOrig.getPrecoVenda());
-    
+
+        // Jogo
+        String jogoId = boosterOrig.getJogoId();
+        if (jogoId != null) {
+            for (int i = 0; i < cbJogo.getItemCount(); i++) {
+                JogoModel jm = cbJogo.getItemAt(i);
+                if (jm.getId() != null && jm.getId().equals(jogoId)) {
+                    cbJogo.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+
         // Série (set)
         try {
             cbSerie.removeAllItems();
@@ -172,8 +295,7 @@ public class CadastroBoosterDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Erro ao carregar séries.");
             ex.printStackTrace();
         }
-        
-    
+
         // Coleções + Data de Lançamento
         cbColecao.removeAllItems();
         try {
@@ -184,9 +306,8 @@ public class CadastroBoosterDialog extends JDialog {
                     cbColecao.setSelectedItem(c);
                     if (c.getReleaseDate() != null && !c.getReleaseDate().isBlank()) {
                         LocalDate d = LocalDate.parse(
-                            c.getReleaseDate(),
-                            DateTimeFormatter.ofPattern("yyyy/MM/dd")
-                        );
+                                c.getReleaseDate(),
+                                DateTimeFormatter.ofPattern("yyyy/MM/dd"));
                         tfDataLanc.setText(d.format(DISPLAY_DATE_FMT));
                     }
                 }
@@ -195,19 +316,18 @@ public class CadastroBoosterDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Erro ao carregar coleções.");
             e.printStackTrace();
         }
-    
+
         // Tipo + Idioma + Código de Barras
         cbTipo.setSelectedItem(boosterOrig.getTipoBooster());
         cbIdioma.setSelectedItem(boosterOrig.getIdioma());
         tfCodigoBarras.setText(boosterOrig.getCodigoBarras());
-    
+
         // Fornecedor
         fornecedorSel = new FornecedorModel();
         fornecedorSel.setId(boosterOrig.getFornecedor());
         fornecedorSel.setNome(boosterOrig.getFornecedorNome());
         lblFornecedor.setText(boosterOrig.getFornecedorNome());
     }
-    
 
     private void salvar() {
         if (tfNome.getText().trim().isEmpty()) {
@@ -216,6 +336,12 @@ public class CadastroBoosterDialog extends JDialog {
         }
         if (fornecedorSel == null) {
             JOptionPane.showMessageDialog(this, "Selecione um fornecedor.");
+            return;
+        }
+        // Verifica seleção de jogo
+        JogoModel jogoSel = (JogoModel) cbJogo.getSelectedItem();
+        if (jogoSel == null || jogoSel.getId() == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um jogo.");
             return;
         }
 
@@ -229,6 +355,13 @@ public class CadastroBoosterDialog extends JDialog {
             String colecao = cbColecao.getSelectedItem() != null
                     ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
                     : "";
+            // Se for jogo com set manual, pegar do campo de texto
+            if (cbSetJogo.isVisible()) {
+                serie = (String) cbSetJogo.getSelectedItem();
+            } else if (tfSetManual.isVisible()) {
+                serie = tfSetManual.getText().trim();
+            }
+
             String tipo = (String) cbTipo.getSelectedItem();
             String idioma = (String) cbIdioma.getSelectedItem();
             String validade = tfDataLanc.getText().trim();
@@ -238,22 +371,23 @@ public class CadastroBoosterDialog extends JDialog {
             double preco = ((Number) tfPreco.getValue()).doubleValue();
             String fornId = fornecedorSel.getId();
             String fornNom = fornecedorSel.getNome();
+            String jogoId = jogoSel.getId();
 
-            // 1) Salva ou atualiza na tabela boosters
+            // Cria BoosterModel com jogoId
             BoosterModel b = new BoosterModel(
                     id, nome, qtd, custo, preco,
                     fornId,
                     colecao, serie, tipo,
-                    idioma, validade, codigo);
+                    idioma, validade, codigo,
+                    jogoId // NOVO
+            );
             b.setFornecedorNome(fornNom);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
-
-            // Já salva tanto boosters quanto produtos com ID certo
             if (isEdicao) {
-                service.atualizarBooster(b); // isso já salva nos 2!
+                service.atualizarBooster(b); // já salva em ambas as tabelas
             } else {
-                service.salvarNovoBooster(b); // isso já salva nos 2!
+                service.salvarNovoBooster(b);
             }
 
             dispose();

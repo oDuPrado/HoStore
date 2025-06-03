@@ -6,6 +6,7 @@ public class EtbModel extends ProdutoModel {
     private String colecao;
     private String tipo;
     private String versao;
+    private String jogoId;
 
     /**
      * @param id          ID único (mesmo da tabela produtos)
@@ -20,34 +21,73 @@ public class EtbModel extends ProdutoModel {
      * @param versao      Versão (Nacional, Americana)
      */
     public EtbModel(String id,
-                    String nome,
-                    int quantidade,
-                    double precoCompra,
-                    double precoVenda,
-                    String fornecedor,
-                    String serie,
-                    String colecao,
-                    String tipo,
-                    String versao) {
+            String nome,
+            int quantidade,
+            double precoCompra,
+            double precoVenda,
+            String fornecedor,
+            String serie,
+            String colecao,
+            String tipo,
+            String versao,
+            String jogoId) { // NOVO
         super(id, nome, "ETB", quantidade, precoCompra, precoVenda);
         this.fornecedor = fornecedor;
-        this.serie      = serie;
-        this.colecao    = colecao;
-        this.tipo       = tipo;
-        this.versao     = versao;
+        this.serie = serie;
+        this.colecao = colecao;
+        this.tipo = tipo;
+        this.versao = versao;
+        this.jogoId = jogoId;
     }
 
     // — Getters —
-    public String getFornecedor() { return fornecedor; }
-    public String getSerie()      { return serie; }
-    public String getColecao()    { return colecao; }
-    public String getTipo()       { return tipo; }
-    public String getVersao()     { return versao; }
+    public String getFornecedor() {
+        return fornecedor;
+    }
+
+    public String getSerie() {
+        return serie;
+    }
+
+    public String getColecao() {
+        return colecao;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public String getVersao() {
+        return versao;
+    }
 
     // — Setters (opcionais) —
-    public void setFornecedor(String fornecedor) { this.fornecedor = fornecedor; }
-    public void setSerie(String serie)           { this.serie = serie; }
-    public void setColecao(String colecao)       { this.colecao = colecao; }
-    public void setTipo(String tipo)             { this.tipo = tipo; }
-    public void setVersao(String versao)         { this.versao = versao; }
+    public void setFornecedor(String fornecedor) {
+        this.fornecedor = fornecedor;
+    }
+
+    public void setSerie(String serie) {
+        this.serie = serie;
+    }
+
+    public void setColecao(String colecao) {
+        this.colecao = colecao;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public void setVersao(String versao) {
+        this.versao = versao;
+    }
+
+    public String getJogoId() {
+        return jogoId;
+    }
+
+    public void setJogoId(String jogoId) {
+        this.jogoId = jogoId;
+    }
+
 }
