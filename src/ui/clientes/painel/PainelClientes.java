@@ -12,9 +12,17 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * PainelClientes (versão definitiva ajustada para FlatLaf)
+ *
+ * Este painel NÃO força cores fixas, permitindo que o FlatLaf aplique o tema
+ * (claro/escuro) dinamicamente. Os filtros usam placeholder nativo em vez de JLabel.
+ */
 public class PainelClientes extends JPanel {
 
-    private JTextField txtNome, txtCpf, txtCidade;
+    private JTextField txtNome;
+    private JTextField txtCpf;
+    private JTextField txtCidade;
     private JComboBox<String> comboTipo;
     private JTable tabela;
     private DefaultTableModel modelo;
@@ -22,135 +30,113 @@ public class PainelClientes extends JPanel {
 
     public PainelClientes() {
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245));
+        // Removido setBackground(new Color(245, 245, 245));
+        // O tema FlatLaf aplicará o fundo correto (claro/escuro) automaticamente.
 
+        // Carrega lista inicial de clientes
         lista = ClienteService.loadAll();
 
+        // Adiciona painel de filtros (com placeholders) no topo
         add(criarPainelFiltro(), BorderLayout.NORTH);
+        // Adiciona painel de tabela no centro
         add(criarPainelTabela(), BorderLayout.CENTER);
 
+        // Popula tabela inicialmente
         atualizarTabela();
     }
 
-    /* ---------- Filtro ---------- */
+    /* ---------- PAINEL DE FILTRO COM PLACEHOLDERS ---------- */
     private JPanel criarPainelFiltro() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        p.setBackground(getBackground());
+        // Removido p.setBackground(getBackground());
+        // Deixe o FlatLaf determinar o fundo.
 
-        JLabel lbl = new JLabel("Filtros:");
-        lbl.setFont(new Font("Segoe UI Emoji", Font.BOLD, 14));
-
+        // Campo de texto para Nome, com placeholder
         txtNome = new JTextField(10);
+        txtNome.putClientProperty("JTextField.placeholderText", "Nome");
+
+        // Campo de texto para CPF, com placeholder
         txtCpf = new JTextField(10);
+        txtCpf.putClientProperty("JTextField.placeholderText", "CPF");
+
+        // Campo de texto para Cidade, com placeholder
         txtCidade = new JTextField(10);
+        txtCidade.putClientProperty("JTextField.placeholderText", "Cidade");
+
+        // Combo para Tipo (Todos/Colecionador/Jogador/Ambos)
         comboTipo = new JComboBox<>(new String[] { "Todos", "Colecionador", "Jogador", "Ambos" });
+        comboTipo.setToolTipText("Tipo");
 
-        p.add(lbl);
-        p.add(new JLabel("Nome:"));
+        // Botão Filtrar (estilo herdado do tema)
+        JButton filtrar = criarBotao("Filtrar", e -> atualizarTabela());
+
+        // Adiciona componentes no painel de filtro
+        p.add(new JLabel("Filtros:")); // Apenas um indicador de seção
         p.add(txtNome);
-        p.add(new JLabel("CPF:"));
         p.add(txtCpf);
-        p.add(new JLabel("Cidade:"));
         p.add(txtCidade);
-        p.add(new JLabel("Tipo:"));
         p.add(comboTipo);
-
-        JButton filtrar = criarBotaoDark("Filtrar");
-        filtrar.addActionListener(e -> atualizarTabela());
         p.add(filtrar);
+
         return p;
     }
 
-    /* ---------- Tabela ---------- */
+    /* ---------- PAINEL DA TABELA DE CLIENTES ---------- */
     private JPanel criarPainelTabela() {
+        // Cria modelo com colunas: Nome, CPF, Cidade, Tipo, Editar, Excluir
         modelo = new DefaultTableModel(
                 new String[] { "Nome", "CPF", "Cidade", "Tipo", "Editar", "Excluir" }, 0) {
-            public boolean isCellEditable(int r, int c) {
-                return c >= 4;
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                // Apenas colunas de Editar(4) e Excluir(5) são editáveis (para botões)
+                return col >= 4;
             }
         };
 
         tabela = new JTable(modelo);
         tabela.setRowHeight(28);
 
-        // render / editor dos botões
+        // Renderizador para botão "Editar" (só exibe emoji ✏️)
         tabela.getColumn("Editar").setCellRenderer(new BtnRenderer("✏️"));
+        // Renderizador para botão "Excluir" (emoji 🗑️)
         tabela.getColumn("Excluir").setCellRenderer(new BtnRenderer("🗑️"));
+
+        // Editor para botão "Editar"
         tabela.getColumn("Editar").setCellEditor(new BtnEditor(true));
+        // Editor para botão "Excluir"
         tabela.getColumn("Excluir").setCellEditor(new BtnEditor(false));
 
         JScrollPane sp = new JScrollPane(tabela);
 
-        JButton novo = criarBotaoDark("Novo Cliente");
-        novo.addActionListener(e -> abrirDialog(null));
+        // Botão "Novo Cliente" no rodapé (estilo herdado do tema)
+        JButton novo = criarBotao("Novo Cliente", e -> abrirDialog(null));
 
-        // ... dentro criarPainelTabela(), depois botao 'Novo Cliente' ...
+        // Botões de Importar/Exportar
+        JButton importarCsv = criarBotao("Importar CSV", e -> importarClientes());
+        JButton importarJson = criarBotao("Importar JSON", e -> importarJson());
+        JButton exportarCsv = criarBotao("Exportar CSV", e -> exportarCsv());
+        JButton exportarJson = criarBotao("Exportar JSON", e -> exportarJson());
 
-        JButton exportar = criarBotaoDark("Exportar");
-        exportar.addActionListener(e -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setDialogTitle("Exportar clientes");
-            fc.setSelectedFile(new File("clientes.csv"));
-            fc.setApproveButtonText("Salvar CSV");
-            int op = fc.showSaveDialog(this);
-            if(op == JFileChooser.APPROVE_OPTION){
-                File f = fc.getSelectedFile();
-                try { ClienteService.exportCsv(f);
-                    JOptionPane.showMessageDialog(this,"Exportado para "+f.getName()); }
-                catch(Exception ex){ JOptionPane.showMessageDialog(this,"Erro: "+ex.getMessage()); }
-            }
-        });
-
-        JButton exportJson = criarBotaoDark("Exportar JSON");
-        exportJson.addActionListener(e -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setDialogTitle("Exportar JSON");
-            fc.setSelectedFile(new File("clientes.json"));
-            int op = fc.showSaveDialog(this);
-            if(op == JFileChooser.APPROVE_OPTION){
-                try { ClienteService.exportJson(fc.getSelectedFile());
-                    JOptionPane.showMessageDialog(this,"Exportado!"); }
-                catch(Exception ex){ JOptionPane.showMessageDialog(this,"Erro: "+ex.getMessage()); }
-            }
-        });
-
-        JButton importar = criarBotaoDark("Importar CSV");
-        importar.addActionListener(e -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setDialogTitle("Importar clientes CSV");
-            int op = fc.showOpenDialog(this);
-            if(op == JFileChooser.APPROVE_OPTION){
-                try {
-                    int qtd = ClienteService.importCsv(fc.getSelectedFile());
-                    lista = ClienteService.loadAll();
-                    atualizarTabela();
-                    JOptionPane.showMessageDialog(this,"Importados "+qtd+" clientes.");
-                } catch(Exception ex){
-                    JOptionPane.showMessageDialog(this,"Erro: "+ex.getMessage());
-                }
-            }
-        });
-        
-        
-
+        // Painel de rodapé para esses botões
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        rodape.setBackground(getBackground());
-        
-        // Botões no estilo escuro
-        rodape.add(criarBotaoDark("Novo Cliente", e -> abrirDialog(null)));
-        rodape.add(criarBotaoDark("Importar CSV", e -> importarClientes()));
-        rodape.add(criarBotaoDark("Importar JSON", e -> importarJson()));
-        rodape.add(criarBotaoDark("Exportar CSV", e -> exportarCsv()));
-        rodape.add(criarBotaoDark("Exportar JSON", e -> exportarJson()));
-        
+        // Removido rodape.setBackground(getBackground());
 
+        rodape.add(novo);
+        rodape.add(importarCsv);
+        rodape.add(importarJson);
+        rodape.add(exportarCsv);
+        rodape.add(exportarJson);
+
+        // Painel completo unindo tabela e rodapé
         JPanel painel = new JPanel(new BorderLayout());
-        painel.setBackground(getBackground());
+        // Removido painel.setBackground(getBackground());
         painel.add(sp, BorderLayout.CENTER);
         painel.add(rodape, BorderLayout.SOUTH);
+
         return painel;
     }
 
+    /* ---------- AÇÕES DE IMPORTAR/EXPORTAR ---------- */
     private void importarClientes() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Importar clientes CSV");
@@ -165,48 +151,6 @@ public class PainelClientes extends JPanel {
                 JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
             }
         }
-    }
-    
-    private void exportarCsv() {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Exportar clientes");
-        fc.setSelectedFile(new File("clientes.csv"));
-        int op = fc.showSaveDialog(this);
-        if (op == JFileChooser.APPROVE_OPTION) {
-            try {
-                ClienteService.exportCsv(fc.getSelectedFile());
-                JOptionPane.showMessageDialog(this, "Exportado com sucesso!");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
-            }
-        }
-    }
-    
-    private void exportarJson() {
-        JFileChooser fc = new JFileChooser();
-        fc.setDialogTitle("Exportar JSON");
-        fc.setSelectedFile(new File("clientes.json"));
-        int op = fc.showSaveDialog(this);
-        if (op == JFileChooser.APPROVE_OPTION) {
-            try {
-                ClienteService.exportJson(fc.getSelectedFile());
-                JOptionPane.showMessageDialog(this, "Exportado!");
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
-            }
-        }
-        
-    }
-
-    private JButton criarBotaoDark(String texto, ActionListener acao) {
-        JButton b = new JButton(texto);
-        b.setFocusPainted(false);
-        b.setBackground(new Color(60, 63, 65));
-        b.setForeground(Color.WHITE);
-        b.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.addActionListener(acao);
-        return b;
     }
 
     private void importarJson() {
@@ -225,13 +169,45 @@ public class PainelClientes extends JPanel {
         }
     }
 
-    /* ---------- Atualiza tabela ---------- */
+    private void exportarCsv() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Exportar clientes");
+        fc.setSelectedFile(new File("clientes.csv"));
+        int op = fc.showSaveDialog(this);
+        if (op == JFileChooser.APPROVE_OPTION) {
+            try {
+                ClienteService.exportCsv(fc.getSelectedFile());
+                JOptionPane.showMessageDialog(this, "Exportado com sucesso!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void exportarJson() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Exportar JSON");
+        fc.setSelectedFile(new File("clientes.json"));
+        int op = fc.showSaveDialog(this);
+        if (op == JFileChooser.APPROVE_OPTION) {
+            try {
+                ClienteService.exportJson(fc.getSelectedFile());
+                JOptionPane.showMessageDialog(this, "Exportado!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
+            }
+        }
+    }
+
+    /* ---------- ATUALIZAÇÃO DA TABELA ---------- */
     private void atualizarTabela() {
+        // Obtém valores dos filtros, já em lowercase para comparar
         String fNome = txtNome.getText().toLowerCase();
         String fCpf = txtCpf.getText().toLowerCase();
         String fCid = txtCidade.getText().toLowerCase();
         String fTipo = (String) comboTipo.getSelectedItem();
 
+        // Filtra a lista de clientes
         List<ClienteModel> filtrados = lista.stream().filter(c -> {
             boolean okNome = c.getNome().toLowerCase().contains(fNome);
             boolean okCpf = c.getCpf().toLowerCase().contains(fCpf);
@@ -240,25 +216,17 @@ public class PainelClientes extends JPanel {
             return okNome && okCpf && okCid && okTipo;
         }).collect(Collectors.toList());
 
+        // Atualiza linhas da tabela
         modelo.setRowCount(0);
         for (ClienteModel c : filtrados) {
             modelo.addRow(new Object[] { c.getNome(), c.getCpf(), c.getCidade(), c.getTipo(), "✏️", "🗑️" });
         }
     }
 
-    /* ---------- Helpers ---------- */
-    private JButton criarBotaoDark(String texto) {
-        JButton b = new JButton(texto);
-        b.setFocusPainted(false);
-        b.setBackground(new Color(60, 63, 65));
-        b.setForeground(Color.WHITE);
-        b.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        return b;
-    }
-
+    /* ---------- ABRIR DIALOG DE CADASTRO/EDIÇÃO ---------- */
     private void abrirDialog(ClienteModel existente) {
-        ClienteCadastroDialog d = new ClienteCadastroDialog(SwingUtilities.getWindowAncestor(this), existente);
+        ClienteCadastroDialog d = new ClienteCadastroDialog(
+                SwingUtilities.getWindowAncestor(this), existente);
         d.setVisible(true);
         if (d.isSalvou()) {
             ClienteService.upsert(d.getClienteModel());
@@ -267,23 +235,38 @@ public class PainelClientes extends JPanel {
         }
     }
 
-    /* ---------- Render / Editor internos ---------- */
+    /* ---------- CRIADOR DE BOTÃO NEUTRO (HERDA APARÊNCIA DO TEMA) ---------- */
+    private JButton criarBotao(String texto, ActionListener acao) {
+        JButton b = new JButton(texto);
+        b.setFocusPainted(false);
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.addActionListener(acao);
+        // Não define cor de fundo ou texto: FlatLaf cuidará disso
+        return b;
+    }
+
+    /* ---------- RENDERER PERSONALIZADO PARA BOTÕES NA TABELA ---------- */
     private class BtnRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         BtnRenderer(String emoji) {
             setText(emoji);
             setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
             setFocusPainted(false);
-            setBackground(new Color(60, 63, 65));
-            setForeground(Color.WHITE);
+            // Não define cor fixa; FlatLaf aplicará estilo adequado
+            putClientProperty("JButton.buttonType", "square"); 
         }
 
-        public Component getTableCellRendererComponent(JTable t, Object o, boolean s, boolean f, int r, int c) {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus,
+                                                       int row, int column) {
             return this;
         }
     }
 
+    /* ---------- EDITOR PERSONALIZADO PARA BOTÕES NA TABELA ---------- */
     private class BtnEditor extends DefaultCellEditor {
         private final boolean editar;
+        private final JButton editorComponent;
 
         BtnEditor(boolean editar) {
             super(new JCheckBox());
@@ -292,31 +275,34 @@ public class PainelClientes extends JPanel {
             JButton btn = new JButton(editar ? "✏️" : "🗑️");
             btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
             btn.setFocusPainted(false);
-            btn.setBackground(new Color(60, 63, 65));
-            btn.setForeground(Color.WHITE);
-            editorComponent = btn;
+            // Não define cor fixa; FlatLaf aplicará estilo adequado
+            putClientProperty("JButton.buttonType", "square");
 
-            btn.addActionListener(delegate); // VINCULA ao delegate
+            editorComponent = btn;
+            btn.addActionListener(delegate);
         }
 
         private final EditorDelegate delegate = new EditorDelegate() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 int row = tabela.getSelectedRow();
-                if (row < 0)
-                    return;
+                if (row < 0) return;
+
                 String cpf = (String) tabela.getValueAt(row, 1);
                 ClienteModel cli = lista.stream()
                         .filter(c -> c.getCpf().equals(cpf))
                         .findFirst().orElse(null);
-                if (cli == null)
-                    return;
+                if (cli == null) return;
 
                 if (editar) {
                     abrirDialog(cli);
                 } else {
-                    int opt = JOptionPane.showConfirmDialog(PainelClientes.this,
-                            "Excluir cliente " + cli.getNome() + "?", "Confirma",
-                            JOptionPane.YES_NO_OPTION);
+                    int opt = JOptionPane.showConfirmDialog(
+                            PainelClientes.this,
+                            "Excluir cliente " + cli.getNome() + "?",
+                            "Confirmação",
+                            JOptionPane.YES_NO_OPTION
+                    );
                     if (opt == JOptionPane.YES_OPTION) {
                         ClienteService.deleteById(cli.getId());
                         lista = ClienteService.loadAll();
@@ -325,5 +311,16 @@ public class PainelClientes extends JPanel {
                 }
             }
         };
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value,
+                                                     boolean isSelected, int row, int column) {
+            return editorComponent;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return null;
+        }
     }
 }

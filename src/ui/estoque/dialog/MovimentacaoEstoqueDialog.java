@@ -1,7 +1,3 @@
-// Procure no seu projeto (Ctrl + F) e substitua o arquivo:
-// src/ui/estoque/dialog/MovimentacaoEstoqueDialog.java
-// pelo código completo abaixo.
-
 package ui.estoque.dialog;
 
 import util.DB;
@@ -21,33 +17,31 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Vector;
 import javax.swing.table.DefaultTableCellRenderer;
-
+import javax.swing.table.TableRowSorter;
 
 /**
  * Diálogo para exibir e filtrar todas as movimentações de estoque,
- * agora mostrando o NOME do produto em vez do ID, e com um detalhe
+ * mostrando o NOME do produto em vez do ID, e com um detalhe
  * em forma de tabela quando o usuário dá duplo-clique numa linha.
  *
- * Recursos:
- *  - Colunas: ID, Produto (nome), Tipo (entrada/saída destacado em cor),
- *    Quantidade, Motivo, Data/Hora, Usuário.
- *  - Filtros:
- *      • Combo “Todos” / “entrada” / “saida”
- *      • Data Início / Data Fim (via JDateChooser)
- *  - Duplo-clique: abre um JDialog menor contendo uma JTable
- *    “Campo | Valor” com todos os detalhes formatados corretamente.
+ * Ajustes para legibilidade em temas claro/escuro:
+ * - Não força fundo branco em diálogos ou painéis.
+ * - Usa getForeground() do renderer padrão para texto “normal”.
+ * - Mantém apenas cores específicas para “entrada” (verde) e “saida”
+ * (vermelho).
  *
  * Como usar:
- * 1) Copie este arquivo para src/ui/estoque/dialog/MovimentacaoEstoqueDialog.java
+ * 1) Copie este arquivo para
+ * src/ui/estoque/dialog/MovimentacaoEstoqueDialog.java
  * 2) Certifique-se de ter JCalendar (JDateChooser) no classpath.
  * 3) Em algum menu ou botão, chame:
- *       new MovimentacaoEstoqueDialog(seuFramePai).setVisible(true);
+ * new MovimentacaoEstoqueDialog(seuFramePai).setVisible(true);
  *
  * @author Marco Prado
  */
 public class MovimentacaoEstoqueDialog extends JDialog {
 
-    // Formato ISO que está armazenado no banco: "yyyy-MM-ddTHH:mm:ss"
+    // Formato ISO armazenado no banco: "yyyy-MM-ddTHH:mm:ss"
     private static final DateTimeFormatter FMT_ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
     // Formato legível para exibição: "dd/MM/yyyy HH:mm:ss"
     private static final DateTimeFormatter FMT_EXIBIR = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -70,10 +64,11 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
         // =========== PAINEL DE FILTROS (NORTH) ===========
         JPanel painelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
+        // Deixa o painel sem setBackground() fixo para herdar o tema ativo
 
         // Filtro de tipo: Todos / entrada / saida
         painelFiltros.add(new JLabel("Tipo:"));
-        cboTipo = new JComboBox<>(new String[] {"Todos", "entrada", "saida"});
+        cboTipo = new JComboBox<>(new String[] { "Todos", "entrada", "saida" });
         painelFiltros.add(cboTipo);
 
         // Filtro de data início
@@ -97,38 +92,63 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         // =========== TABELA DE DADOS (CENTER) ===========
         // Colunas: ID, Produto, Tipo, Quantidade, Motivo, Data/Hora, Usuário
         tabelaModel = new DefaultTableModel(
-                new String[] {"ID", "Produto", "Tipo", "Quantidade", "Motivo", "Data/Hora", "Usuário"}, 0
-        ) {
+                new String[] { "ID", "Produto", "Tipo", "Quantidade", "Motivo", "Data/Hora", "Usuário" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                return false; // torna a tabela somente leitura
+                return false; // tabela somente leitura
             }
+
             @Override
             public Class<?> getColumnClass(int col) {
-                if (col == 0 || col == 3) return Integer.class;
+                if (col == 0 || col == 3)
+                    return Integer.class;
                 return String.class;
             }
         };
 
         tabela = new JTable(tabelaModel);
+        // Renderer centralizado padrão
+        DefaultTableCellRenderer centralizado = new DefaultTableCellRenderer();
+        centralizado.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Aplica centralização para todas as colunas, exceto “Produto” (coluna 1) e
+        // “Tipo” (coluna 2)
+        for (int i = 0; i < tabela.getColumnCount(); i++) {
+            if (i != 1 && i != 2) {
+                tabela.getColumnModel().getColumn(i).setCellRenderer(centralizado);
+            }
+        }
+
+        // Ativa ordenação clicando nos títulos das colunas
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tabelaModel);
+        tabela.setRowSorter(sorter);
+
+        // Ordenação padrão: Data/Hora (coluna 5), em ordem DESC
+        sorter.toggleSortOrder(5); // primeira vez = ASC
+        sorter.toggleSortOrder(5); // segunda vez = DESC
+
         tabela.setFillsViewportHeight(true);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Renderer personalizado para destacar “entrada” em verde e “saida” em vermelho
         tabela.getColumnModel().getColumn(2).setCellRenderer(new TableCellRenderer() {
             private final DefaultTableCellRenderer RENDERER = new DefaultTableCellRenderer();
+            {
+                RENDERER.setHorizontalAlignment(SwingConstants.CENTER); // 👈 centraliza
+            }
+
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
-                                                           boolean isSelected, boolean hasFocus,
-                                                           int row, int column) {
+                    boolean isSelected, boolean hasFocus,
+                    int row, int column) {
                 Component c = RENDERER.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 String tipo = (String) value;
                 if ("entrada".equalsIgnoreCase(tipo)) {
-                    c.setForeground(new Color(0, 128, 0)); // verde para entrada
+                    c.setForeground(new Color(0, 220, 0));
                 } else if ("saida".equalsIgnoreCase(tipo)) {
-                    c.setForeground(new Color(192, 0, 0)); // vermelho para saída
+                    c.setForeground(new Color(255, 0, 0));
                 } else {
-                    c.setForeground(Color.BLACK);
+                    c.setForeground(RENDERER.getForeground());
                 }
                 return c;
             }
@@ -166,20 +186,21 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         LocalDate dataIni = null;
         LocalDate dataFimLocal = null;
         if (dtInicio.getDate() != null) {
-            dataIni = dtInicio.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            dataIni = dtInicio.getDate().toInstant()
+                    .atZone(ZoneId.systemDefault()).toLocalDate();
         }
         if (dtFim.getDate() != null) {
-            dataFimLocal = dtFim.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            dataFimLocal = dtFim.getDate().toInstant()
+                    .atZone(ZoneId.systemDefault()).toLocalDate();
         }
 
         // Montagem dinâmica do SQL com JOIN para pegar o nome do produto
         StringBuilder sql = new StringBuilder(
                 "SELECT m.id, m.produto_id, p.nome AS produto_nome, " +
-                "m.tipo_mov, m.quantidade, m.motivo, m.data, m.usuario " +
-                "FROM estoque_movimentacoes m " +
-                "LEFT JOIN produtos p ON m.produto_id = p.id " +
-                "WHERE 1=1 "
-        );
+                        "m.tipo_mov, m.quantidade, m.motivo, m.data, m.usuario " +
+                        "FROM estoque_movimentacoes m " +
+                        "LEFT JOIN produtos p ON m.produto_id = p.id " +
+                        "WHERE 1=1 ");
         Vector<Object> params = new Vector<>();
 
         // Filtro de tipo (entrada/saida)
@@ -202,7 +223,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
         // Executa a consulta e popula a tabela
         try (Connection c = DB.get();
-             PreparedStatement ps = c.prepareStatement(sql.toString())) {
+                PreparedStatement ps = c.prepareStatement(sql.toString())) {
 
             // Define parâmetros no PreparedStatement
             for (int i = 0; i < params.size(); i++) {
@@ -211,17 +232,17 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    int id            = rs.getInt("id");
+                    int id = rs.getInt("id");
                     String produtoNome = rs.getString("produto_nome");
                     if (produtoNome == null) {
                         // Caso não encontre na tabela 'produtos', exibe "ID:xxxxx"
                         produtoNome = "ID:" + rs.getString("produto_id");
                     }
-                    String tipo       = rs.getString("tipo_mov");
-                    int quantidade    = rs.getInt("quantidade");
-                    String motivo     = rs.getString("motivo");
-                    String dataBruta  = rs.getString("data");
-                    String usuario    = rs.getString("usuario");
+                    String tipo = rs.getString("tipo_mov");
+                    int quantidade = rs.getInt("quantidade");
+                    String motivo = rs.getString("motivo");
+                    String dataBruta = rs.getString("data");
+                    String usuario = rs.getString("usuario");
 
                     // Formata a data ISO para algo legível: "dd/MM/yyyy HH:mm:ss"
                     String dataFormatada;
@@ -234,7 +255,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
                     }
 
                     // Adiciona a linha na tabela
-                    tabelaModel.addRow(new Object[]{
+                    tabelaModel.addRow(new Object[] {
                             id,
                             produtoNome,
                             tipo,
@@ -260,41 +281,42 @@ public class MovimentacaoEstoqueDialog extends JDialog {
      */
     private void exibirDetalhesComTabela() {
         int linha = tabela.getSelectedRow();
-        if (linha < 0) return;
+        if (linha < 0)
+            return;
 
         // Obtém dados da linha selecionada
-        Object idObj         = tabelaModel.getValueAt(linha, 0);
-        Object produtoObj    = tabelaModel.getValueAt(linha, 1);
-        Object tipoObj       = tabelaModel.getValueAt(linha, 2);
-        Object qtdObj        = tabelaModel.getValueAt(linha, 3);
-        Object motivoObj     = tabelaModel.getValueAt(linha, 4);
-        Object dataHoraObj   = tabelaModel.getValueAt(linha, 5);
-        Object usuarioObj    = tabelaModel.getValueAt(linha, 6);
+        Object idObj = tabelaModel.getValueAt(linha, 0);
+        Object produtoObj = tabelaModel.getValueAt(linha, 1);
+        Object tipoObj = tabelaModel.getValueAt(linha, 2);
+        Object qtdObj = tabelaModel.getValueAt(linha, 3);
+        Object motivoObj = tabelaModel.getValueAt(linha, 4);
+        Object dataHoraObj = tabelaModel.getValueAt(linha, 5);
+        Object usuarioObj = tabelaModel.getValueAt(linha, 6);
 
-        // Data: cria modelo para JTable de detalhes
+        // Model para JTable de detalhes: “Campo | Valor”
         DefaultTableModel detalhesModel = new DefaultTableModel(
-                new String[] {"Campo", "Valor"}, 0
-        ) {
+                new String[] { "Campo", "Valor" }, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
                 return false;
             }
+
             @Override
             public Class<?> getColumnClass(int col) {
                 return String.class;
             }
         };
 
-        // Adiciona cada campo como uma linha “Campo | Valor”
-        detalhesModel.addRow(new Object[] {"ID",           idObj.toString()});
-        detalhesModel.addRow(new Object[] {"Produto",      produtoObj.toString()});
-        detalhesModel.addRow(new Object[] {"Tipo",         tipoObj.toString()});
-        detalhesModel.addRow(new Object[] {"Quantidade",   qtdObj.toString()});
-        detalhesModel.addRow(new Object[] {"Motivo",       motivoObj.toString()});
-        detalhesModel.addRow(new Object[] {"Data/Hora",    dataHoraObj.toString()});
-        detalhesModel.addRow(new Object[] {"Usuário",      usuarioObj.toString()});
+        // Adiciona cada campo como uma linha
+        detalhesModel.addRow(new Object[] { "ID", idObj.toString() });
+        detalhesModel.addRow(new Object[] { "Produto", produtoObj.toString() });
+        detalhesModel.addRow(new Object[] { "Tipo", tipoObj.toString() });
+        detalhesModel.addRow(new Object[] { "Quantidade", qtdObj.toString() });
+        detalhesModel.addRow(new Object[] { "Motivo", motivoObj.toString() });
+        detalhesModel.addRow(new Object[] { "Data/Hora", dataHoraObj.toString() });
+        detalhesModel.addRow(new Object[] { "Usuário", usuarioObj.toString() });
 
-        // Cria a JTable de detalhes e a coloca num JScrollPane
+        // Cria a JTable de detalhes dentro de JScrollPane
         JTable tabelaDetalhes = new JTable(detalhesModel);
         tabelaDetalhes.setFillsViewportHeight(true);
         tabelaDetalhes.setRowHeight(24);
@@ -307,8 +329,8 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         // Cria o JDialog para mostrar detalhes
         JDialog dlg = new JDialog(this, "Detalhes Movimentação #" + idObj, true);
         dlg.setLayout(new BorderLayout(8, 8));
-        dlg.getContentPane().setBackground(Color.WHITE);
-        dlg.setResizable(false);
+        // Removido dlg.getContentPane().setBackground(Color.WHITE);
+        // Agora herda o fundo do tema ativo (claro/escuro)
 
         // Adiciona o JScrollPane ao centro
         dlg.add(scrollDetalhes, BorderLayout.CENTER);
@@ -317,6 +339,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         JButton btnFechar = new JButton("Fechar");
         btnFechar.addActionListener(e -> dlg.dispose());
         JPanel painelBtn = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        // Sem setBackground() fixo
         painelBtn.add(btnFechar);
         dlg.add(painelBtn, BorderLayout.SOUTH);
 
@@ -325,7 +348,8 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         dlg.setVisible(true);
     }
 
-    // ==================== Método main() para teste independente ====================
+    // ==================== Método main() para teste independente
+    // ====================
     // Você pode remover ou comentar este método no código final se não precisar.
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

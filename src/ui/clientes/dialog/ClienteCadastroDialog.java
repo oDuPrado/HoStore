@@ -8,10 +8,18 @@ import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
 import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * ClienteCadastroDialog (versão definitiva ajustada para FlatLaf)
+ *
+ * - Não força cores fixas em painéis ou botões.
+ * - Deixa o FlatLaf (claro/escuro) aplicar o estilo nativo.
+ * - Mantém posicional (null layout) para reproduzir o layout original.
+ */
 public class ClienteCadastroDialog extends JDialog {
 
     private JTextField txtNome;
@@ -30,51 +38,67 @@ public class ClienteCadastroDialog extends JDialog {
     /* ----------------- CONSTRUTOR ----------------- */
     public ClienteCadastroDialog(Window parent, ClienteModel existente) {
         super(parent, "Cadastro de Cliente", ModalityType.APPLICATION_MODAL);
+
+        // Deixa a janela sem decoração (só ficará a borda que definimos abaixo)
         setUndecorated(true);
         setSize(500, 520);
         setLocationRelativeTo(parent);
+
+        // Coloca uma borda cinza clara ao redor da janela para destacar no tema escuro/claro
         getRootPane().setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180)));
-        setBackground(new Color(0, 0, 0, 0));
+
+        // O setBackground abaixo era usado para tornar o dialog transparente, 
+        // mas não vamos forçar cores. Comentado para herdar tema:
+        // setBackground(new Color(0, 0, 0, 0));
+
+        // Vamos usar um painel com layout null (posicional) para reproduzir o layout original,
+        // mas NÃO definiremos cor de fundo: o FlatLaf decidirá.
         JPanel content = new JPanel(null);
-        content.setBackground(Color.WHITE);
+        // Removido: content.setBackground(Color.WHITE);
         add(content);
 
-        /* ----- cria/ carrega model ----- */
+        /* ----- Carrega ou cria o model ----- */
         clienteModel = (existente == null) ? novoModelo() : existente;
 
-        /* ----- layout helpers ----- */
-        int h = 30, y = 20, dy = 10;
-        int lx = 20, cx = 150, lw = 120, cw = 300;
+        /* ----- Variáveis de posição e tamanhofixo ----- */
+        int h = 30;   // altura padrão dos campos
+        int y = 20;   // posição Y inicial
+        int dy = 10;  // espaçamento vertical entre campos
 
-        /* Nome */
+        int lx = 20;  // posição X de labels
+        int cx = 150; // posição X de campos
+        int lw = 120; // largura dos labels
+        int cw = 300; // largura dos campos
+
+        /* ------------------ CAMPO NOME ------------------ */
         content.add(label("Nome:", lx, y, lw, h));
         txtNome = new JTextField(clienteModel.getNome());
         txtNome.setBounds(cx, y, cw, h);
         content.add(txtNome);
         y += h + dy;
 
-        /* Telefone */
+        /* ------------------ CAMPO TELEFONE ------------------ */
         content.add(label("Telefone:", lx, y, lw, h));
         txtTelefone = campoMascara("(##) #####-####", clienteModel.getTelefone());
         txtTelefone.setBounds(cx, y, cw, h);
         content.add(txtTelefone);
         y += h + dy;
 
-        /* CPF */
+        /* ------------------ CAMPO CPF ------------------ */
         content.add(label("CPF:", lx, y, lw, h));
         txtCPF = campoMascara("###.###.###-##", clienteModel.getCpf());
         txtCPF.setBounds(cx, y, cw, h);
         content.add(txtCPF);
         y += h + dy;
 
-        /* Data nasc */
+        /* ------------------ CAMPO DATA NASCIMENTO ------------------ */
         content.add(label("Data Nasc.:", lx, y, lw, h));
         txtDataNasc = campoMascara("##/##/####", clienteModel.getDataNasc());
         txtDataNasc.setBounds(cx, y, cw, h);
         content.add(txtDataNasc);
         y += h + dy;
 
-        /* Tipo */
+        /* ------------------ CAMPO TIPO ------------------ */
         content.add(label("Tipo:", lx, y, lw, h));
         comboTipo = new JComboBox<>(new String[] { "Colecionador", "Jogador", "Ambos" });
         comboTipo.setSelectedItem(clienteModel.getTipo());
@@ -82,19 +106,21 @@ public class ClienteCadastroDialog extends JDialog {
         content.add(comboTipo);
         y += h + dy;
 
-        /* Endereço, cidade, estado */
+        /* ------------------ CAMPO ENDEREÇO ------------------ */
         content.add(label("Endereço:", lx, y, lw, h));
         txtEndereco = new JTextField(clienteModel.getEndereco());
         txtEndereco.setBounds(cx, y, cw, h);
         content.add(txtEndereco);
         y += h + dy;
 
+        /* ------------------ CAMPO CIDADE ------------------ */
         content.add(label("Cidade:", lx, y, lw, h));
         txtCidade = new JTextField(clienteModel.getCidade());
         txtCidade.setBounds(cx, y, cw, h);
         content.add(txtCidade);
         y += h + dy;
 
+        /* ------------------ CAMPO ESTADO ------------------ */
         content.add(label("Estado:", lx, y, lw, h));
         comboEstado = new JComboBox<>(UF);
         comboEstado.setSelectedItem(clienteModel.getEstado());
@@ -102,51 +128,51 @@ public class ClienteCadastroDialog extends JDialog {
         content.add(comboEstado);
         y += h + dy;
 
-        /* Observações */
+        /* ------------------ CAMPO OBSERVAÇÕES ------------------ */
         content.add(label("Observações:", lx, y, lw, h));
         txtObservacoes = new JTextArea(clienteModel.getObservacoes());
         txtObservacoes.setLineWrap(true);
         txtObservacoes.setWrapStyleWord(true);
         JScrollPane scObs = new JScrollPane(txtObservacoes);
-        scObs.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        // Removido: scObs.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         scObs.setBounds(cx, y, cw, 60);
         content.add(scObs);
 
-        /* --------- Botões --------- */
+        /* --------- PAINEL DE BOTÕES (RODAPÉ) --------- */
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         rodape.setBounds(0, 420, 500, 50);
-        rodape.setBackground(Color.WHITE);
+        // Removido: rodape.setBackground(Color.WHITE);
+        content.add(rodape);
 
-        rodape.add(btnDark("Salvar", e -> salvar(false)));
-        rodape.add(btnDark("Salvar + Novo", e -> salvar(true)));
-        rodape.add(btnDark("Cancelar", e -> {
+        // Botões agora usam método criarBotao para herdar estilo do tema
+        rodape.add(criarBotao("Salvar", e -> salvar(false)));
+        rodape.add(criarBotao("Salvar + Novo", e -> salvar(true)));
+        rodape.add(criarBotao("Cancelar", e -> {
             salvou = false;
             dispose();
         }));
 
-        content.add(rodape);
-
-        /* Fade‑in simples */
+        /* --------- Efeito de Fade‐In --------- */
         Timer t = new Timer(30, null);
-        final float[] op = { 0f };
+        final float[] opacidade = { 0f };
         t.addActionListener(e -> {
-            op[0] += 0.08f;
-            if (op[0] >= 1) {
-                op[0] = 1;
+            opacidade[0] += 0.08f;
+            if (opacidade[0] >= 1f) {
+                opacidade[0] = 1f;
                 t.stop();
             }
-            setOpacity(op[0]);
+            setOpacity(opacidade[0]);
         });
-        setOpacity(0);
+        setOpacity(0f);
         t.start();
     }
 
-    /* ----------------- SALVAR ----------------- */
+    /* ----------------- SALVAR (CRIAR OU ATUALIZAR) ----------------- */
     private void salvar(boolean novoApos) {
         String nome = txtNome.getText().trim();
-        String cpf = txtCPF.getText().replaceAll("\\D", ""); // só dígitos
+        String cpf = txtCPF.getText().replaceAll("\\D", "");
 
-        /* --- validações --- */
+        // Validações básicas
         if (nome.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nome é obrigatório!");
             return;
@@ -155,17 +181,17 @@ public class ClienteCadastroDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "CPF inválido.");
             return;
         }
-        /* duplicidade (outro cliente com mesmo CPF) */
+        // Verifica duplicidade de CPF em outro cliente
         List<ClienteModel> todos = ClienteService.loadAll();
-        boolean dup = todos.stream()
-                .anyMatch(c -> c.getCpf().replaceAll("\\D", "").equals(cpf) &&
-                        !c.getId().equals(clienteModel.getId()));
-        if (dup) {
+        boolean duplicado = todos.stream()
+                .anyMatch(c -> c.getCpf().replaceAll("\\D", "").equals(cpf)
+                        && !c.getId().equals(clienteModel.getId()));
+        if (duplicado) {
             JOptionPane.showMessageDialog(this, "CPF já cadastrado para outro cliente.");
             return;
         }
 
-        /* --- grava no model --- */
+        // Preenche o model com os valores dos campos
         clienteModel.setNome(nome);
         clienteModel.setCpf(txtCPF.getText());
         clienteModel.setTelefone(txtTelefone.getText());
@@ -175,60 +201,58 @@ public class ClienteCadastroDialog extends JDialog {
         clienteModel.setCidade(txtCidade.getText());
         clienteModel.setEstado((String) comboEstado.getSelectedItem());
         clienteModel.setObservacoes(txtObservacoes.getText());
+        // Exemplo de preenchimento de metadata (data/hora fixa)
         clienteModel.setAlteradoEm("2025-04-16 10:10");
         clienteModel.setAlteradoPor("admin");
 
+        // Persiste no serviço/DAO
         ClienteService.upsert(clienteModel);
         salvou = true;
 
         if (novoApos) {
+            // Fecha este e abre outro novo
             dispose();
             new ClienteCadastroDialog(
-                    SwingUtilities.getWindowAncestor(getParent()), null).setVisible(true);
+                    SwingUtilities.getWindowAncestor(getParent()), null
+            ).setVisible(true);
         } else {
             dispose();
         }
     }
 
-    /* ----------------- HELPERS UI ----------------- */
-    private JLabel label(String t, int x, int y, int w, int h) {
-        JLabel l = new JLabel(t);
+    /* ----------------- HELPER: cria JLabel posicionado ----------------- */
+    private JLabel label(String texto, int x, int y, int w, int h) {
+        JLabel l = new JLabel(texto);
         l.setBounds(x, y, w, h);
         return l;
     }
 
-    private JFormattedTextField campoMascara(String mask, String val) {
+    /* ----------------- HELPER: cria JFormattedTextField com máscara ----------------- */
+    private JFormattedTextField campoMascara(String mask, String valorInicial) {
         try {
             MaskFormatter mf = new MaskFormatter(mask);
             mf.setPlaceholderCharacter('_');
             JFormattedTextField f = new JFormattedTextField(mf);
-            f.setText(val == null ? "" : val);
+            f.setText(valorInicial == null ? "" : valorInicial);
             return f;
         } catch (ParseException e) {
-            return new JFormattedTextField(val);
+            // Se der erro na máscara, retorna um campo genérico
+            return new JFormattedTextField(valorInicial);
         }
     }
 
-    private JButton btnDark(String txt, java.awt.event.ActionListener ac) {
-        JButton b = new JButton(txt);
-        b.addActionListener(ac);
+    /* ----------------- HELPER: cria JButton neutro (herdando estilo do tema) ----------------- */
+    private JButton criarBotao(String texto, ActionListener acao) {
+        JButton b = new JButton(texto);
         b.setFocusPainted(false);
-        b.setBackground(new Color(60, 63, 65));
-        b.setForeground(Color.WHITE);
-        b.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) {
-                b.setBackground(new Color(80, 83, 85));
-            }
-
-            public void mouseExited(MouseEvent e) {
-                b.setBackground(new Color(60, 63, 65));
-            }
-        });
+        b.addActionListener(acao);
+        // Não definimos setBackground nem setForeground:
+        // → o FlatLaf aplicará automaticamente o estilo correto (claro/escuro).
         return b;
     }
 
+    /* ----------------- AUXILIAR: cria um novo model vazio ----------------- */
     private ClienteModel novoModelo() {
         ClienteModel m = new ClienteModel();
         m.setId("C-" + UUID.randomUUID().toString().substring(0, 5));
@@ -245,8 +269,10 @@ public class ClienteCadastroDialog extends JDialog {
         return clienteModel;
     }
 
+    /* ----------------- LISTA DE UNIDADES FEDERATIVAS ----------------- */
     private static final String[] UF = {
-            "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG",
-            "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SE", "SP", "TO"
+        "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS",
+        "MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC",
+        "SE","SP","TO"
     };
 }

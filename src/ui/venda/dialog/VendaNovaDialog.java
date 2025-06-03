@@ -8,7 +8,7 @@ import model.ProdutoModel;
 import model.VendaItemModel;
 import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
-
+import ui.clientes.dialog.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CellEditorListener;
@@ -21,6 +21,8 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+
+import ui.clientes.dialog.ClienteCadastroDialog;
 import ui.dialog.SelectCartaDialog;
 
 /**
@@ -78,8 +80,17 @@ public class VendaNovaDialog extends JDialog {
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
 
         /* ===== TOP: Cliente + botões ===== */
+        JPanel clientePanel = new JPanel(new BorderLayout(5, 0));
         clienteCombo = new JComboBox<>(clienteDAO.listarTodosNomes().toArray(new String[0]));
         clienteCombo.setEditable(true);
+        clientePanel.add(clienteCombo, BorderLayout.CENTER);
+
+        // Botão de adicionar cliente
+        JButton btnAddCliente = new JButton("➕");
+        btnAddCliente.setMargin(new Insets(2, 6, 2, 6)); // botão compacto
+        btnAddCliente.setToolTipText("Cadastrar novo cliente");
+        btnAddCliente.addActionListener(e -> abrirCadastroCliente());
+        clientePanel.add(btnAddCliente, BorderLayout.EAST);
 
         JButton btnAddProd = new JButton("➕ Adicionar Produto");
         btnAddProd.addActionListener(e -> abrirSelectProduto());
@@ -89,7 +100,8 @@ public class VendaNovaDialog extends JDialog {
 
         JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
         topo.add(new JLabel("Cliente:"));
-        topo.add(clienteCombo);
+        topo.add(clientePanel);
+
         topo.add(btnAddProd);
         topo.add(btnAddCarta);
         add(topo, BorderLayout.NORTH);
@@ -215,19 +227,19 @@ public class VendaNovaDialog extends JDialog {
         });
 
         tcm.getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
-        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        double desc = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
-        if (desc > 0) {
-            c.setBackground(new Color(255, 240, 200)); // amarelo claro
-        } else {
-            c.setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
-        }
-        return c;
-    }
-});
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                double desc = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
+                if (desc > 0) {
+                    c.setBackground(new Color(255, 240, 200)); // amarelo claro
+                } else {
+                    c.setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
+                }
+                return c;
+            }
+        });
 
         /* Atualiza totais sempre que uma edição é concluída */
         carrinhoTable.getDefaultEditor(Integer.class)
@@ -364,4 +376,20 @@ public class VendaNovaDialog extends JDialog {
         new VendaFinalizarDialog(this, controller, clienteId, painelPai)
                 .setVisible(true);
     }
+
+    // Adicione no final da classe VendaNovaDialog
+private void abrirCadastroCliente() {
+    ClienteCadastroDialog dlg = new ClienteCadastroDialog(SwingUtilities.getWindowAncestor(this), null);
+    dlg.setVisible(true);
+
+    // Após fechamento, atualiza a lista de clientes
+    List<String> nomes = clienteDAO.listarTodosNomes();
+    clienteCombo.setModel(new DefaultComboBoxModel<>(nomes.toArray(new String[0])));
+
+    // Define como selecionado o último adicionado (por padrão)
+    if (!nomes.isEmpty()) {
+        clienteCombo.setSelectedItem(nomes.get(nomes.size() - 1));
+    }
+}
+
 }

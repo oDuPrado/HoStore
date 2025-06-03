@@ -26,7 +26,7 @@ import java.util.List;
 public class PainelEstoque extends JPanel {
 
     private static final String[] CATEGORIAS = {
-            "Todos", "Carta", "Booster", "Deck", "ETB", "Acessório", "Alimento", "Promo", "Outro"
+            "Todos", "Carta", "Booster", "Deck", "Selados", "Acessório", "Alimento", "Promo", "Outro"
     };
 
     private String categoriaFiltro = "Todos";
@@ -85,7 +85,7 @@ public class PainelEstoque extends JPanel {
         addShortcut(atalhos, "Carta", "🃏", () -> abrirDialog("Carta"));
         addShortcut(atalhos, "Booster", "📦", () -> abrirDialog("Booster"));
         addShortcut(atalhos, "Deck", "🎴", () -> abrirDialog("Deck"));
-        addShortcut(atalhos, "ETB", "📚", () -> abrirDialog("ETB"));
+        addShortcut(atalhos, "Selados", "📚", () -> abrirDialog("ETB"));
         addShortcut(atalhos, "Acessório", "🛠️", () -> abrirDialog("Acessório"));
         addShortcut(atalhos, "Alimento", "🍫", () -> abrirDialog("Alimento"));
         addShortcut(atalhos, "Outro", "➕", () -> abrirDialog("Outro"));
@@ -216,9 +216,18 @@ public class PainelEstoque extends JPanel {
 
             // Filtro inteligente (categoria visual pode diferir do tipo armazenado)
             boolean corresponde = switch (categoriaFiltro) {
-                case "ETB" -> tipo.equalsIgnoreCase("ETB")
-                        || tipoExibido.equalsIgnoreCase("Booster Box")
-                        || tipoExibido.equalsIgnoreCase("Pokémon Center");
+                case "Selados" -> tipo.equalsIgnoreCase("ETB")
+                        || List.of(
+                                "Booster Box",
+                                "Pokémon Center",
+                                "Mini ETB",
+                                "Collection Box",
+                                "Special Collection",
+                                "Latas",
+                                "Box colecionáveis",
+                                "Mini Booster Box",
+                                "Trainer Kit").contains(tipoExibido);
+
                 case "Alimento" -> tipo.equalsIgnoreCase("Alimento");
                 default -> "Todos".equalsIgnoreCase(categoriaFiltro)
                         || tipo.equalsIgnoreCase(categoriaFiltro);

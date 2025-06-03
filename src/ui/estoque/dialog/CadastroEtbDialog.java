@@ -26,7 +26,7 @@ public class CadastroEtbDialog extends JDialog {
     private final JComboBox<String> cbSerie = new JComboBox<>();
     private final JComboBox<ColecaoModel> cbColecao = new JComboBox<>();
     private final JComboBox<String> cbTipo = new JComboBox<>(new String[] {
-            "Booster Box", "Pokémon Center", "ETB"
+    "Booster Box", "Pokémon Center", "ETB", "Mini ETB", "Collection Box", "Special Collection","Latas","Box colecionáveis", "Trainer Kit","Mini Booster Box"
     });
     private final JComboBox<String> cbVersao = new JComboBox<>(new String[] {
             "Nacional", "Americana"

@@ -1,67 +1,58 @@
 package ui.ajustes.painel;
 
-import dao.CadastroGenericoDAO;
-import ui.ajustes.dialog.CategoriaProdutoDialog;
-
+import com.formdev.flatlaf.*;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.prefs.Preferences;
 
 public class CategoriaProdutoPainel extends JPanel {
 
-    private final JTable tabela;
-    private final DefaultTableModel modelo;
-    private final CadastroGenericoDAO dao = new CadastroGenericoDAO(
-        "categorias_produtos", "id", "nome"
-    );
+    private final JComboBox<String> temaCombo;
+    public static final Map<String, LookAndFeel> TEMAS = new LinkedHashMap<>();
+    private static final Preferences PREFS = Preferences.userNodeForPackage(CategoriaProdutoPainel.class);
 
-    public CategoriaProdutoPainel() {
-        setLayout(new BorderLayout(8, 8));
-
-        modelo = new DefaultTableModel(new String[]{"Nome"}, 0) {
-            @Override public boolean isCellEditable(int row, int col) {
-                return false;
-            }
-        };
-
-        tabela = new JTable(modelo);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
-
-        JButton btnConfigurar = new JButton("🗂️ Configurar Categorias Disponíveis");
-        btnConfigurar.addActionListener(e -> {
-            CategoriaProdutoDialog dialog = new CategoriaProdutoDialog(null);
-            dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-            dialog.setVisible(true);        // aqui abre **uma** vez
-            carregarTabela();               // só depois de fechar
-        });
-        
-
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        painelBotoes.add(btnConfigurar);
-        add(painelBotoes, BorderLayout.NORTH);
-
-        carregarTabela();
+    static {
+        TEMAS.put("Claro (FlatLight)", new FlatLightLaf());
+        TEMAS.put("Escuro (FlatDark)", new FlatDarkLaf());
+        TEMAS.put("IntelliJ", new FlatIntelliJLaf());
+        TEMAS.put("Darcula", new FlatDarculaLaf());
     }
 
-    private void carregarTabela() {
-        modelo.setRowCount(0);
-        try {
-            List<Map<String, String>> lista = dao.listar();
-            for (Map<String, String> item : lista) {
-                modelo.addRow(new Object[]{ item.get("nome") });
+    public CategoriaProdutoPainel() {
+        setLayout(new BorderLayout(12, 12));
+        temaCombo = new JComboBox<>(TEMAS.keySet().toArray(new String[0]));
+
+        // tema salvo anteriormente
+        String temaSalvo = PREFS.get("temaSelecionado", "Claro (FlatLight)");
+        temaCombo.setSelectedItem(temaSalvo);
+
+        temaCombo.addActionListener(e -> {
+            String selecionado = (String) temaCombo.getSelectedItem();
+            LookAndFeel laf = TEMAS.get(selecionado);
+            try {
+                UIManager.setLookAndFeel(laf);
+                SwingUtilities.updateComponentTreeUI(SwingUtilities.getWindowAncestor(this));
+                PREFS.put("temaSelecionado", selecionado);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Erro ao aplicar o tema.");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erro ao carregar categorias.");
-        }
+        });
+
+        JPanel conteudo = new JPanel(new BorderLayout(6, 6));
+        conteudo.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        conteudo.add(new JLabel("Tema Visual:"), BorderLayout.WEST);
+        conteudo.add(temaCombo, BorderLayout.CENTER);
+
+        add(conteudo, BorderLayout.NORTH);
     }
 
     public void abrir() {
-        JDialog d = new JDialog((Frame) null, "Categorias de Produtos", true);
+        JDialog d = new JDialog((Frame) null, "Aparência do Sistema", true);
         d.setContentPane(this);
-        d.setSize(500, 400);
+        d.setSize(480, 150);
         d.setLocationRelativeTo(null);
         d.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         d.setVisible(true);
