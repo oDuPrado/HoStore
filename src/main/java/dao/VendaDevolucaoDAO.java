@@ -84,4 +84,46 @@ public class VendaDevolucaoDAO {
         new service.EstoqueService().entrarEstoqueEmLote(c, itens);
     }
 
+    /**
+ * Registra um estorno manual de item, semelhante à devolução.
+ */
+public void registrarEstornoParcial(int vendaId, VendaItemModel item, int qtdEstorno, Connection c) throws SQLException {
+    String sql = "INSERT INTO vendas_devolucoes (venda_id, produto_id, qtd, valor_unit, data, motivo) " +
+                 "VALUES (?, ?, ?, ?, ?, ?)";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setInt(1, vendaId);
+        ps.setString(2, item.getProdutoId());
+        ps.setInt(3, qtdEstorno);
+        ps.setDouble(4, item.getPreco());
+        ps.setString(5, LocalDate.now().toString());
+        ps.setString(6, "Estorno parcial");
+        ps.executeUpdate();
+    }
+
+    new service.EstoqueService().entrarEstoque(c, item.getProdutoId(), qtdEstorno);
+}
+
+/**
+ * Registra um estorno total da venda (todos os itens).
+ */
+public void registrarEstornoCompleto(int vendaId, List<VendaItemModel> itens, Connection c) throws SQLException {
+    String sql = "INSERT INTO vendas_devolucoes (venda_id, produto_id, qtd, valor_unit, data, motivo) " +
+                 "VALUES (?, ?, ?, ?, ?, ?)";
+    try (PreparedStatement ps = c.prepareStatement(sql)) {
+        for (VendaItemModel it : itens) {
+            ps.setInt(1, vendaId);
+            ps.setString(2, it.getProdutoId());
+            ps.setInt(3, it.getQtd());
+            ps.setDouble(4, it.getPreco());
+            ps.setString(5, LocalDate.now().toString());
+            ps.setString(6, "Estorno total");
+            ps.addBatch();
+        }
+        ps.executeBatch();
+    }
+
+    new service.EstoqueService().entrarEstoqueEmLote(c, itens);
+}
+
+
 }

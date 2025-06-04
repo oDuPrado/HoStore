@@ -10,7 +10,6 @@ import model.SetJogoModel;
 import dao.SetJogoDAO;
 import service.SetJogoService;
 
-
 public class DB {
 
         private static final String URL = "jdbc:sqlite:data/hostore.db";
@@ -84,6 +83,20 @@ public class DB {
                                                         "total_item REAL NOT NULL, " +
                                                         "observacoes TEXT, " +
                                                         "FOREIGN KEY (venda_id) REFERENCES vendas(id)" +
+                                                        ")");
+
+                        // @CREATE_TABLE: vendas_estornos_pagamentos
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS vendas_estornos_pagamentos (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "venda_id INTEGER NOT NULL, " +
+                                                        "pagamento_id INTEGER NOT NULL, " +
+                                                        "tipo_pagamento TEXT NOT NULL, " +
+                                                        "valor_estornado REAL NOT NULL, " +
+                                                        "data TEXT NOT NULL, " +
+                                                        "observacao TEXT, " +
+                                                        "criado_em TEXT, " +
+                                                        "criado_por TEXT" +
                                                         ")");
 
                         // pagamentos de venda
