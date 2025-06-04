@@ -26,3 +26,5 @@ replay_pid*
 /data/hostore.db
 /data/hos_logs.txt
 /data/export/*.pdf
+Compras.xlsx
+Produtos.xlsx
