@@ -37,7 +37,15 @@ public class PainelVendas extends JPanel {
     private final JDateChooser fimChooser = new JDateChooser();
     private final JComboBox<String> clienteCombo = new JComboBox<>();
     private final JComboBox<String> statusCombo = new JComboBox<>(
-            new String[] { "Todos", "Fechada", "Cancelada", "Estornada", "Pendente" });
+            new String[] {
+                    "Todos",
+                    "Fechada",
+                    "Pendente",
+                    "Cancelada",
+                    "Estornada",
+                    "Devolvida",
+                    "Parcialmente Devolvida"
+            });
 
     // Labels de resumo
     private final JLabel resumoLbl = new JLabel();
@@ -292,17 +300,41 @@ public class PainelVendas extends JPanel {
             StringBuilder sql = new StringBuilder(
                     "SELECT v.*, c.nome AS cliente_nome " +
                             "FROM vendas v JOIN clientes c ON v.cliente_id = c.id");
+
             StringJoiner where = new StringJoiner(" AND ");
+
+            // Filtro por data inicial
             if (dataIni != null && !dataIni.isEmpty())
                 where.add("date(v.data_venda) >= '" + dataIni + "'");
+
+            // Filtro por data final
             if (dataFim != null && !dataFim.isEmpty())
                 where.add("date(v.data_venda) <= '" + dataFim + "'");
+
+            // Filtro por cliente (nome parcial)
             if (cliente != null && !"Todos".equals(cliente))
                 where.add("c.nome LIKE '%" + cliente + "%'");
-            if (status != null && !"Todos".equals(status))
-                where.add("v.status = '" + status.toLowerCase() + "'");
-            if (where.length() > 0)
+
+            // Filtro por status (somente se for um status que realmente existe na tabela
+            // 'vendas')
+            // Os status 'devolvida', 'parcialmente devolvida' e 'pendente' são calculados,
+            // não estão na tabela
+            if (status != null && !"Todos".equalsIgnoreCase(status)) {
+                boolean statusCalculado = status.equalsIgnoreCase("Devolvida") ||
+                        status.equalsIgnoreCase("Parcialmente Devolvida") ||
+                        status.equalsIgnoreCase("Pendente");
+
+                if (!statusCalculado) {
+                    where.add("v.status = '" + status.toLowerCase() + "'");
+                }
+            }
+
+            // Aplica cláusula WHERE se necessário
+            if (where.length() > 0) {
                 sql.append(" WHERE ").append(where.toString());
+            }
+
+            // Ordena por ID decrescente
             sql.append(" ORDER BY v.id DESC");
 
             try (ResultSet rs = st.executeQuery(sql.toString())) {
@@ -340,11 +372,27 @@ public class PainelVendas extends JPanel {
                         }
                     }
 
+                    // Verifica devoluções associadas à venda
+                    List<model.VendaDevolucaoModel> devolucoes = new dao.VendaDevolucaoDAO().listarPorVenda(id);
+
+                    // Constrói objeto VendaModel para usar isDevolucaoParcial
+                    model.VendaModel vendaTmp = new model.VendaModel(
+                            id, rawDt, rs.getString("cliente_id"),
+                            rs.getDouble("total_bruto"),
+                            rs.getDouble("desconto"),
+                            rs.getDouble("total_liquido"),
+                            pg, parc, statusOriginal);
+
+                    // Carrega itens da venda para avaliar devoluções parciais
+                    vendaTmp.setItens(new dao.VendaItemDAO().listarPorVenda(id));
+
                     // Define status final com base nas regras
                     String statusFinal;
                     if ("cancelada".equals(statusOriginal)) {
                         statusFinal = "cancelada";
-                    } else if (teveDevolucao) {
+                    } else if (!devolucoes.isEmpty() && vendaTmp.isDevolucaoParcial(devolucoes)) {
+                        statusFinal = "parcialmente devolvida";
+                    } else if (!devolucoes.isEmpty()) {
                         statusFinal = "devolvida";
                     } else if (temParcelasPendentes) {
                         statusFinal = "pendente";
@@ -352,8 +400,14 @@ public class PainelVendas extends JPanel {
                         statusFinal = "fechada";
                     }
 
+                    // Aplica filtro de status (para casos calculados dinamicamente)
+                    if (!"Todos".equals(status) && !status.equalsIgnoreCase(statusFinal)) {
+                        continue; // ignora se não corresponde ao filtro do usuário
+                    }
+
+                    // Adiciona linha na tabela
                     modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "Detalhes" });
-                    total += val;
+
                 }
             }
 

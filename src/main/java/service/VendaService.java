@@ -62,8 +62,6 @@ public class VendaService {
             for (VendaItemModel it : itens) {
                 itemDAO.insert(it, vendaId, c);
 
-                // baixa o estoque
-                estoqueService.baixarEstoqueProduto(c, it.getProdutoId(), it.getQtd());
 
                 // registra a movimentação no histórico
                 produtoEstoqueService.registrarSaida(

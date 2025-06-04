@@ -1,6 +1,7 @@
 package dao;
 
 import model.VendaDevolucaoModel;
+import model.VendaItemModel;
 import util.DB;
 
 import java.sql.*;
@@ -18,13 +19,13 @@ public class VendaDevolucaoDAO {
         String sql = "INSERT INTO vendas_devolucoes(venda_id, produto_id, qtd, valor_unit, data, motivo) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection c = DB.get();
-             PreparedStatement p = c.prepareStatement(sql)) {
+                PreparedStatement p = c.prepareStatement(sql)) {
 
             // Preenche os parâmetros da query com os dados do modelo
             p.setInt(1, dev.getVendaId());
             p.setString(2, dev.getProdutoId());
             p.setInt(3, dev.getQuantidade()); // corresponde à coluna 'qtd' na tabela
-            p.setDouble(4, dev.getValor());   // corresponde à coluna 'valor_unit'
+            p.setDouble(4, dev.getValor()); // corresponde à coluna 'valor_unit'
             p.setString(5, dev.getData().toString()); // data formatada como texto
             p.setString(6, dev.getMotivo());
 
@@ -41,7 +42,7 @@ public class VendaDevolucaoDAO {
         String sql = "SELECT * FROM vendas_devolucoes WHERE venda_id = ?";
 
         try (Connection c = DB.get();
-             PreparedStatement p = c.prepareStatement(sql)) {
+                PreparedStatement p = c.prepareStatement(sql)) {
 
             p.setInt(1, vendaId);
 
@@ -63,4 +64,24 @@ public class VendaDevolucaoDAO {
 
         return lista;
     }
+
+    public void registrarDevolucaoCompleta(int vendaId, List<VendaItemModel> itens, Connection c) throws SQLException {
+        String sql = "INSERT INTO vendas_devolucoes (venda_id, produto_id, qtd, valor_unit, data, motivo) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            for (VendaItemModel it : itens) {
+                ps.setInt(1, vendaId);
+                ps.setString(2, it.getProdutoId());
+                ps.setInt(3, it.getQtd());
+                ps.setDouble(4, it.getPreco()); // usa o valor de venda
+                ps.setString(5, LocalDate.now().toString());
+                ps.setString(6, "Cancelamento total");
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+
+        // Reinsere no estoque
+        new service.EstoqueService().entrarEstoqueEmLote(c, itens);
+    }
+
 }

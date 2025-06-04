@@ -3,6 +3,7 @@ package service;
 import dao.CartaDAO;
 import model.Carta;
 import model.ProdutoEstoqueDTO;
+import model.VendaItemModel;
 import util.DB;
 
 import java.sql.Connection;
@@ -102,16 +103,17 @@ public class EstoqueService {
      * Útil para devoluções de venda.
      */
     public void entrarEstoque(Connection c, String produtoId, int quantidade) throws SQLException {
-        try {
-            produtoEstoqueService.registrarEntrada(
-                    produtoId,
-                    quantidade,
-                    "Devolução de venda",
-                    "sistema");
-        } catch (Exception e) {
-            throw new SQLException("Erro ao devolver produto ao estoque: " + e.getMessage(), e);
-        }
+    try {
+        produtoEstoqueService.registrarEntrada(
+                produtoId,
+                quantidade,
+                "Devolução de venda",
+                "sistema",
+                c); // ← ✅ usa a conexão da transação
+    } catch (Exception e) {
+        throw new SQLException("Erro ao devolver produto ao estoque: " + e.getMessage(), e);
     }
+}
 
     /**
      * Dá baixa no estoque de um produto genérico, com `Connection` para controle
@@ -129,6 +131,12 @@ public class EstoqueService {
 
         } catch (Exception e) {
             throw new SQLException("Erro ao dar baixa no estoque: " + e.getMessage(), e);
+        }
+    }
+
+    public void entrarEstoqueEmLote(Connection c, List<VendaItemModel> itens) throws SQLException {
+        for (VendaItemModel it : itens) {
+            entrarEstoque(c, it.getProdutoId(), it.getQtd());
         }
     }
 

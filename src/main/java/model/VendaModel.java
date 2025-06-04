@@ -46,6 +46,21 @@ public class VendaModel {
         this(-1, data, cliente, totalBruto, desconto, totalLiquido, forma, parcelas, status);
     }
 
+    public boolean isDevolucaoParcial(List<VendaDevolucaoModel> devolucoes) {
+        if (devolucoes == null || devolucoes.isEmpty() || itens == null)
+            return false;
+
+        int totalDevolvido = devolucoes.stream()
+                .mapToInt(VendaDevolucaoModel::getQuantidade)
+                .sum();
+
+        int totalVendido = this.getItens().stream()
+                .mapToInt(VendaItemModel::getQtd)
+                .sum();
+
+        return totalDevolvido > 0 && totalDevolvido < totalVendido;
+    }
+
     private String usuario;
 
     public String getUsuario() {

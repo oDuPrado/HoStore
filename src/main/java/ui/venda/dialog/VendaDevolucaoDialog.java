@@ -3,6 +3,7 @@ package ui.venda.dialog;
 
 import dao.VendaDevolucaoDAO;
 import model.VendaItemModel;
+import service.VendaDevolucaoService;
 import model.VendaDevolucaoModel;
 import util.AlertUtils;
 import util.DB;
@@ -34,15 +35,15 @@ public class VendaDevolucaoDialog extends JDialog {
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
 
         model = new DefaultTableModel(new String[] {
-            "Produto", "Qtd Vendida", "Qtd Devolver", "Motivo"
+                "Produto", "Qtd Vendida", "Qtd Devolver", "Motivo"
         }, 0);
 
         for (VendaItemModel it : itens) {
-            model.addRow(new Object[]{
-                it.getProdutoId(),
-                it.getQtd(),
-                0, // inicial: nenhuma devolução
-                "" // motivo vazio
+            model.addRow(new Object[] {
+                    it.getProdutoId(),
+                    it.getQtd(),
+                    0, // inicial: nenhuma devolução
+                    "" // motivo vazio
             });
         }
 
@@ -72,7 +73,8 @@ public class VendaDevolucaoDialog extends JDialog {
                 String produtoId = (String) model.getValueAt(i, 0);
                 int qtdVendida = (Integer) model.getValueAt(i, 1);
 
-                if (qtdDevolver <= 0) continue;
+                if (qtdDevolver <= 0)
+                    continue;
 
                 if (qtdDevolver > qtdVendida) {
                     AlertUtils.error("A quantidade devolvida não pode ser maior que a vendida (linha " + (i + 1) + ")");
@@ -86,7 +88,9 @@ public class VendaDevolucaoDialog extends JDialog {
                 dev.setMotivo(motivo);
                 dev.setData(LocalDate.now());
 
-                dao.inserir(dev);
+                VendaDevolucaoService service = new VendaDevolucaoService();
+                service.registrarDevolucao(dev);
+
             }
 
             AlertUtils.info("Devoluções registradas com sucesso.");

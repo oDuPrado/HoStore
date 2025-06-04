@@ -13,6 +13,7 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import java.util.prefs.Preferences;
 
 public class Main {
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             // aplica o tema salvo pelo usuário
@@ -21,6 +22,7 @@ public class Main {
                 String temaSalvo = prefs.get("temaSelecionado", "Claro (FlatLight)");
                 LookAndFeel tema = CategoriaProdutoPainel.TEMAS.getOrDefault(temaSalvo, new FlatLightLaf());
                 UIManager.setLookAndFeel(tema);
+
             } catch (Exception e) {
                 System.err.println("Falha ao aplicar o tema: " + e.getMessage());
             }
