@@ -379,15 +379,37 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS config_loja (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "nome TEXT NOT NULL, " +
+                                                        "nome_fantasia TEXT, " +
                                                         "cnpj TEXT NOT NULL, " +
+                                                        "inscricao_estadual TEXT, " +
+                                                        "regime_tributario TEXT, " +
+                                                        "cnae TEXT, " +
+                                                        "endereco_logradouro TEXT, " +
+                                                        "endereco_numero TEXT, " +
+                                                        "endereco_complemento TEXT, " +
+                                                        "endereco_bairro TEXT, " +
+                                                        "endereco_municipio TEXT, " +
+                                                        "endereco_uf TEXT, " +
+                                                        "endereco_cep TEXT, " +
                                                         "telefone TEXT, " +
+                                                        "email TEXT, " +
                                                         "socios TEXT, " +
                                                         "modelo_nota TEXT, " +
                                                         "serie_nota TEXT, " +
                                                         "numero_inicial_nota INTEGER, " +
+                                                        "ambiente_nfce TEXT, " +
+                                                        "csc TEXT, " +
+                                                        "token_csc TEXT, " +
+                                                        "certificado_path TEXT, " +
+                                                        "certificado_senha TEXT, " +
                                                         "nome_impressora TEXT, " +
-                                                        "texto_rodape_nota TEXT" +
-                                                        ")");
+                                                        "texto_rodape_nota TEXT, " +
+                                                        "url_webservice_nfce TEXT, " +
+                                                        "proxy_host TEXT, " +
+                                                        "proxy_port INTEGER, " +
+                                                        "proxy_usuario TEXT, " +
+                                                        "proxy_senha TEXT" +
+                                                        ");");
 
                         // PARCELAS - CONTAS A RECEBER
                         st.execute("CREATE TABLE IF NOT EXISTS parcelas_contas_receber (" +

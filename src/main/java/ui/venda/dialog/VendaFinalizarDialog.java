@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +26,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Locale;
+import model.ConfigLojaModel;
+import dao.ConfigLojaDAO;
 
 /**
  * Dialog de finalização de venda com:
@@ -400,11 +403,10 @@ public class VendaFinalizarDialog extends JDialog {
     }
 
     private String calcularDataPrimeiroVencimentoISO() {
-    int dias = parcelamentoConfig.intervaloDias;
-    LocalDate venc = LocalDate.now().plusDays(dias);
-    return venc.format(DateTimeFormatter.ISO_DATE); // retorna yyyy-MM-dd
-}
-
+        int dias = parcelamentoConfig.intervaloDias;
+        LocalDate venc = LocalDate.now().plusDays(dias);
+        return venc.format(DateTimeFormatter.ISO_DATE); // retorna yyyy-MM-dd
+    }
 
     private JButton criarBotao(String txt) {
         JButton b = new JButton(txt);
@@ -414,8 +416,12 @@ public class VendaFinalizarDialog extends JDialog {
         return b;
     }
 
-    /* ─────────────────── Comprovante ─────────────────── */
+    /*
+     * ─────────────────── Comprovante Fiscal (Cupom Eletrônico) ───────────────────
+     */
     public static class ComprovanteDialog extends JDialog {
+        private static final int RECEIPT_WIDTH = 44; // largura padrão para formatação (44 colunas)
+
         public ComprovanteDialog(Dialog owner,
                 int vendaId,
                 List<VendaItemModel> itens,
@@ -424,117 +430,180 @@ public class VendaFinalizarDialog extends JDialog {
                 double juros,
                 String periodo,
                 TableModel pagamentos) {
-
-            super(owner, "Comprovante Venda #" + vendaId, true);
+            super(owner, "Comprovante Fiscal - Venda #" + vendaId, true);
             setSize(480, 650);
             setLocationRelativeTo(owner);
             setLayout(new BorderLayout(8, 8));
             ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
 
+            // Text area para exibir o cupom
             JTextArea ta = new JTextArea();
             ta.setEditable(false);
             ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
+            // Formatação de moeda em Real
             NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
             StringBuilder sb = new StringBuilder();
 
-            /* Cabeçalho Loja */
-            sb.append("      HoStore - Sistema de Vendas\n")
-                    .append("    CNPJ: 12.345.678/0001-99\n")
-                    .append("    Rua Exemplo, 123 - Centro\n\n");
-
-            sb.append(String.format("Venda #: %-5d  Data: %s\n",
-                    vendaId,
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))))
-                    .append("\n");
-
-            /* Itens */
-            sb.append(String.format("%-20s %4s %10s %6s %10s\n",
-                    "Produto", "Qtd", "V.Unit", "Desc%", "Total"));
-            sb.append("-----------------------------------------------------------\n");
-
-            ProdutoDAO pdao = new ProdutoDAO();
-            double totBruto = 0, totDesc = 0;
-            final double[] totLiquido = { 0 };
-
-            for (VendaItemModel it : itens) {
-                String nome;
-                try {
-                    nome = pdao.findById(it.getProdutoId()).getNome();
-                } catch (Exception e) {
-                    nome = it.getProdutoId();
-                }
-                int qtd = it.getQtd();
-                double unit = it.getPreco();
-                double descV = unit * qtd * it.getDesconto() / 100.0;
-                double linha = unit * qtd - descV;
-
-                sb.append(String.format("%-20.20s %4d %10s %5.0f%% %10s\n",
-                        nome, qtd, cf.format(unit), it.getDesconto(), cf.format(linha)));
-
-                totBruto += unit * qtd;
-                totDesc += descV;
-                totLiquido[0] += linha;
+            // =========== 1) Cabeçalho Fiscal ===========
+            // Busca dados cadastrados da loja
+            ConfigLojaModel config = null;
+            try {
+                config = new ConfigLojaDAO().buscar();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this,
+                        "Erro ao carregar dados da loja:\n" + e.getMessage(),
+                        "Erro", JOptionPane.ERROR_MESSAGE);
             }
-            sb.append("-----------------------------------------------------------\n");
-            sb.append(String.format("%-36s %10s\n", "Total bruto:", cf.format(totBruto)));
-            sb.append(String.format("%-36s %10s\n", "Desconto:", cf.format(totDesc)));
-            // Soma o valor total pago (com juros incluído)
-            double totalPago = 0;
-            for (int i = 0; i < pagamentos.getRowCount(); i++) {
-                totalPago += (Double) pagamentos.getValueAt(i, 1);
+
+            String nomeLoja = (config != null && config.getNome() != null) ? config.getNome() : "HoStore";
+            String cnpjLoja = (config != null && config.getCnpj() != null) ? config.getCnpj() : "";
+            String telefoneLoja = (config != null && config.getTelefone() != null) ? config.getTelefone() : "";
+            String textoRodape = (config != null && config.getTextoRodapeNota() != null)
+                    ? config.getTextoRodapeNota()
+                    : "Obrigado pela preferência!";
+            String modeloNota = (config != null && config.getModeloNota() != null)
+                    ? config.getModeloNota()
+                    : "E01"; // série da nota
+            int numeroInicial = (config != null) ? config.getNumeroInicialNota() : 0;
+            String serieNota = (config != null && config.getSerieNota() != null)
+                    ? config.getSerieNota()
+                    : "001";
+
+            // Renovamos o número do cupom: série + (número sequencial = numeroInicial +
+            // vendaId)
+            int numeroCupom = numeroInicial + vendaId;
+
+            // Linhas de cabeçalho: centralizar dentro de RECEIPT_WIDTH
+            sb.append(center(nomeLoja.toUpperCase(), RECEIPT_WIDTH)).append("\n");
+            if (!cnpjLoja.isEmpty()) {
+                sb.append(center("CNPJ: " + cnpjLoja, RECEIPT_WIDTH)).append("\n");
             }
-            sb.append(String.format("%-36s %10s\n", "Total produtos:", cf.format(totLiquido[0])));
-            sb.append(String.format("%-36s %10s\n", "Total líquido:", cf.format(totalPago)))
-
-                    .append("\n");
-
-            /* Pagamentos */
-            sb.append("Pagamentos:\n");
-            for (int i = 0; i < pagamentos.getRowCount(); i++) {
-                sb.append(String.format("  %-12s %10s\n",
-                        pagamentos.getValueAt(i, 0),
-                        cf.format((Double) pagamentos.getValueAt(i, 1))));
+            if (!telefoneLoja.isEmpty()) {
+                sb.append(center("Tel: " + telefoneLoja, RECEIPT_WIDTH)).append("\n");
             }
             sb.append("\n");
 
-            /* Parcelas cartão (se houver) */
-            if (parcelas > 1 && pagamentos.getRowCount() > 0) {
-                for (int i = 0; i < pagamentos.getRowCount(); i++) {
-                    if ("CARTAO".equalsIgnoreCase((String) pagamentos.getValueAt(i, 0))) {
-                        double valorCartao = (Double) pagamentos.getValueAt(i, 1);
-                        double valorParc = valorCartao / parcelas;
-                        int dias = "15 dias".equals(periodo) ? 15 : 30;
-                        sb.append("Parcelamento cartão: ")
-                                .append(parcelas).append("x de ").append(cf.format(valorParc))
-                                .append(juros > 0 ? ("  Juros: " + juros + "%\n") : "\n");
-                        LocalDate data = LocalDate.now().plusDays(dias);
-                        for (int p = 1; p <= parcelas; p++) {
-                            sb.append(String.format("  %2d/%d  %s  %s\n",
-                                    p, parcelas,
-                                    data.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                                    cf.format(valorParc)));
-                            data = data.plusDays(dias);
-                        }
-                        sb.append("\n");
-                        break;
-                    }
+            sb.append(center("CUPOM FISCAL ELETRÔNICO", RECEIPT_WIDTH)).append("\n");
+            sb.append(center("SÉRIE: " + serieNota + "    Nº: " + numeroCupom, RECEIPT_WIDTH)).append("\n");
+            sb.append(center("MODELO: " + modeloNota, RECEIPT_WIDTH)).append("\n");
+            sb.append(center(formatDateTime(LocalDateTime.now()), RECEIPT_WIDTH)).append("\n");
+            sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
+
+            // =========== 2) Itens da Venda ===========
+            // Cabeçalho da tabela de itens
+            sb.append(String.format("%-20s %4s %7s %6s %7s\n",
+                    padRight("PRODUTO", 20),
+                    padLeft("QTD", 4),
+                    padLeft("UN", 7),
+                    padLeft("VL.UNI", 6),
+                    padLeft("TOTAL", 7)));
+            sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
+
+            // Inicializa acumuladores
+            double totBruto = 0.0;
+            double totDesconto = 0.0;
+
+            // Wrapper final para permitir uso em lambdas (ex: geração de PDF)
+            final double[] totLiquidoFinal = { 0.0 };
+
+            ProdutoDAO pdao = new ProdutoDAO();
+
+            for (VendaItemModel it : itens) {
+                String nomeProduto;
+                try {
+                    nomeProduto = pdao.findById(it.getProdutoId()).getNome();
+                } catch (Exception e) {
+                    nomeProduto = it.getProdutoId(); // fallback: mostra o ID se falhar
                 }
+
+                // Trunca nome do produto se exceder 20 caracteres
+                if (nomeProduto.length() > 20) {
+                    nomeProduto = nomeProduto.substring(0, 20);
+                }
+
+                int qtd = it.getQtd();
+                double unit = it.getPreco();
+                double descV = unit * qtd * it.getDesconto() / 100.0;
+                double linhaVl = unit * qtd - descV;
+
+                // Formata quantidade com três casas decimais
+                String unidadeFormatada = String.format(Locale.US, "%.3f", qtd * 1.0).replace('.', ',');
+
+                // Linha formatada: PRODUTO QTD UN VL.UNI TOTAL
+                sb.append(String.format("%-20s %4s %7s %6s %7s\n",
+                        padRight(nomeProduto, 20),
+                        padLeft(String.valueOf(qtd), 4),
+                        padLeft(unidadeFormatada, 7),
+                        padLeft(cf.format(unit), 6),
+                        padLeft(cf.format(linhaVl), 7)));
+
+                // Acumula totais
+                totBruto += unit * qtd;
+                totDesconto += descV;
+                totLiquidoFinal[0] += linhaVl;
             }
 
-            sb.append("Forma de pagamento: ").append(formaFinal).append("\n");
-            sb.append("Obrigado pela preferência!\nVolte sempre à HoStore.\n");
+            sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
 
-            ta.setText(sb.toString());
-            add(new JScrollPane(ta), BorderLayout.CENTER);
+            // =========== 3) Totais ===========
+            sb.append(padRight("Total Bruto:", ThirtySixChars(RECEIPT_WIDTH))).append(padLeft(cf.format(totBruto), 8))
+                    .append("\n");
+            sb.append(padRight("Descontos:", ThirtySixChars(RECEIPT_WIDTH))).append(padLeft(cf.format(totDesconto), 8))
+                    .append("\n");
+            sb.append(padRight("Total Líquido:", ThirtySixChars(RECEIPT_WIDTH)))
+                    .append(padLeft(cf.format(totLiquidoFinal), 8)).append("\n");
+            sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
 
-            /* Botões */
+            // =========== 4) Pagamentos ===========
+            sb.append(center("PAGAMENTOS", RECEIPT_WIDTH)).append("\n");
+            for (int i = 0; i < pagamentos.getRowCount(); i++) {
+                String tipoPagamento = pagamentos.getValueAt(i, 0).toString();
+                double valorPagto = (Double) pagamentos.getValueAt(i, 1);
+                sb.append(String.format("%-22s %20s\n",
+                        padRight(tipoPagamento, 22),
+                        padLeft(cf.format(valorPagto), 20)));
+            }
+            sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
+
+            // =========== 5) Parcelamento Cartão (se houver) ===========
+            if (parcelas > 1) {
+                // Ajusta para usar o valor dentro do array final
+                double valorLiquido = totLiquidoFinal[0];
+
+                sb.append("Parcelamento Cartão: ").append(parcelas).append("x de ")
+                        .append(cf.format((valorLiquido / parcelas) * (1 + juros / 100.0))).append("\n");
+                sb.append("Juros: ").append(String.format(Locale.US, "%.2f", juros)).append("%\n");
+                sb.append("Primeira Parcela em: ")
+                        .append(formatDate(LocalDateTime.now().plusDays(parsePeriodo(periodo)))).append("\n");
+                sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
+            }
+
+            // =========== 6) Informações Fiscais Complementares ===========
+            sb.append(center("CHAVE DE ACESSO NFC-e", RECEIPT_WIDTH)).append("\n");
+            sb.append(center("0000 0000 0000 0000 0000 0000 0000 0000 0000", RECEIPT_WIDTH)).append("\n");
+            sb.append(center("DANFE NFC-e em http://www.sefa.gov.br", RECEIPT_WIDTH)).append("\n");
+            sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
+
+            // =========== 7) Rodapé ===========
+            sb.append(center(textoRodape, RECEIPT_WIDTH)).append("\n");
+
+            // Aviso legal: sem valor fiscal
+            sb.append(center("SEM VALOR FISCAL", RECEIPT_WIDTH)).append("\n");
+            sb.append("\n");
+            sb.append(center("Obrigado pela preferência!", RECEIPT_WIDTH)).append("\n");
+            sb.append(center("Volte sempre!", RECEIPT_WIDTH)).append("\n");
+
+            // =========== 8) Botões de ação ===========
             JPanel b = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             JButton btnPdf = botao("Imprimir PDF");
             btnPdf.addActionListener(ev -> {
                 try {
+                    // Usa totLiquidoFinal[0] (double) em vez de totLiquidoFinal (double[])
                     VendaModel vm = new VendaModel(
-                            String.valueOf(vendaId), null, 0, 0, totLiquido[0], null, parcelas, null);
+                            String.valueOf(vendaId),
+                            null, 0, 0, totLiquidoFinal[0], null, parcelas, null);
                     vm.setItens(itens);
                     PDFGenerator.gerarComprovanteVenda(vm, itens);
                 } catch (Exception ex) {
@@ -546,14 +615,102 @@ public class VendaFinalizarDialog extends JDialog {
             b.add(btnPdf);
             b.add(btnClose);
             add(b, BorderLayout.SOUTH);
+
         }
 
+        /**
+         * Cria um botão estilizado.
+         */
         private JButton botao(String t) {
             JButton b = new JButton(t);
             b.setBackground(new Color(60, 63, 65));
             b.setForeground(Color.WHITE);
             b.setFocusPainted(false);
             return b;
+        }
+
+        // ─────────── Métodos auxiliares de formatação ───────────
+
+        /**
+         * Centraliza o texto em uma largura fixa de caracteres.
+         */
+        private String center(String text, int width) {
+            if (text == null) {
+                text = "";
+            }
+            if (text.length() >= width) {
+                return text.substring(0, width);
+            }
+            int padding = (width - text.length()) / 2;
+            return repeatChar(' ', padding) + text;
+        }
+
+        /**
+         * Repete um caractere 'count' vezes e retorna como String.
+         */
+        private String repeatChar(char c, int count) {
+            return String.valueOf(c).repeat(Math.max(0, count));
+        }
+
+        /**
+         * Preenche a direita com espaços até atingir 'length' caracteres.
+         */
+        private String padRight(String text, int length) {
+            if (text == null) {
+                text = "";
+            }
+            if (text.length() >= length) {
+                return text.substring(0, length);
+            }
+            return text + " ".repeat(length - text.length());
+        }
+
+        /**
+         * Preenche a esquerda com espaços até atingir 'length' caracteres.
+         */
+        private String padLeft(String text, int length) {
+            if (text == null) {
+                text = "";
+            }
+            if (text.length() >= length) {
+                return text.substring(0, length);
+            }
+            int pad = length - text.length();
+            return " ".repeat(pad) + text;
+        }
+
+        /**
+         * Retorna a representação de data/hora no formato dd/MM/yyyy HH:mm:ss.
+         */
+        private String formatDateTime(LocalDateTime dt) {
+            return dt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+        }
+
+        /**
+         * Retorna apenas data no formato dd/MM/yyyy a partir de LocalDateTime.
+         */
+        private String formatDate(LocalDateTime dt) {
+            return dt.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+
+        /**
+         * Converte o período (por exemplo, "15 dias" ou "30 dias") para número de dias.
+         */
+        private int parsePeriodo(String periodo) {
+            try {
+                return Integer.parseInt(periodo.replaceAll("\\D+", ""));
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+
+        /**
+         * Calcula quantos espaços usar à direita em linhas de total (36 = RECEIPT_WIDTH
+         * - 8).
+         * Ajusta para alinhar o valor na coluna certa.
+         */
+        private int ThirtySixChars(int totalWidth) {
+            return totalWidth - 8; // reserva 8 colunas para formatação de valor (ex.: "R$ 999,99")
         }
     }
 
