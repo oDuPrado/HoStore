@@ -1,4 +1,4 @@
-// procure no seu projeto: src/ui/estoque/dialog/CadastroAcessorioDialog.java
+// Caminho no projeto: src/ui/estoque/dialog/CadastroAcessorioDialog.java
 package ui.estoque.dialog;
 
 import controller.ProdutoEstoqueController;
@@ -6,6 +6,7 @@ import model.AcessorioModel;
 import model.FornecedorModel;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
+import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,6 +27,9 @@ public class CadastroAcessorioDialog extends JDialog {
     private final JComboBox<String> cbArte = new JComboBox<>();
     private final JLabel lblCor = new JLabel("Cor:");
     private final JTextField tfCor = new JTextField();
+
+    // *** NOVO: Label que exibirá o código lido (via scanner ou manual) ***
+    private final JLabel lblCodigoLido = new JLabel("");
 
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
@@ -70,6 +74,39 @@ public class CadastroAcessorioDialog extends JDialog {
         add(new JLabel("Categoria:"));     add(cbCategoria);
         add(lblArte);                      add(cbArte);
         add(lblCor);                       add(tfCor);
+
+        // *** NOVO: Seção Código de Barras ***
+        add(new JLabel("Código de Barras:"));
+        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton btnScanner = new JButton("Ler com Scanner");
+        JButton btnManual = new JButton("Inserir Manualmente");
+
+        painelCodBarras.add(btnScanner);
+        painelCodBarras.add(btnManual);
+        painelCodBarras.add(lblCodigoLido); // exibe o código lido
+        add(painelCodBarras);
+
+        // Ação para chamar o util de leitura
+        btnScanner.addActionListener(e -> {
+            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+                lblCodigoLido.setText(codigo);
+                lblCodigoLido.setToolTipText(codigo);
+                lblCodigoLido.putClientProperty("codigoBarras", codigo);
+            });
+        });
+
+        // Ação para inserir manualmente via diálogo
+        btnManual.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
+            if (input != null && !input.trim().isEmpty()) {
+                String c = input.trim();
+                lblCodigoLido.setText(c);
+                lblCodigoLido.setToolTipText(c);
+                lblCodigoLido.putClientProperty("codigoBarras", c);
+            }
+        });
+        // *** Fim da seção Código de Barras ***
+
         add(new JLabel("Quantidade:"));    add(tfQtd);
         add(new JLabel("Custo (R$):"));    add(tfCusto);
         add(new JLabel("Preço Venda (R$):")); add(tfPreco);
@@ -123,6 +160,11 @@ public class CadastroAcessorioDialog extends JDialog {
             }
         }
 
+        // Se o modelo AcessorioModel tivesse um campo “codigoBarras”, aqui preencheríamos:
+        // String codigoExistente = acessoOrig.getCodigoBarras();
+        // lblCodigoLido.setText(codigoExistente);
+        // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
+
         fornecedorSel = new FornecedorModel();
         fornecedorSel.setId(acessoOrig.getFornecedorId());
         fornecedorSel.setNome(acessoOrig.getFornecedorNome());
@@ -153,11 +195,21 @@ public class CadastroAcessorioDialog extends JDialog {
                 ? tfCor.getText().trim()
                 : "";
 
+            // Recupera o código de barras lido (se houver); caso contrário, deixa em branco.
+            String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
+            if (codigoBarras == null) {
+                codigoBarras = "";
+            }
+
             int qtd = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();
             double preco = ((Number) tfPreco.getValue()).doubleValue();
             String fornId = fornecedorSel.getId();
             String fornNom = fornecedorSel.getNome();
+
+            // Como o AcessorioModel original não possui campo “codigoBarras”, não
+            // alteramos o construtor nem a lógica de persistência. Mantemos apenas
+            // o valor em lblCodigoLido, caso mais tarde queira estender o model/DAO.
 
             AcessorioModel a = new AcessorioModel(
                 id, nome, qtd, custo, preco,
@@ -167,7 +219,7 @@ public class CadastroAcessorioDialog extends JDialog {
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {
-                service.atualizarAcessorio(a);  // você precisará adicionar esse método em ProdutoEstoqueService
+                service.atualizarAcessorio(a);  // método existente no service
             } else {
                 service.salvarNovoAcessorio(a);
             }

@@ -1,3 +1,4 @@
+// Caminho no projeto: src/ui/estoque/dialog/CadastroDeckDialog.java
 package ui.estoque.dialog;
 
 import dao.JogoDAO;
@@ -5,6 +6,7 @@ import model.DeckModel;
 import model.JogoModel;
 import service.ProdutoEstoqueService;
 import util.MaskUtils;
+import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -14,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Dialog para cadastro/edição de Decks, agora com seleção de Jogo (TCG).
+ * Dialog para cadastro/edição de Decks, agora com seleção de Jogo (TCG) e leitor de código de barras.
  */
 public class CadastroDeckDialog extends JDialog {
 
@@ -34,6 +36,9 @@ public class CadastroDeckDialog extends JDialog {
     private final JFormattedTextField tfPreco  = MaskUtils.moneyField(0.0);
     private final JTextField tfFornec = new JTextField(20);
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
+
+    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual) ***
+    private final JLabel lblCodigoLido = new JLabel("");
 
     public CadastroDeckDialog(JFrame owner) {
         this(owner, null);
@@ -90,6 +95,38 @@ public class CadastroDeckDialog extends JDialog {
         content.add(new JLabel("Fornecedor:"));
         content.add(tfFornec);
 
+        // *** NOVO: Seção Código de Barras ***
+        content.add(new JLabel("Código de Barras:"));
+        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton btnScanner = new JButton("Ler com Scanner");
+        JButton btnManual = new JButton("Inserir Manualmente");
+
+        painelCodBarras.add(btnScanner);
+        painelCodBarras.add(btnManual);
+        painelCodBarras.add(lblCodigoLido); // exibe o código lido
+        content.add(painelCodBarras);
+
+        // Ação para chamar o util de leitura
+        btnScanner.addActionListener(e -> {
+            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+                lblCodigoLido.setText(codigo);
+                lblCodigoLido.setToolTipText(codigo);
+                lblCodigoLido.putClientProperty("codigoBarras", codigo);
+            });
+        });
+
+        // Ação para inserir manualmente via diálogo
+        btnManual.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
+            if (input != null && !input.trim().isEmpty()) {
+                String c = input.trim();
+                lblCodigoLido.setText(c);
+                lblCodigoLido.setToolTipText(c);
+                lblCodigoLido.putClientProperty("codigoBarras", c);
+            }
+        });
+        // *** Fim da seção Código de Barras ***
+
         // Botão Salvar/Atualizar
         content.add(new JLabel());
         JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
@@ -134,6 +171,11 @@ public class CadastroDeckDialog extends JDialog {
                 }
             }
         }
+
+        // Se o modelo DeckModel já possuísse campo “codigoBarras”, poderíamos preencher:
+        // String codigoExistente = deckOrig.getCodigoBarras();
+        // lblCodigoLido.setText(codigoExistente);
+        // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
     }
 
     private void salvar() {
@@ -156,6 +198,14 @@ public class CadastroDeckDialog extends JDialog {
                 ? deckOrig.getId()
                 : UUID.randomUUID().toString();
 
+            // Recupera o código de barras lido (se houver); caso contrário, deixa em branco.
+            String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
+            if (codigoBarras == null) {
+                codigoBarras = "";
+            }
+            // (No momento, não estamos passando esse código para o model. 
+            // Se quiser persistir, inclua no construtor de DeckModel e no DAO.)
+
             DeckModel d = new DeckModel(
                 id,
                 tfNome.getText().trim(),
@@ -166,7 +216,7 @@ public class CadastroDeckDialog extends JDialog {
                 tfColecao.getText().trim(),
                 (String) cbTipoDeck.getSelectedItem(),
                 (String) cbCategoria.getSelectedItem(),
-                jogoSel.getId()             // NOVO: passa jogoId
+                jogoSel.getId()             // passa jogoId
             );
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();

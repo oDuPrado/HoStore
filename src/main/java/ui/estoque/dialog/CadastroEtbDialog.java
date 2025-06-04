@@ -1,3 +1,4 @@
+// Caminho no projeto: src/ui/estoque/dialog/CadastroEtbDialog.java
 package ui.estoque.dialog;
 
 import dao.ColecaoDAO;
@@ -10,6 +11,7 @@ import model.FornecedorModel;
 import model.JogoModel;
 import service.ProdutoEstoqueService;
 import util.MaskUtils;
+import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -22,8 +24,9 @@ import java.util.Comparator;
 import java.util.ArrayList;
 
 /**
- * Dialog para cadastro/edição de ETBs, agora com seleção de Jogo (TCG)
- * e campo de “set” que muda dinamicamente conforme o jogo escolhido.
+ * Dialog para cadastro/edição de ETBs, agora com seleção de Jogo (TCG),
+ * campo de “set” que muda dinamicamente conforme o jogo escolhido,
+ * e leitor de código de barras.
  */
 public class CadastroEtbDialog extends JDialog {
 
@@ -55,6 +58,9 @@ public class CadastroEtbDialog extends JDialog {
     private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
     private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
+
+    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual) ***
+    private final JLabel lblCodigoLido = new JLabel("");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
@@ -129,6 +135,38 @@ public class CadastroEtbDialog extends JDialog {
         // → Preço venda
         content.add(new JLabel("Preço Venda (R$):"));
         content.add(tfPreco);
+
+        // *** NOVO: Seção Código de Barras ***
+        content.add(new JLabel("Código de Barras:"));
+        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton btnScanner = new JButton("Ler com Scanner");
+        JButton btnManual = new JButton("Inserir Manualmente");
+
+        painelCodBarras.add(btnScanner);
+        painelCodBarras.add(btnManual);
+        painelCodBarras.add(lblCodigoLido); // exibe o código lido
+        content.add(painelCodBarras);
+
+        // Ação para chamar o util de leitura
+        btnScanner.addActionListener(e -> {
+            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+                lblCodigoLido.setText(codigo);
+                lblCodigoLido.setToolTipText(codigo);
+                lblCodigoLido.putClientProperty("codigoBarras", codigo);
+            });
+        });
+
+        // Ação para inserir manualmente via diálogo
+        btnManual.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
+            if (input != null && !input.trim().isEmpty()) {
+                String c = input.trim();
+                lblCodigoLido.setText(c);
+                lblCodigoLido.setToolTipText(c);
+                lblCodigoLido.putClientProperty("codigoBarras", c);
+            }
+        });
+        // *** Fim da seção Código de Barras ***
 
         // → Fornecedor via diálogo de seleção
         content.add(new JLabel("Fornecedor:"));
@@ -327,6 +365,11 @@ public class CadastroEtbDialog extends JDialog {
         tfCusto.setValue(etbOrig.getPrecoCompra());
         tfPreco.setValue(etbOrig.getPrecoVenda());
 
+        // Preenche o código de barras existente, caso EtbModel possua esse campo:
+        // String codigoExistente = etbOrig.getCodigoBarras();
+        // lblCodigoLido.setText(codigoExistente);
+        // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
+
         // Fornecedor
         try {
             fornecedorSel = new dao.FornecedorDAO().buscarPorId(etbOrig.getFornecedor());
@@ -379,6 +422,14 @@ public class CadastroEtbDialog extends JDialog {
                 setSelecionado = (String) cbSetJogo.getSelectedItem();
             }
 
+            // Recupera o código de barras lido (se houver); caso contrário, deixa em branco.
+            String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
+            if (codigoBarras == null) {
+                codigoBarras = "";
+            }
+            // (No momento, não estamos passando esse código para o model. Se quiser persistir,
+            // inclua no construtor de EtbModel e no DAO.)
+
             EtbModel e = new EtbModel(
                     id,
                     tfNome.getText().trim(),
@@ -392,7 +443,7 @@ public class CadastroEtbDialog extends JDialog {
                               : ""),
                     (String) cbTipo.getSelectedItem(),
                     (String) cbVersao.getSelectedItem(),
-                    jogoSel.getId()                     // NOVO: passa jogoId
+                    jogoSel.getId()                     // passa jogoId
             );
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
