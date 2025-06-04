@@ -446,7 +446,6 @@ public class VendaFinalizarDialog extends JDialog {
             StringBuilder sb = new StringBuilder();
 
             // =========== 1) Cabeçalho Fiscal ===========
-            // Busca dados cadastrados da loja
             ConfigLojaModel config = null;
             try {
                 config = new ConfigLojaDAO().buscar();
@@ -457,22 +456,18 @@ public class VendaFinalizarDialog extends JDialog {
                         "Erro", JOptionPane.ERROR_MESSAGE);
             }
 
-            String nomeLoja = (config != null && config.getNome() != null) ? config.getNome() : "HoStore";
-            String cnpjLoja = (config != null && config.getCnpj() != null) ? config.getCnpj() : "";
+            // Proteções contra valores nulos
+            String nomeLoja = (config != null && config.getNome() != null) ? config.getNome() : "Loja Padrão";
+            String cnpjLoja = (config != null && config.getCnpj() != null) ? config.getCnpj() : "00.000.000/0000-00";
             String telefoneLoja = (config != null && config.getTelefone() != null) ? config.getTelefone() : "";
             String textoRodape = (config != null && config.getTextoRodapeNota() != null)
                     ? config.getTextoRodapeNota()
                     : "Obrigado pela preferência!";
-            String modeloNota = (config != null && config.getModeloNota() != null)
-                    ? config.getModeloNota()
-                    : "E01"; // série da nota
-            int numeroInicial = (config != null) ? config.getNumeroInicialNota() : 0;
-            String serieNota = (config != null && config.getSerieNota() != null)
-                    ? config.getSerieNota()
-                    : "001";
+            String modeloNota = (config != null && config.getModeloNota() != null) ? config.getModeloNota() : "65";
+            String serieNota = (config != null && config.getSerieNota() != null) ? config.getSerieNota() : "001";
 
-            // Renovamos o número do cupom: série + (número sequencial = numeroInicial +
-            // vendaId)
+            // Evita erro de null ao somar com vendaId
+            int numeroInicial = (config != null) ? config.getNumeroInicialNota() : 1;
             int numeroCupom = numeroInicial + vendaId;
 
             // Linhas de cabeçalho: centralizar dentro de RECEIPT_WIDTH
