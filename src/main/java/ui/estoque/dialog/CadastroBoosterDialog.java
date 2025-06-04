@@ -8,6 +8,7 @@ import model.FornecedorModel;
 import model.JogoModel;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
+import util.ScannerUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,6 +47,7 @@ public class CadastroBoosterDialog extends JDialog {
     });
     private final JComboBox<String> cbIdioma = new JComboBox<>();
     private final JTextField tfDataLanc = new JTextField();
+    private final JLabel lblCodigoLido = new JLabel("");
     private final JTextField tfCodigoBarras = new JTextField();
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
@@ -132,7 +134,36 @@ public class CadastroBoosterDialog extends JDialog {
         add(new JLabel("Data de Lançamento:"));
         add(tfDataLanc);
         add(new JLabel("Código de Barras:"));
-        add(tfCodigoBarras);
+        // @USAR_SCANNER_UTIL
+        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton btnScanner = new JButton("Ler com Scanner");
+        JButton btnManual = new JButton("Inserir Manualmente");
+
+        painelCodBarras.add(btnScanner);
+        painelCodBarras.add(btnManual);
+        painelCodBarras.add(lblCodigoLido);
+        add(painelCodBarras);
+
+        // Ação para chamar o util
+        btnScanner.addActionListener(e -> {
+            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+                lblCodigoLido.setText(codigo);
+                lblCodigoLido.setToolTipText(codigo);
+                lblCodigoLido.putClientProperty("codigoBarras", codigo);
+            });
+        });
+
+        // Ação para inserir manualmente via diálogo
+        btnManual.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
+            if (input != null && !input.trim().isEmpty()) {
+                String c = input.trim();
+                lblCodigoLido.setText(c);
+                lblCodigoLido.setToolTipText(c);
+                lblCodigoLido.putClientProperty("codigoBarras", c);
+            }
+        });
+
         add(new JLabel("Quantidade:"));
         add(tfQtd);
         add(new JLabel("Custo (R$):"));
@@ -365,7 +396,10 @@ public class CadastroBoosterDialog extends JDialog {
             String tipo = (String) cbTipo.getSelectedItem();
             String idioma = (String) cbIdioma.getSelectedItem();
             String validade = tfDataLanc.getText().trim();
-            String codigo = tfCodigoBarras.getText().trim();
+            String codigo = (String) lblCodigoLido.getClientProperty("codigoBarras");
+            if (codigo == null) {
+                codigo = ""; // ou trate como “não informado”
+            }
             int qtd = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();
             double preco = ((Number) tfPreco.getValue()).doubleValue();
