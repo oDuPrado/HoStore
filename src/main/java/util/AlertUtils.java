@@ -9,4 +9,9 @@ public class AlertUtils {
     public static void error(String msg){
         JOptionPane.showMessageDialog(null,msg,"Erro",JOptionPane.ERROR_MESSAGE);
     }
+
+    public static void warn(String msg){
+    JOptionPane.showMessageDialog(null, msg, "Aviso", JOptionPane.WARNING_MESSAGE);
+}
+
 }

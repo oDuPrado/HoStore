@@ -7,6 +7,7 @@ public class EtbModel extends ProdutoModel {
     private String tipo;
     private String versao;
     private String jogoId;
+    private String codigoBarras;
 
     /**
      * @param id          ID único (mesmo da tabela produtos)
@@ -89,5 +90,13 @@ public class EtbModel extends ProdutoModel {
     public void setJogoId(String jogoId) {
         this.jogoId = jogoId;
     }
+
+    public String getCodigoBarras() {
+    return codigoBarras;
+}
+
+public void setCodigoBarras(String codigoBarras) {
+    this.codigoBarras = codigoBarras;
+}
 
 }

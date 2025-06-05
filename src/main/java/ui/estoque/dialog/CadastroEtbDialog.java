@@ -15,7 +15,6 @@ import util.ScannerUtils; // <-- import necessário para o leitor de código de 
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JFormattedTextField;
 
 import java.awt.*;
 import java.util.List;
@@ -49,17 +48,18 @@ public class CadastroEtbDialog extends JDialog {
     private List<String> setsFiltrados = new ArrayList<>();
 
     private final JComboBox<String> cbTipo = new JComboBox<>(new String[] {
-        "Booster Box", "Pokémon Center", "ETB", "Mini ETB", "Collection Box",
-        "Special Collection", "Latas", "Box colecionáveis", "Trainer Kit", "Mini Booster Box"
+            "Booster Box", "Pokémon Center", "ETB", "Mini ETB", "Collection Box",
+            "Special Collection", "Latas", "Box colecionáveis", "Trainer Kit", "Mini Booster Box"
     });
     private final JComboBox<String> cbVersao = new JComboBox<>(new String[] {
-        "Nacional", "Americana"
+            "Nacional", "Americana"
     });
     private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
     private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
 
-    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual) ***
+    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
+    // ***
     private final JLabel lblCodigoLido = new JLabel("");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
@@ -93,7 +93,8 @@ public class CadastroEtbDialog extends JDialog {
         content.add(new JLabel("Jogo:"));
         content.add(cbJogo);
         carregarJogos();
-        // Quando o usuário selecionar um Jogo, a UI de “set” / “série/coleção” deve mudar dinamicamente
+        // Quando o usuário selecionar um Jogo, a UI de “set” / “série/coleção” deve
+        // mudar dinamicamente
         cbJogo.addActionListener(e -> atualizarCamposPorJogo());
 
         // → Série / Coleção (via API)
@@ -106,7 +107,8 @@ public class CadastroEtbDialog extends JDialog {
         content.add(new JLabel("Coleção:"));
         content.add(cbColecao);
 
-        // → NOVO: Label + painel com CardLayout para alternar entre combo-de-sets e campo-manual
+        // → NOVO: Label + painel com CardLayout para alternar entre combo-de-sets e
+        // campo-manual
         content.add(new JLabel("Set (selecione ou digite):"));
         // Adiciona os dois “cards” no panelSetSwitcher:
         panelSetSwitcher.add(cbSetJogo, CARD_COMBO);
@@ -233,9 +235,11 @@ public class CadastroEtbDialog extends JDialog {
 
     /**
      * Atualiza quais campos serão visíveis:
-     *  - Se for POKEMON → mostra cbSerie + cbColecao, esconde set genérico e campo manual
-     *  - Se for ONEPIECE ou DRAGONBALL → mostra somente campo-manual (tfSetManual)
-     *  - Caso contrário (YUGIOH, MAGIC, DIGIMON, etc) → mostra dropdown de sets (cbSetJogo)
+     * - Se for POKEMON → mostra cbSerie + cbColecao, esconde set genérico e campo
+     * manual
+     * - Se for ONEPIECE ou DRAGONBALL → mostra somente campo-manual (tfSetManual)
+     * - Caso contrário (YUGIOH, MAGIC, DIGIMON, etc) → mostra dropdown de sets
+     * (cbSetJogo)
      */
     private void atualizarCamposPorJogo() {
         JogoModel jogo = (JogoModel) cbJogo.getSelectedItem();
@@ -243,8 +247,8 @@ public class CadastroEtbDialog extends JDialog {
             return;
 
         String jogoId = jogo.getId();
-        boolean isPokemon    = jogoId.equalsIgnoreCase("POKEMON");
-        boolean isOnePiece   = jogoId.equalsIgnoreCase("ONEPIECE");
+        boolean isPokemon = jogoId.equalsIgnoreCase("POKEMON");
+        boolean isOnePiece = jogoId.equalsIgnoreCase("ONEPIECE");
         boolean isDragonBall = jogoId.equalsIgnoreCase("DRAGONBALL");
 
         // Série/Coleção só para Pokémon
@@ -286,8 +290,8 @@ public class CadastroEtbDialog extends JDialog {
             sets.sort(Comparator.comparing(s -> s.getNome().toLowerCase()));
             // Converte para lista de Strings
             setsFiltrados = sets.stream()
-                                .map(s -> s.getNome())
-                                .toList();
+                    .map(s -> s.getNome())
+                    .toList();
             // Atualiza o combobox
             atualizarComboBoxSet(setsFiltrados);
         } catch (Exception ex) {
@@ -339,8 +343,8 @@ public class CadastroEtbDialog extends JDialog {
 
         // Se for jogo genérico com dropdown de sets, seleciona o set salvo (caso haja)
         if (!etbOrig.getJogoId().equalsIgnoreCase("POKEMON")
-            && !etbOrig.getJogoId().equalsIgnoreCase("ONEPIECE")
-            && !etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL")) {
+                && !etbOrig.getJogoId().equalsIgnoreCase("ONEPIECE")
+                && !etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL")) {
             // Já executamos carregarSetsJogo() dentro de atualizarCamposPorJogo()
             // Agora basta encontrar o índice do set antigo
             for (int i = 0; i < cbSetJogo.getItemCount(); i++) {
@@ -354,7 +358,7 @@ public class CadastroEtbDialog extends JDialog {
 
         // Se for One Piece ou Dragon Ball, preenche o campo manual
         if (etbOrig.getJogoId().equalsIgnoreCase("ONEPIECE")
-         || etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL")) {
+                || etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL")) {
             tfSetManual.setText(etbOrig.getSerie());
         }
 
@@ -406,9 +410,9 @@ public class CadastroEtbDialog extends JDialog {
 
             // Decide o "set" final (série → nome do set)
             String setSelecionado = "";
-            String jogoId      = jogoSel.getId();
-            boolean isPokemon    = jogoId.equalsIgnoreCase("POKEMON");
-            boolean isOnePiece   = jogoId.equalsIgnoreCase("ONEPIECE");
+            String jogoId = jogoSel.getId();
+            boolean isPokemon = jogoId.equalsIgnoreCase("POKEMON");
+            boolean isOnePiece = jogoId.equalsIgnoreCase("ONEPIECE");
             boolean isDragonBall = jogoId.equalsIgnoreCase("DRAGONBALL");
 
             if (isPokemon) {
@@ -422,12 +426,14 @@ public class CadastroEtbDialog extends JDialog {
                 setSelecionado = (String) cbSetJogo.getSelectedItem();
             }
 
-            // Recupera o código de barras lido (se houver); caso contrário, deixa em branco.
+            // Recupera o código de barras lido (se houver); caso contrário, deixa em
+            // branco.
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigoBarras == null) {
                 codigoBarras = "";
             }
-            // (No momento, não estamos passando esse código para o model. Se quiser persistir,
+            // (No momento, não estamos passando esse código para o model. Se quiser
+            // persistir,
             // inclua no construtor de EtbModel e no DAO.)
 
             EtbModel e = new EtbModel(
@@ -437,14 +443,16 @@ public class CadastroEtbDialog extends JDialog {
                     ((Number) tfCusto.getValue()).doubleValue(),
                     ((Number) tfPreco.getValue()).doubleValue(),
                     fornecedorSel.getId(),
-                    setSelecionado,                     // a “série” equivale ao nome do set escolhido
+                    setSelecionado,
                     (String) ((cbColecao.getSelectedItem() != null)
-                              ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
-                              : ""),
+                            ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
+                            : ""),
                     (String) cbTipo.getSelectedItem(),
                     (String) cbVersao.getSelectedItem(),
-                    jogoSel.getId()                     // passa jogoId
-            );
+                    jogoSel.getId());
+
+            
+            e.setCodigoBarras(codigoBarras);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {

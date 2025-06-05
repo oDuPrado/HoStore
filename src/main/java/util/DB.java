@@ -220,6 +220,7 @@ public class DB {
                                                         "quantidade INTEGER NOT NULL, " +
                                                         "preco_compra REAL, " +
                                                         "preco_venda REAL, " +
+                                                        "codigo_barras TEXT, " +
                                                         "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, "
                                                         +
                                                         "criado_em TEXT, " +
@@ -294,6 +295,7 @@ public class DB {
                                                         "jogo_id TEXT, " + // vincula ao jogo (Pokémon, etc)
                                                         "tipo_deck TEXT, " +
                                                         "categoria TEXT, " +
+                                                        "codigo_barras TEXT, " +
                                                         "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
                                                         "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
                                                         ")");
@@ -308,6 +310,7 @@ public class DB {
                                                         "colecao TEXT, " +
                                                         "tipo TEXT, " +
                                                         "versao TEXT, " +
+                                                        "codigo_barras TEXT, " +
                                                         "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
                                                         "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
                                                         ")");

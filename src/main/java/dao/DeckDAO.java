@@ -18,8 +18,8 @@ public class DeckDAO extends ProdutoDAO {
 
         // 2) insere detalhes na tabela decks, incluindo jogo_id
         String sql = "INSERT INTO decks " +
-                     "(id, fornecedor, colecao, tipo_deck, categoria, jogo_id) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
+                "(id, fornecedor, colecao, tipo_deck, categoria, jogo_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             ps.setString(1, d.getId());
             ps.setString(2, d.getFornecedor());
@@ -38,8 +38,8 @@ public class DeckDAO extends ProdutoDAO {
 
         // 2) atualiza tabela decks
         String sql = "UPDATE decks SET " +
-                     "fornecedor = ?, colecao = ?, tipo_deck = ?, categoria = ?, jogo_id = ? " +
-                     "WHERE id = ?";
+                "fornecedor = ?, colecao = ?, tipo_deck = ?, categoria = ?, jogo_id = ? " +
+                "WHERE id = ?";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             ps.setString(1, d.getFornecedor());
             ps.setString(2, d.getColecao());
@@ -67,28 +67,32 @@ public class DeckDAO extends ProdutoDAO {
     /** Busca um DeckModel completo (resumo + detalhes). */
     public DeckModel buscarPorId(String id) throws SQLException {
         String sql = ""
-            + "SELECT p.id, p.nome, p.quantidade, p.preco_compra, p.preco_venda, "
-            + "       d.fornecedor, d.colecao, d.tipo_deck, d.categoria, d.jogo_id "
-            + "FROM produtos p "
-            + "JOIN decks d ON p.id = d.id "
-            + "WHERE p.id = ?";
+                + "SELECT p.id, p.nome, p.quantidade, p.preco_compra, p.preco_venda, p.codigo_barras, "
+                + "       d.fornecedor, d.colecao, d.tipo_deck, d.categoria, d.jogo_id "
+                + "FROM produtos p "
+                + "JOIN decks d ON p.id = d.id "
+                + "WHERE p.id = ?";
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return null;
-                return new DeckModel(
-                    rs.getString("id"),
-                    rs.getString("nome"),
-                    rs.getInt("quantidade"),
-                    rs.getDouble("preco_compra"),
-                    rs.getDouble("preco_venda"),
-                    rs.getString("fornecedor"),
-                    rs.getString("colecao"),
-                    rs.getString("tipo_deck"),
-                    rs.getString("categoria"),
-                    rs.getString("jogo_id") // NOVO
-                );
+                if (!rs.next())
+                    return null;
+
+                DeckModel d = new DeckModel(
+                        rs.getString("id"),
+                        rs.getString("nome"),
+                        rs.getInt("quantidade"),
+                        rs.getDouble("preco_compra"),
+                        rs.getDouble("preco_venda"),
+                        rs.getString("fornecedor"),
+                        rs.getString("colecao"),
+                        rs.getString("tipo_deck"),
+                        rs.getString("categoria"),
+                        rs.getString("jogo_id"));
+                d.setCodigoBarras(rs.getString("codigo_barras"));
+                return d;
             }
         }
     }
+
 }

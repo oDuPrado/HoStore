@@ -10,13 +10,14 @@ import util.ScannerUtils; // <-- import necessário para o leitor de código de 
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JFormattedTextField;
+
 import java.awt.*;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Dialog para cadastro/edição de Decks, agora com seleção de Jogo (TCG) e leitor de código de barras.
+ * Dialog para cadastro/edição de Decks, agora com seleção de Jogo (TCG) e
+ * leitor de código de barras.
  */
 public class CadastroDeckDialog extends JDialog {
 
@@ -25,19 +26,20 @@ public class CadastroDeckDialog extends JDialog {
 
     private final JTextField tfNome = new JTextField(20);
     private final JTextField tfColecao = new JTextField(20);
-    private final JComboBox<String> cbTipoDeck = new JComboBox<>(new String[]{
-        "Pré-montado", "Liga"
+    private final JComboBox<String> cbTipoDeck = new JComboBox<>(new String[] {
+            "Pré-montado", "Liga"
     });
-    private final JComboBox<String> cbCategoria = new JComboBox<>(new String[]{
-        "Estrela", "2 Estrelas", "3 Estrelas", "Junior", "Master"
+    private final JComboBox<String> cbCategoria = new JComboBox<>(new String[] {
+            "Estrela", "2 Estrelas", "3 Estrelas", "Junior", "Master"
     });
-    private final JFormattedTextField tfQtd    = MaskUtils.getFormattedIntField(0);
-    private final JFormattedTextField tfCusto  = MaskUtils.moneyField(0.0);
-    private final JFormattedTextField tfPreco  = MaskUtils.moneyField(0.0);
+    private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
+    private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
+    private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
     private final JTextField tfFornec = new JTextField(20);
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
 
-    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual) ***
+    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
+    // ***
     private final JLabel lblCodigoLido = new JLabel("");
 
     public CadastroDeckDialog(JFrame owner) {
@@ -46,10 +48,11 @@ public class CadastroDeckDialog extends JDialog {
 
     public CadastroDeckDialog(JFrame owner, DeckModel deck) {
         super(owner, deck == null ? "Novo Deck" : "Editar Deck", true);
-        this.isEdicao  = deck != null;
-        this.deckOrig  = deck;
+        this.isEdicao = deck != null;
+        this.deckOrig = deck;
         buildUI();
-        if (isEdicao) preencherCampos();
+        if (isEdicao)
+            preencherCampos();
     }
 
     private void buildUI() {
@@ -172,7 +175,8 @@ public class CadastroDeckDialog extends JDialog {
             }
         }
 
-        // Se o modelo DeckModel já possuísse campo “codigoBarras”, poderíamos preencher:
+        // Se o modelo DeckModel já possuísse campo “codigoBarras”, poderíamos
+        // preencher:
         // String codigoExistente = deckOrig.getCodigoBarras();
         // lblCodigoLido.setText(codigoExistente);
         // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
@@ -195,29 +199,32 @@ public class CadastroDeckDialog extends JDialog {
 
         try {
             String id = isEdicao
-                ? deckOrig.getId()
-                : UUID.randomUUID().toString();
+                    ? deckOrig.getId()
+                    : UUID.randomUUID().toString();
 
-            // Recupera o código de barras lido (se houver); caso contrário, deixa em branco.
+            // Recupera o código de barras lido (se houver); caso contrário, deixa em
+            // branco.
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigoBarras == null) {
                 codigoBarras = "";
             }
-            // (No momento, não estamos passando esse código para o model. 
+            // (No momento, não estamos passando esse código para o model.
             // Se quiser persistir, inclua no construtor de DeckModel e no DAO.)
 
             DeckModel d = new DeckModel(
-                id,
-                tfNome.getText().trim(),
-                ((Number) tfQtd.getValue()).intValue(),
-                ((Number) tfCusto.getValue()).doubleValue(),
-                ((Number) tfPreco.getValue()).doubleValue(),
-                tfFornec.getText().trim(),
-                tfColecao.getText().trim(),
-                (String) cbTipoDeck.getSelectedItem(),
-                (String) cbCategoria.getSelectedItem(),
-                jogoSel.getId()             // passa jogoId
-            );
+                    id,
+                    tfNome.getText().trim(),
+                    ((Number) tfQtd.getValue()).intValue(),
+                    ((Number) tfCusto.getValue()).doubleValue(),
+                    ((Number) tfPreco.getValue()).doubleValue(),
+                    tfFornec.getText().trim(),
+                    tfColecao.getText().trim(),
+                    (String) cbTipoDeck.getSelectedItem(),
+                    (String) cbCategoria.getSelectedItem(),
+                    jogoSel.getId());
+
+            
+            d.setCodigoBarras(codigoBarras);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {
@@ -230,8 +237,8 @@ public class CadastroDeckDialog extends JDialog {
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Erro ao salvar Deck:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao salvar Deck:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

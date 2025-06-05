@@ -4,6 +4,7 @@ package ui.venda.dialog;
 import dao.ProdutoDAO;
 import model.ProdutoModel;
 import util.AlertUtils;
+import util.ScannerUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -11,22 +12,37 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.*;
 import java.text.NumberFormat;
-import java.util.List;
 import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * Seletor genérico de produtos (multi-check).
- * Usa ProdutoDAO.listAll() e ProdutoDAO.findById().
+ * Usa ProdutoDAO.listAll() e ProdutoDAO.findById(),
+ * agora com sistema de busca por código de barras.
  */
 public class SelectProdutoDialog extends JDialog {
 
     private final ProdutoDAO produtoDAO = new ProdutoDAO();
     private final List<ProdutoModel> todosProdutos;   // cache de todos
-    private final DefaultTableModel model;
-    private final JTable table;
+
+    // Inicializamos model e table em linha, para satisfazer o final
+    private final DefaultTableModel model = new DefaultTableModel(new String[]{
+        "✓", "ID", "Nome", "Tipo", "Estoque", "R$ Venda"
+    }, 0) {
+        @Override public boolean isCellEditable(int r, int c) {
+            return c == 0; // apenas checkbox
+        }
+        @Override public Class<?> getColumnClass(int c) {
+            if (c == 0) return Boolean.class;
+            if (c == 4) return Integer.class;
+            if (c == 5) return Double.class;
+            return String.class;
+        }
+    };
+    private final JTable table = new JTable(model);
 
     private final JTextField txtNome     = new JTextField(15);
     private final JComboBox<String> cboTipo  = new JComboBox<>();
@@ -40,37 +56,58 @@ public class SelectProdutoDialog extends JDialog {
         super(owner, "Selecionar Produtos", true);
         setSize(900, 600);
         setLocationRelativeTo(owner);
-        setLayout(new BorderLayout(8,8));
-        ((JComponent)getContentPane()).setBorder(new EmptyBorder(10,10,10,10));
+        setLayout(new BorderLayout(8, 8));
+        ((JComponent)getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
 
         // carrega tudo uma vez
         todosProdutos = produtoDAO.listAll();
 
         // --- filtros ---
-        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT,8,4));
-        filtros.add(new JLabel("Nome:"));   filtros.add(txtNome);
-        filtros.add(new JLabel("Tipo:"));   filtros.add(cboTipo);
-        filtros.add(new JLabel("Ordenar por:")); filtros.add(cboOrder);
+        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        filtros.add(new JLabel("Nome:"));   
+        filtros.add(txtNome);
+        filtros.add(new JLabel("Tipo:"));   
+        filtros.add(cboTipo);
+        filtros.add(new JLabel("Ordenar por:")); 
+        filtros.add(cboOrder);
+
         JButton btnBuscar = new JButton("🔍 Buscar");
         btnBuscar.addActionListener(e -> carregarTabela());
         filtros.add(btnBuscar);
+
+        // 📷 Botão de leitura de código de barras
+        JButton btnScan = new JButton("📷 Ler Código de Barras");
+        btnScan.addActionListener(e -> {
+            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+                Optional<ProdutoModel> encontrado = todosProdutos.stream()
+                    .filter(p -> p.getCodigoBarras() != null && p.getCodigoBarras().equalsIgnoreCase(codigo))
+                    .findFirst();
+
+                if (encontrado.isPresent()) {
+                    ProdutoModel p = encontrado.get();
+
+                    // Itera sobre a tabela e marca o checkbox da linha correspondente
+                    for (int i = 0; i < table.getRowCount(); i++) {
+                        String idTabela = (String) model.getValueAt(i, 1); // coluna ID (oculta)
+                        if (idTabela.equals(p.getId())) {
+                            model.setValueAt(true, i, 0); // marca o checkbox
+                            table.scrollRectToVisible(table.getCellRect(i, 0, true)); // rola até a linha
+                            table.setRowSelectionInterval(i, i); // destaca a linha
+                            return;
+                        }
+                    }
+
+                    AlertUtils.warn("Produto encontrado, mas está sem estoque ou não visível na tabela.");
+                } else {
+                    AlertUtils.warn("Nenhum produto com este código de barras foi encontrado.");
+                }
+            });
+        });
+        filtros.add(btnScan);
+
         add(filtros, BorderLayout.NORTH);
 
         // --- tabela ---
-        model = new DefaultTableModel(new String[]{
-            "✓", "ID", "Nome", "Tipo", "Estoque", "R$ Venda"
-        }, 0) {
-            @Override public boolean isCellEditable(int r, int c) {
-                return c == 0; // apenas checkbox
-            }
-            @Override public Class<?> getColumnClass(int c) {
-                if (c == 0) return Boolean.class;
-                if (c == 4) return Integer.class;
-                if (c == 5) return Double.class;
-                return String.class;
-            }
-        };
-        table = new JTable(model);
         personalizarTabela();
         add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -79,7 +116,7 @@ public class SelectProdutoDialog extends JDialog {
         btnCancelar.addActionListener(e -> dispose());
         JButton btnAdd = new JButton("Adicionar Selecionados");
         btnAdd.addActionListener(e -> confirmarSelecao());
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,4));
+        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
         rodape.add(btnCancelar);
         rodape.add(btnAdd);
         add(rodape, BorderLayout.SOUTH);

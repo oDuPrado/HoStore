@@ -7,6 +7,7 @@ public class DeckModel extends ProdutoModel {
     private String tipoDeck;
     private String categoria;
     private String jogoId;
+    private String codigoBarras;
 
     /**
      * @param id          ID único do deck (mesmo usado na tabela produtos)
@@ -77,5 +78,13 @@ public class DeckModel extends ProdutoModel {
 
     public void setJogoId(String jogoId) {
         this.jogoId = jogoId;
+    }
+
+    public String getCodigoBarras() {
+        return codigoBarras;
+    }
+
+    public void setCodigoBarras(String codigoBarras) {
+        this.codigoBarras = codigoBarras;
     }
 }
