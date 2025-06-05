@@ -279,6 +279,7 @@ public class DB {
                         st.execute("CREATE TABLE IF NOT EXISTS colecoes(" +
                                         "id TEXT PRIMARY KEY, " + // ex: sv9
                                         "nome TEXT, " + // ex: Temporal Forces
+                                        "sigla TEXT, " + // ex: TF
                                         "codigo TEXT, " + // pode ser redundante, mas útil
                                         "data_lancamento TEXT, " +
                                         "series TEXT, " + // nome do set/série
@@ -684,7 +685,7 @@ public class DB {
                                             )
                                         """);
 
-                        // No final do método init() em util/DB.java
+                        
                         try {
                                 dao.ColecaoDAO colecaoDAO = new dao.ColecaoDAO();
                                 List<ColecaoModel> colecoes = service.ColecaoService.listarColecoes();

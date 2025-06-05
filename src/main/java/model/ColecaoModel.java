@@ -7,6 +7,7 @@ public class ColecaoModel {
     private String printedTotal;
     private String total;
     private String releaseDate;
+    private String sigla;
 
     // Getters
     public String getId() {
@@ -61,6 +62,14 @@ public class ColecaoModel {
     @Override
     public String toString() {
         return name;
+    }
+
+    public String getSigla() {
+        return sigla;
+    }
+
+    public void setSigla(String sigla) {
+        this.sigla = sigla;
     }
 
 }

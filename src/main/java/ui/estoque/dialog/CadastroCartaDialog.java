@@ -1,6 +1,7 @@
 package ui.estoque.dialog;
 
 import service.EstoqueService;
+import service.CartaService; // Import do novo serviço
 import dao.SetDAO;
 import dao.ColecaoDAO;
 import dao.CadastroGenericoDAO;
@@ -18,13 +19,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import ui.estoque.dialog.ImportLigaDialog;
 
 /**
  * Dialog completo e definitivo de cadastro / edição de Carta
  * • Integração com BuscarCartaDialog para pré-povoar campos a partir da API
  * • Campos de consignado ficam ocultos quando o tipo de venda é “Loja”
- * • Valor Loja é calculado automaticamente a partir de Preço Consignado × %
- * Loja
+ * • Valor Loja é calculado automaticamente a partir de Preço Consignado × % Loja
  */
 public class CadastroCartaDialog extends JDialog {
 
@@ -123,9 +124,20 @@ public class CadastroCartaDialog extends JDialog {
         b.anchor = GridBagConstraints.EAST;
 
         // nome + botão de busca
+        // nome + botão de busca + botão importar
         JPanel pnlNome = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pnlNome.add(tfNome);
         pnlNome.add(btnBuscarCarta);
+
+        JButton btnImportarLiga = new JButton("Importar Liga");
+        pnlNome.add(btnImportarLiga);
+
+        // ação: abre dialog de importação
+        btnImportarLiga.addActionListener(e -> {
+            Window win = SwingUtilities.getWindowAncestor(this);
+            new ImportLigaDialog(win).setVisible(true);
+        });
+
         addRow(pnlBasic, b, 0, "Nome:", pnlNome);
 
         addRow(pnlBasic, b, 1, "Preço Ref.:", lblPrecoRef);
@@ -523,31 +535,13 @@ public class CadastroCartaDialog extends JDialog {
                     tipo, sub, rar, srar, ilu,
                     fornecedorSelecionado != null ? fornecedorSelecionado.getId() : null);
 
+            // Uso do CartaService em vez de estoqueService + ProdutoEstoqueController
+            CartaService cartaService = new CartaService();
+
             if (isEdicao) {
-                estoqueService.atualizarCarta(c);
-
-                model.ProdutoModel p = new model.ProdutoModel(
-                        c.getId(),
-                        c.getNome(),
-                        "Carta",
-                        c.getQtd(),
-                        c.getCusto(),
-                        c.getPrecoLoja());
-
-                new controller.ProdutoEstoqueController().salvar(p);
-
+                cartaService.atualizarCarta(c);
             } else {
-                estoqueService.salvarNovaCarta(c);
-
-                // Também insere na tabela produtos
-                model.ProdutoModel p = new model.ProdutoModel(
-                        c.getId(),
-                        c.getNome(),
-                        "Carta",
-                        c.getQtd(),
-                        c.getCusto(),
-                        precoVenda);
-                new controller.ProdutoEstoqueController().salvar(p);
+                cartaService.salvarNovaCarta(c);
             }
 
             dispose();

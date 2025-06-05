@@ -11,16 +11,23 @@ import java.util.List;
 
 public class ColecaoDAO {
 
-    /** Sincroniza dados vindos da API com o banco local (sem sobrescrever existentes) */
+    /**
+     * Sincroniza dados vindos da API com o banco local (sem sobrescrever
+     * existentes)
+     */
     public void sincronizarComApi(List<ColecaoModel> sets) throws Exception {
         try (Connection c = DB.get()) {
-            String sql = "INSERT OR IGNORE INTO colecoes(id, nome, series, data_lancamento) VALUES (?, ?, ?, ?)";
+            String sql = """
+                        INSERT OR IGNORE INTO colecoes(id, nome, series, data_lancamento, sigla)
+                        VALUES (?, ?, ?, ?, ?)
+                    """;
             try (PreparedStatement ps = c.prepareStatement(sql)) {
                 for (ColecaoModel s : sets) {
                     ps.setString(1, s.getId());
                     ps.setString(2, s.getName());
                     ps.setString(3, s.getSeries());
                     ps.setString(4, s.getReleaseDate());
+                    ps.setString(5, s.getSigla()); // ← AQUI
                     ps.addBatch();
                 }
                 ps.executeBatch();
@@ -31,8 +38,8 @@ public class ColecaoDAO {
     /** Verifica se existe pelo menos uma coleção no banco */
     public boolean existeAlgumaColecao() throws Exception {
         try (Connection c = DB.get();
-             PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM colecoes");
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = c.prepareStatement("SELECT COUNT(*) FROM colecoes");
+                ResultSet rs = ps.executeQuery()) {
             return rs.next() && rs.getInt(1) > 0;
         }
     }
@@ -41,8 +48,8 @@ public class ColecaoDAO {
     public List<ColecaoModel> listarTodas() throws Exception {
         List<ColecaoModel> out = new ArrayList<>();
         try (Connection c = DB.get();
-             PreparedStatement ps = c.prepareStatement("SELECT * FROM colecoes ORDER BY nome");
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = c.prepareStatement("SELECT * FROM colecoes ORDER BY nome");
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 ColecaoModel m = new ColecaoModel();
@@ -50,8 +57,10 @@ public class ColecaoDAO {
                 m.setName(rs.getString("nome"));
                 m.setSeries(rs.getString("series"));
                 m.setReleaseDate(rs.getString("data_lancamento"));
+                m.setSigla(rs.getString("sigla")); // ← ADICIONAR AQUI
                 out.add(m);
             }
+
         }
         return out;
     }
@@ -60,7 +69,7 @@ public class ColecaoDAO {
     public List<ColecaoModel> listarPorSerie(String serie) throws Exception {
         List<ColecaoModel> out = new ArrayList<>();
         try (Connection c = DB.get();
-             PreparedStatement ps = c.prepareStatement("SELECT * FROM colecoes WHERE series = ? ORDER BY nome")) {
+                PreparedStatement ps = c.prepareStatement("SELECT * FROM colecoes WHERE series = ? ORDER BY nome")) {
             ps.setString(1, serie);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -69,8 +78,10 @@ public class ColecaoDAO {
                     m.setName(rs.getString("nome"));
                     m.setSeries(rs.getString("series"));
                     m.setReleaseDate(rs.getString("data_lancamento"));
+                    m.setSigla(rs.getString("sigla")); // ← ADICIONAR AQUI
                     out.add(m);
                 }
+
             }
         }
         return out;
