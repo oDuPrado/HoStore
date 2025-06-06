@@ -598,47 +598,71 @@ public class VendaFinalizarDialog extends JDialog {
             ta.setCaretPosition(0);
 
             // =========== 8) Botões de ação ===========
-JPanel b = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-JButton btnPdf = botao("Imprimir PDF");
-btnPdf.addActionListener(ev -> {
-    try {
-        // Cria model temporário com dados da venda
-        VendaModel vm = new VendaModel(
-                String.valueOf(vendaId),
-                null, 0, 0, totLiquidoFinal[0], null, parcelas, null);
-        vm.setItens(itens);
+            JPanel b = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        // Gera nome do arquivo com timestamp
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-        String nomeArquivo = "comprovante_" + vendaId + "_" + timestamp + ".pdf";
+            JButton btnPdf = botao("Imprimir PDF");
+            btnPdf.addActionListener(ev -> {
+                try {
+                    // Cria model temporário com dados da venda
+                    VendaModel vm = new VendaModel(
+                            String.valueOf(vendaId),
+                            null, 0, 0, totLiquidoFinal[0], null, parcelas, null);
+                    vm.setItens(itens);
 
-        // Cria pasta se não existir
-        java.io.File pasta = new java.io.File("data/export");
-        if (!pasta.exists()) pasta.mkdirs();
+                    // Gera nome do arquivo com timestamp
+                    String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                    String nomeArquivo = "comprovante_" + vendaId + "_" + timestamp + ".pdf";
 
-        // Caminho final do PDF
-        java.io.File destino = new java.io.File(pasta, nomeArquivo);
+                    // Cria pasta se não existir
+                    java.io.File pasta = new java.io.File("data/export");
+                    if (!pasta.exists())
+                        pasta.mkdirs();
 
-        // Gera o PDF usando o novo método
-        PDFGenerator.gerarComprovanteVenda(vm, itens, destino.getAbsolutePath());
+                    // Caminho final do PDF
+                    java.io.File destino = new java.io.File(pasta, nomeArquivo);
 
-        JOptionPane.showMessageDialog(this,
-            "Comprovante gerado com sucesso:\n" + destino.getPath(),
-            "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    // Gera o PDF
+                    PDFGenerator.gerarComprovanteVenda(vm, itens, destino.getAbsolutePath());
 
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this,
-            "Erro ao gerar PDF:\n" + ex.getMessage(),
-            "Erro", JOptionPane.ERROR_MESSAGE);
-    }
-});
-JButton btnClose = botao("Fechar");
-btnClose.addActionListener(ev -> dispose());
-b.add(btnPdf);
-b.add(btnClose);
-add(b, BorderLayout.SOUTH);
-}
+                    JOptionPane.showMessageDialog(this,
+                            "Comprovante gerado com sucesso:\n" + destino.getPath(),
+                            "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Erro ao gerar PDF:\n" + ex.getMessage(),
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            JButton btnTérmica = botao("Imprimir na Térmica");
+            btnTérmica.addActionListener(ev -> {
+                try {
+                    VendaModel vm = new VendaModel(
+                            String.valueOf(vendaId),
+                            null, 0, 0, totLiquidoFinal[0], null, parcelas, null);
+                    vm.setItens(itens);
+
+                    PDFGenerator.imprimirCupomFiscal(vm, itens);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Erro ao imprimir na térmica:\n" + ex.getMessage(),
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            JButton btnClose = botao("Fechar");
+            btnClose.addActionListener(ev -> dispose());
+
+            b.add(btnPdf);
+            b.add(btnTérmica);
+            b.add(btnClose);
+
+            add(b, BorderLayout.SOUTH);
+
+        }
 
         /**
          * Cria um botão estilizado.

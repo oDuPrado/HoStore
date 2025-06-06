@@ -23,15 +23,28 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 
+// Imports para impressão
+import javax.print.attribute.standard.MediaSizeName;
+import javax.print.*;
+import javax.print.attribute.*;
+import javax.print.attribute.standard.Copies;
+import javax.print.attribute.standard.JobName;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import model.PrinterConfigModel; // caso use um model
+import dao.PrinterConfigDAO; // caso use persistência
+
 /**
  * Responsável por gerar comprovantes em tela e PDF.
- * (Layout preservado, com a implementação definitiva para salvar em data/export)
+ * (Layout preservado, com a implementação definitiva para salvar em
+ * data/export)
  */
 public class PDFGenerator {
 
     // Pasta onde os PDFs serão exportados (relativo ao diretório raiz da aplicação)
     private static final String EXPORT_DIR = "data/export";
-    // Pasta onde ficam as fontes (é preciso ter Roboto-Regular.ttf dentro de data/fonts)
+    // Pasta onde ficam as fontes (é preciso ter Roboto-Regular.ttf dentro de
+    // data/fonts)
     private static final String FONT_DIR = "data/fonts";
     // Largura do cupom em caracteres (para formatação monoespaçada)
     private static final int RECEIPT_WIDTH = 44;
@@ -193,7 +206,7 @@ public class PDFGenerator {
             sb.append(center("Volte sempre!")).append('\n');
 
             /* ==== Monta a UI ==== */
-            ta.setText(sb.toString());              // preenche o cupom
+            ta.setText(sb.toString()); // preenche o cupom
             add(new JScrollPane(ta), BorderLayout.CENTER); // exibe com scroll
         }
 
@@ -262,8 +275,10 @@ public class PDFGenerator {
     }
 
     /*
-     * ─────────────────── Sobrecarga para não quebrar código legado ───────────────────
-     * Se alguém chamar apenas com (venda, itens), redireciona para o método completo,
+     * ─────────────────── Sobrecarga para não quebrar código legado
+     * ───────────────────
+     * Se alguém chamar apenas com (venda, itens), redireciona para o método
+     * completo,
      * gerando um PDF em data/export com nome e timestamp automático.
      */
     public static void gerarComprovanteVenda(VendaModel venda, List<VendaItemModel> itens) {
@@ -274,7 +289,8 @@ public class PDFGenerator {
 
             // garante que a pasta existe
             java.io.File pasta = new java.io.File(EXPORT_DIR);
-            if (!pasta.exists()) pasta.mkdirs();
+            if (!pasta.exists())
+                pasta.mkdirs();
 
             // caminho completo do PDF
             java.io.File destino = new java.io.File(pasta, nomeArquivo);
@@ -287,61 +303,133 @@ public class PDFGenerator {
     }
 
     /**
- * ─────────────────── Método principal que gera o PDF no caminho dado ───────────────────
- * @param venda           modelo da venda (contém ID, lista de itens, total, parcelas, etc.)
- * @param itens           lista de itens vendidos
- * @param caminhoCompleto caminho absoluto (ou relativo) onde salvar o PDF (inclui nome do arquivo)
- * @throws Exception      se falhar em criar o PDF ou salvar
- */
-public static void gerarComprovanteVenda(VendaModel venda, List<VendaItemModel> itens, String caminhoCompleto) throws Exception {
-    // 1) Reconstrói o texto do cupom (mesmo layout do ComprovanteDialog).
-    //    Reutilizamos o dialog em memória, passando juros=0.0 e periodo="".
-    ComprovanteDialog dialog = new ComprovanteDialog(
-            null,
-            venda.getId(),                       // já é int
-            itens,
-            venda.getFormaPagamento(),           // string que vem do VendaModel
-            venda.getParcelas(),                 // int que vem do VendaModel
-            0.0,                                 // juros fixo 0.0, pois não temos getJuros()
-            "",                                  // período vazio, pois não temos getPeriodo()
-            new javax.swing.table.DefaultTableModel(
-                    new Object[][] {
-                            { venda.getFormaPagamento(), venda.getTotalLiquido() }
-                    },
-                    new String[]{ "Forma", "Valor" }
-            )
-    );
-    // Recupera o JTextArea que está dentro do JScrollPane do dialog
-    JScrollPane scroll = (JScrollPane) dialog.getContentPane().getComponent(0);
-    JTextArea ta = (JTextArea) scroll.getViewport().getView();
-    String texto = ta.getText();
+     * ─────────────────── Método principal que gera o PDF no caminho dado
+     * ───────────────────
+     * 
+     * @param venda           modelo da venda (contém ID, lista de itens, total,
+     *                        parcelas, etc.)
+     * @param itens           lista de itens vendidos
+     * @param caminhoCompleto caminho absoluto (ou relativo) onde salvar o PDF
+     *                        (inclui nome do arquivo)
+     * @throws Exception se falhar em criar o PDF ou salvar
+     */
+    public static void gerarComprovanteVenda(VendaModel venda, List<VendaItemModel> itens, String caminhoCompleto)
+            throws Exception {
+        // 1) Reconstrói o texto do cupom (mesmo layout do ComprovanteDialog).
+        // Reutilizamos o dialog em memória, passando juros=0.0 e periodo="".
+        ComprovanteDialog dialog = new ComprovanteDialog(
+                null,
+                venda.getId(), // já é int
+                itens,
+                venda.getFormaPagamento(), // string que vem do VendaModel
+                venda.getParcelas(), // int que vem do VendaModel
+                0.0, // juros fixo 0.0, pois não temos getJuros()
+                "", // período vazio, pois não temos getPeriodo()
+                new javax.swing.table.DefaultTableModel(
+                        new Object[][] {
+                                { venda.getFormaPagamento(), venda.getTotalLiquido() }
+                        },
+                        new String[] { "Forma", "Valor" }));
+        // Recupera o JTextArea que está dentro do JScrollPane do dialog
+        JScrollPane scroll = (JScrollPane) dialog.getContentPane().getComponent(0);
+        JTextArea ta = (JTextArea) scroll.getViewport().getView();
+        String texto = ta.getText();
 
-    // 2) Cria documento PDF
-    PDDocument doc = new PDDocument();
-    PDPage page = new PDPage(PDRectangle.A4);
-    doc.addPage(page);
+        // 2) Cria documento PDF
+        PDDocument doc = new PDDocument();
+        PDPage page = new PDPage(PDRectangle.A4);
+        doc.addPage(page);
 
-    // 3) Carrega fonte monoespaçada (Roboto-Regular.ttf deve estar em data/fonts)
-    PDType0Font font = PDType0Font.load(doc, new java.io.File(FONT_DIR, "Roboto-Regular.ttf"));
+        // 3) Carrega fonte monoespaçada (Roboto-Regular.ttf deve estar em data/fonts)
+        PDType0Font font = PDType0Font.load(doc, new java.io.File(FONT_DIR, "Roboto-Regular.ttf"));
 
-    // 4) Escreve texto no PDF
-    PDPageContentStream content = new PDPageContentStream(doc, page);
-    content.setFont(font, 10);
-    content.beginText();
-    content.setLeading(14f); // espaço entre linhas
-    // margens: 40pt da esquerda, 50pt do topo
-    content.newLineAtOffset(40, page.getMediaBox().getHeight() - 50);
+        // 4) Escreve texto no PDF
+        PDPageContentStream content = new PDPageContentStream(doc, page);
+        content.setFont(font, 10);
+        content.beginText();
+        content.setLeading(14f); // espaço entre linhas
+        // margens: 40pt da esquerda, 50pt do topo
+        content.newLineAtOffset(40, page.getMediaBox().getHeight() - 50);
 
-    for (String line : texto.split("\n")) {
-        content.showText(line);
-        content.newLine();
+        for (String line : texto.split("\n")) {
+            content.showText(line);
+            content.newLine();
+        }
+        content.endText();
+        content.close();
+
+        // 5) Salva o PDF no caminho especificado
+        doc.save(caminhoCompleto);
+        doc.close();
     }
-    content.endText();
-    content.close();
 
-    // 5) Salva o PDF no caminho especificado
-    doc.save(caminhoCompleto);
-    doc.close();
-}
+    /**
+     * Imprime o cupom diretamente na impressora térmica configurada.
+     * 
+     * @param venda VendaModel com formaPagamento, parcelas, etc.
+     * @param itens Itens da venda
+     */
+    public static void imprimirCupomFiscal(VendaModel venda, List<VendaItemModel> itens) {
+        try {
+            // 1) Gera o texto do cupom reutilizando o ComprovanteDialog
+            ComprovanteDialog dialog = new ComprovanteDialog(
+                    null,
+                    venda.getId(),
+                    itens,
+                    venda.getFormaPagamento(),
+                    venda.getParcelas(),
+                    0.0,
+                    "",
+                    new javax.swing.table.DefaultTableModel(
+                            new Object[][] { { venda.getFormaPagamento(), venda.getTotalLiquido() } },
+                            new String[] { "Forma", "Valor" }));
+
+            JScrollPane scroll = (JScrollPane) dialog.getContentPane().getComponent(0);
+            JTextArea ta = (JTextArea) scroll.getViewport().getView();
+            String texto = ta.getText();
+
+            // 2) Converte para stream de bytes
+            ByteArrayInputStream stream = new ByteArrayInputStream(texto.getBytes(StandardCharsets.UTF_8));
+            DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
+            Doc doc = new SimpleDoc(stream, flavor, null);
+
+            // 3) Lê impressora configurada (usando DAO)
+            PrinterConfigModel config = new PrinterConfigDAO().loadConfig();
+            String nomeImpressora = config != null ? config.getDefaultPrinterName() : null;
+            if (nomeImpressora == null || nomeImpressora.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nenhuma impressora configurada.",
+                        "Erro de Impressão", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            PrintService[] services = PrintServiceLookup.lookupPrintServices(null, null);
+            PrintService selecionada = null;
+
+            for (PrintService ps : services) {
+                if (ps.getName().equalsIgnoreCase(nomeImpressora)) {
+                    selecionada = ps;
+                    break;
+                }
+            }
+
+            if (selecionada == null) {
+                JOptionPane.showMessageDialog(null, "Impressora \"" + nomeImpressora + "\" não encontrada.",
+                        "Erro de Impressão", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 4) Imprime
+            DocPrintJob job = selecionada.createPrintJob();
+            PrintRequestAttributeSet attrs = new HashPrintRequestAttributeSet();
+            attrs.add(new JobName("Comprovante Venda #" + venda.getId(), null));
+            attrs.add(new Copies(1));
+            job.print(doc, attrs);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Erro ao imprimir cupom fiscal:\n" + e.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
 }
