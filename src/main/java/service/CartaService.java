@@ -9,10 +9,12 @@ import controller.ProdutoEstoqueController;
  * Serviço responsável por gerenciar a persistência de Cartas e sua integração
  * com a tabela de produtos. Ao salvar ou atualizar uma carta, este serviço
  * garante que exista um registro correspondente na tabela "produtos", de modo
- * que a carta possa ser tratada como um produto comum (para vendas, estoque, etc.).
+ * que a carta possa ser tratada como um produto comum (para vendas, estoque,
+ * etc.).
  *
  * Observação: Por enquanto, definimos jogoId = "POKEMON" para todas as cartas,
- * mas no futuro poderá ser parametrizado conforme outros TCGs (YUGIOH, MAGIC, etc.).
+ * mas no futuro poderá ser parametrizado conforme outros TCGs (YUGIOH, MAGIC,
+ * etc.).
  */
 public class CartaService {
 
@@ -25,7 +27,8 @@ public class CartaService {
     /**
      * Salva uma nova carta no banco e cria o produto correspondente em "produtos".
      *
-     * @param carta objeto Carta contendo todos os campos necessários para persistência
+     * @param carta objeto Carta contendo todos os campos necessários para
+     *              persistência
      * @throws Exception caso ocorra erro de SQL ou de persistência do produto
      */
     public void salvarNovaCarta(Carta carta) throws Exception {
@@ -38,16 +41,19 @@ public class CartaService {
     }
 
     /**
-     * Atualiza uma carta existente no banco e atualiza o produto correspondente em "produtos".
+     * Atualiza uma carta existente no banco e atualiza o produto correspondente em
+     * "produtos".
      *
-     * @param carta objeto Carta com o mesmo ID de uma carta já existente, contendo todos os campos atualizados
+     * @param carta objeto Carta com o mesmo ID de uma carta já existente, contendo
+     *              todos os campos atualizados
      * @throws Exception caso ocorra erro de SQL ou de persistência do produto
      */
     public void atualizarCarta(Carta carta) throws Exception {
         // 1) Atualiza todos os campos editáveis da carta na tabela "cartas"
         cartaDAO.update(carta);
 
-        // 2) Gera novamente o ProdutoModel (com quantidade, preço, etc.) e salva em "produtos"
+        // 2) Gera novamente o ProdutoModel (com quantidade, preço, etc.) e salva em
+        // "produtos"
         ProdutoModel produto = gerarProdutoModel(carta);
         produtoController.salvar(produto);
     }
@@ -66,27 +72,29 @@ public class CartaService {
     /**
      * Constrói um ProdutoModel a partir dos atributos de uma carta.
      * O produto resultante terá:
-     *   - mesmo ID da carta (id único da tabela "produtos")
-     *   - nome idêntico ao da carta
-     *   - tipo fixo "Carta"
-     *   - quantidade = quantidade da carta (qtd)
-     *   - precoCompra = custo da carta
-     *   - precoVenda = preço de loja da carta
-     *   - jogoId fixo "POKEMON" (para futuras customizações, pode-se inferir de setId)
-     *   - codigoBarras = null (não aplicável a cartas no momento)
+     * - mesmo ID da carta (id único da tabela "produtos")
+     * - nome idêntico ao da carta
+     * - tipo fixo "Carta"
+     * - quantidade = quantidade da carta (qtd)
+     * - precoCompra = custo da carta
+     * - precoVenda = preço de loja da carta
+     * - jogoId fixo "POKEMON" (para futuras customizações, pode-se inferir de
+     * setId)
+     * - codigoBarras = null (não aplicável a cartas no momento)
      *
      * @param carta objeto Carta contendo todos os dados necessários
      * @return ProdutoModel pronto para ser persistido na tabela "produtos"
      */
     private ProdutoModel gerarProdutoModel(Carta carta) {
-        // Cria instância de ProdutoModel usando construtor que seta criadoEm e alteradoEm automaticamente
+        // Cria instância de ProdutoModel usando construtor que seta criadoEm e
+        // alteradoEm automaticamente
         ProdutoModel p = new ProdutoModel(
-            carta.getId(),         // id do produto = id da carta
-            carta.getNome(),       // nome do produto = nome da carta
-            "Carta",               // tipo fixo para distinguir no catálogo
-            carta.getQtd(),        // quantidade de estoque
-            carta.getCusto(),      // precoCompra = custo de aquisição
-            carta.getPrecoLoja()   // precoVenda = preço praticado na loja
+                carta.getId(), // id do produto = id da carta
+                carta.getNome(), // nome do produto = nome da carta
+                "Carta", // tipo fixo para distinguir no catálogo
+                carta.getQtd(), // quantidade de estoque
+                carta.getCusto(), // precoCompra = custo de aquisição
+                carta.getPrecoLoja() // precoVenda = preço praticado na loja
         );
 
         // Definimos jogoId = "POKEMON" para todas as cartas por enquanto
@@ -97,4 +105,14 @@ public class CartaService {
 
         return p;
     }
+
+    public void salvarOuAtualizarCarta(Carta carta) throws Exception {
+        CartaDAO dao = new CartaDAO();
+        if (dao.buscarPorId(carta.getId()) != null) {
+            atualizarCarta(carta); // já existe → atualiza
+        } else {
+            salvarNovaCarta(carta); // novo → insere
+        }
+    }
+
 }

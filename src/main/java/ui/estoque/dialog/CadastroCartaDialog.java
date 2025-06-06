@@ -1,7 +1,7 @@
 package ui.estoque.dialog;
 
 import service.EstoqueService;
-import service.CartaService; // Import do novo serviço
+import service.CartaService;
 import dao.SetDAO;
 import dao.ColecaoDAO;
 import dao.CadastroGenericoDAO;
@@ -18,8 +18,6 @@ import java.awt.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import ui.estoque.dialog.ImportLigaDialog;
 
 /**
  * Dialog completo e definitivo de cadastro / edição de Carta
@@ -123,8 +121,7 @@ public class CadastroCartaDialog extends JDialog {
         b.insets = new Insets(4, 4, 4, 4);
         b.anchor = GridBagConstraints.EAST;
 
-        // nome + botão de busca
-        // nome + botão de busca + botão importar
+        // nome + botão de busca + importar
         JPanel pnlNome = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pnlNome.add(tfNome);
         pnlNome.add(btnBuscarCarta);
@@ -139,7 +136,6 @@ public class CadastroCartaDialog extends JDialog {
         });
 
         addRow(pnlBasic, b, 0, "Nome:", pnlNome);
-
         addRow(pnlBasic, b, 1, "Preço Ref.:", lblPrecoRef);
         addRow(pnlBasic, b, 2, "Set:", cbSet);
         addRow(pnlBasic, b, 3, "Coleção:", cbColecao);
@@ -185,9 +181,7 @@ public class CadastroCartaDialog extends JDialog {
         addRow(pnlSpecs, s, 2, "Raridade:", cbRaridade);
         pnlSubraridade = new JPanel(new BorderLayout());
         pnlSubraridade.add(cbSubraridade, BorderLayout.CENTER);
-
         addRow(pnlSpecs, s, 3, "Sub-raridade:", pnlSubraridade);
-
         addRow(pnlSpecs, s, 4, "Ilustração:", cbIlustracao);
 
         /* Fornecedor */
@@ -225,13 +219,14 @@ public class CadastroCartaDialog extends JDialog {
         carregarLookup("condicoes", cbCondicao);
         carregarLookup("linguagens", cbIdioma);
         carregarLookup("tipo_cartas", cbTipoCarta);
-        carregarSubtiposAgrupados(); // Carrega os subtipos por tipo manualmente
+        carregarSubtiposAgrupados();
         cbTipoCarta.addActionListener(e -> atualizarSubtiposPorTipo());
         cbTipoCarta.addActionListener(e -> {
             atualizarSubtiposPorTipo();
             toggleSubRaridade();
         });
         carregarLookup("raridades", cbRaridade);
+        cbRaridade.addActionListener(e -> toggleSubRaridade());
         carregarLookup("sub_raridades", cbSubraridade);
         carregarLookup("ilustracoes", cbIlustracao);
         carregarClientes();
@@ -239,17 +234,9 @@ public class CadastroCartaDialog extends JDialog {
         /* listeners */
         cbTipoVenda.addActionListener(e -> toggleConsignado());
         DocumentListener dl = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
-                atualizarValorLoja();
-            }
-
-            public void removeUpdate(DocumentEvent e) {
-                atualizarValorLoja();
-            }
-
-            public void changedUpdate(DocumentEvent e) {
-                atualizarValorLoja();
-            }
+            public void insertUpdate(DocumentEvent e) { atualizarValorLoja(); }
+            public void removeUpdate(DocumentEvent e) { atualizarValorLoja(); }
+            public void changedUpdate(DocumentEvent e) { atualizarValorLoja(); }
         };
         tfPrecoConsignado.getDocument().addDocumentListener(dl);
         tfPercentualLoja.getDocument().addDocumentListener(dl);
@@ -276,20 +263,26 @@ public class CadastroCartaDialog extends JDialog {
                 lblPrecoRef.setText(String.format("Ref. Preço: $%.2f / R$ %.2f", usd, brl));
                 tfPrecoVenda.setValue(brl);
 
-                // preenche Set com series e Coleção com name
+                // preenche Set com series
                 cbSet.removeAllItems();
-                cbSet.addItem(api.getSetSeries()); // ✅ Agora mostra a série correta no campo Set
-
+                cbSet.addItem(api.getSetSeries());
                 cbSet.setSelectedIndex(0);
 
+                // carrega coleções daquela série
                 carregarColecoes();
-                cbColecao.removeAllItems();
-                ColecaoModel m = new ColecaoModel();
-                m.setId(api.getSetId());
-                m.setName(api.getSetName());
-                cbColecao.addItem(m);
 
-                cbColecao.setSelectedIndex(0);
+                // em vez de criar um ColecaoModel manual, busca o objeto completo pelo ID vindo da API
+                try {
+                    ColecaoModel m = new ColecaoDAO().buscarPorId(api.getSetId());
+                    cbColecao.removeAllItems();
+                    cbColecao.addItem(m);
+                    cbColecao.setSelectedIndex(0);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(this,
+                            "Falha ao buscar coleção no banco:\n" + ex.getMessage(),
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                }
 
                 tfNumero.setText(api.getNumber());
             }
@@ -297,8 +290,9 @@ public class CadastroCartaDialog extends JDialog {
 
         btSalvar.addActionListener(e -> onSalvar());
         toggleConsignado();
-        if (isEdicao)
+        if (isEdicao) {
             preencherCampos();
+        }
     }
 
     private void addRow(JPanel p, GridBagConstraints g, int row, String label, JComponent field) {
@@ -315,10 +309,10 @@ public class CadastroCartaDialog extends JDialog {
         try {
             cbColecao.removeAllItems();
             String serie = (String) cbSet.getSelectedItem();
-            if (serie == null)
-                return;
-            for (ColecaoModel cm : new ColecaoDAO().listarPorSerie(serie))
+            if (serie == null) return;
+            for (ColecaoModel cm : new ColecaoDAO().listarPorSerie(serie)) {
                 cbColecao.addItem(cm);
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar coleções.");
         }
@@ -327,8 +321,9 @@ public class CadastroCartaDialog extends JDialog {
     private void carregarLookup(String tabela, JComboBox<ComboItem> combo) {
         try {
             combo.removeAllItems();
-            for (Map<String, String> m : new CadastroGenericoDAO(tabela, "id", "nome").listar())
+            for (Map<String, String> m : new CadastroGenericoDAO(tabela, "id", "nome").listar()) {
                 combo.addItem(new ComboItem(m.get("id"), m.get("nome")));
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar " + tabela + ".");
         }
@@ -337,14 +332,14 @@ public class CadastroCartaDialog extends JDialog {
     private void carregarClientes() {
         try {
             cbDono.removeAllItems();
-            for (Map<String, String> m : new CadastroGenericoDAO("clientes", "id", "nome").listar())
+            for (Map<String, String> m : new CadastroGenericoDAO("clientes", "id", "nome").listar()) {
                 cbDono.addItem(new ComboItem(m.get("id"), m.get("nome")));
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar clientes.");
         }
     }
 
-    // Carrega os subtipos já agrupados por tipo
     private void carregarSubtiposAgrupados() {
         subtiposPorTipo.clear();
 
@@ -375,15 +370,12 @@ public class CadastroCartaDialog extends JDialog {
                 new ComboItem("S17", "Incolor")));
     }
 
-    // Atualiza a lista do combo de subtipo baseado no tipo selecionado
     private void atualizarSubtiposPorTipo() {
         ComboItem tipoSel = (ComboItem) cbTipoCarta.getSelectedItem();
-        if (tipoSel == null)
-            return;
+        if (tipoSel == null) return;
 
         List<ComboItem> lista = subtiposPorTipo.get(tipoSel.getId());
         cbSubtipo.removeAllItems();
-
         if (lista != null) {
             for (ComboItem item : lista) {
                 cbSubtipo.addItem(item);
@@ -393,28 +385,28 @@ public class CadastroCartaDialog extends JDialog {
 
     private void toggleSubRaridade() {
         ComboItem tipo = (ComboItem) cbTipoCarta.getSelectedItem();
-        if (tipo == null)
-            return;
+        ComboItem raridade = (ComboItem) cbRaridade.getSelectedItem();
+        if (tipo == null || raridade == null) return;
 
-        boolean mostrar = "T1".equals(tipo.getId()); // T1 = Pokémon
+        String rarId = raridade.getId();
+        boolean mostrar = !(rarId.equals("R1") || rarId.equals("R2") || rarId.equals("R3")
+                || rarId.equals("R5") || rarId.equals("R6"));
         pnlSubraridade.setVisible(mostrar);
         pnlSubraridade.getParent().revalidate();
         pnlSubraridade.getParent().repaint();
+        pack();
     }
 
     private void toggleConsignado() {
         boolean cons = "Consignado".equals(cbTipoVenda.getSelectedItem());
         pnlConsignado.setVisible(cons);
-        // revalida o container que contém o pnlConsignado
         pnlConsignado.getParent().revalidate();
         pnlConsignado.getParent().revalidate();
-        // ajusta o tamanho do diálogo ao novo layout
         pack();
     }
 
     private void atualizarValorLoja() {
-        if (!pnlConsignado.isVisible())
-            return;
+        if (!pnlConsignado.isVisible()) return;
         try {
             double pc = ((Number) tfPrecoConsignado.getValue()).doubleValue();
             double pct = ((Number) tfPercentualLoja.getValue()).doubleValue();
@@ -443,21 +435,19 @@ public class CadastroCartaDialog extends JDialog {
         cbColecao.removeAllItems();
         ColecaoModel colecao = new ColecaoModel();
         colecao.setName(cartaOrig.getColecao());
+        colecao.setSigla(null); // sem sigla aqui, somente editar
         cbColecao.addItem(colecao);
         cbColecao.setSelectedIndex(0);
 
         // Condição
         selecionarComboBox(cbCondicao, cartaOrig.getCondicaoId());
-
         // Idioma
         selecionarComboBox(cbIdioma, cartaOrig.getLinguagemId());
-
         // Tipo/Subtipo/Raridade
         selecionarComboBox(cbTipoCarta, cartaOrig.getTipoId());
-        atualizarSubtiposPorTipo(); // ← recarrega os subtipos corretos
+        atualizarSubtiposPorTipo();
         toggleSubRaridade();
         selecionarComboBox(cbSubtipo, cartaOrig.getSubtipoId());
-
         selecionarComboBox(cbRaridade, cartaOrig.getRaridadeId());
         selecionarComboBox(cbSubraridade, cartaOrig.getSubRaridadeId());
         selecionarComboBox(cbIlustracao, cartaOrig.getIlustracaoId());
@@ -465,7 +455,6 @@ public class CadastroCartaDialog extends JDialog {
         // Consignado
         cbTipoVenda.setSelectedItem(cartaOrig.isConsignado() ? "Consignado" : "Loja");
         toggleConsignado();
-
         // Dono
         if (cartaOrig.isConsignado()) {
             selecionarComboBox(cbDono, cartaOrig.getDono());
@@ -488,68 +477,176 @@ public class CadastroCartaDialog extends JDialog {
             return;
         }
 
-        // Remova ou comente esta parte:
-        // if (fornecedorSelecionado == null) {
-        // JOptionPane.showMessageDialog(this, "Selecione um fornecedor");
-        // return;
-        // }
         try {
-            String id = isEdicao ? cartaOrig.getId() : UUID.randomUUID().toString();
+            // 1) Nome da carta
             String nome = tfNome.getText().trim();
+            System.out.println("[LOG] Nome da carta: " + nome);
+
+            // 2) Set (série) selecionada no combo cbSet
             String setId = (String) cbSet.getSelectedItem();
-            String colecao = cbColecao.getSelectedItem() != null
-                    ? cbColecao.getSelectedItem().toString()
+            System.out.println("[LOG] setId (série) selecionada: " + setId);
+
+            // 3) Coleção selecionada no combo cbColecao
+            ColecaoModel colecaoSelecionada = (ColecaoModel) cbColecao.getSelectedItem();
+            if (colecaoSelecionada == null) {
+                System.out.println("[LOG] AVISO: não há coleção selecionada (colecaoSelecionada == null)");
+            } else {
+                System.out.println("[LOG] ColecaoModel selecionada -> id: "
+                        + colecaoSelecionada.getId()
+                        + " | nome: " + colecaoSelecionada.getName()
+                        + " | sigla: " + colecaoSelecionada.getSigla()
+                        + " | series: " + colecaoSelecionada.getSeries()
+                        + " | data_lancamento: " + colecaoSelecionada.getReleaseDate());
+            }
+
+            // 4) Extrai o nome da coleção (para salvar no campo “colecao” da tabela cartas)
+            String colecao = colecaoSelecionada != null
+                    ? colecaoSelecionada.getName()
                     : "";
+            System.out.println("[LOG] Valor usado em 'colecao' (nome): " + colecao);
+
+            // 5) Extrai a sigla da coleção (para usar na montagem do ID)
+            String sigla = "SEMID";
+            if (colecaoSelecionada != null && colecaoSelecionada.getSigla() != null) {
+                sigla = colecaoSelecionada.getSigla();
+            }
+            System.out.println("[LOG] Sigla usada para gerar ID: " + sigla);
+
+            // 6) Número da carta (campo tfNumero)
             String num = tfNumero.getText().trim();
+            System.out.println("[LOG] Número (numero): " + num);
+
+            // 7) Sub-raridade selecionada
+            ComboItem subraridadeItem = (ComboItem) cbSubraridade.getSelectedItem();
+            String srar = subraridadeItem != null
+                    ? subraridadeItem.getId()
+                    : "";
+            System.out.println("[LOG] sub_raridade selecionada (srar): " + srar);
+
+            // 8) Montagem do ID completo:
+            String id;
+            if (isEdicao) {
+                id = cartaOrig.getId();
+                System.out.println("[LOG] Modo EDIÇÃO -> reaproveitando ID original: " + id);
+            } else {
+                String sufixoR = (srar != null && !srar.isEmpty()) ? "-R" : "";
+                id = sigla + "-" + num + sufixoR;
+                System.out.println("[LOG] Modo NOVO -> ID gerado: " + id);
+            }
+
+            // 9) Quantidade
             int qtd = (Integer) spQtd.getValue();
-            String cond = ((ComboItem) cbCondicao.getSelectedItem()).getId();
+            System.out.println("[LOG] Quantidade (qtd): " + qtd);
+
+            // 10) Condição
+            ComboItem condItem = (ComboItem) cbCondicao.getSelectedItem();
+            String cond = condItem != null
+                    ? condItem.getId()
+                    : "";
+            System.out.println("[LOG] condicao_id selecionada (cond): " + cond);
+
+            // 11) Verifica se o custo foi preenchido
             if (tfCusto.getValue() == null) {
                 JOptionPane.showMessageDialog(this, "⚠️ Custo é obrigatório!");
                 tfCusto.requestFocus();
+                System.out.println("[LOG] Custo NULO -> abortando gravação");
                 return;
             }
             double custo = ((Number) tfCusto.getValue()).doubleValue();
+            System.out.println("[LOG] custo: " + custo);
 
-            String lang = ((ComboItem) cbIdioma.getSelectedItem()).getId();
+            // 12) Idioma
+            ComboItem langItem = (ComboItem) cbIdioma.getSelectedItem();
+            String lang = langItem != null
+                    ? langItem.getId()
+                    : "";
+            System.out.println("[LOG] linguagem_id selecionada (lang): " + lang);
 
+            // 13) Verifica se é consignado ou loja
             boolean cons = "Consignado".equals(cbTipoVenda.getSelectedItem());
-            String donoId = cons
-                    ? ((ComboItem) cbDono.getSelectedItem()).getId()
-                    : "Loja";
+            String donoId;
+            if (cons) {
+                ComboItem donoItem = (ComboItem) cbDono.getSelectedItem();
+                donoId = donoItem != null
+                        ? donoItem.getId()
+                        : "";
+            } else {
+                donoId = "Loja";
+            }
+            System.out.println("[LOG] consignado? " + cons + " | donoId: " + donoId);
 
-            String tipo = ((ComboItem) cbTipoCarta.getSelectedItem()).getId();
-            String sub = ((ComboItem) cbSubtipo.getSelectedItem()).getId();
-            String rar = ((ComboItem) cbRaridade.getSelectedItem()).getId();
-            String srar = ((ComboItem) cbSubraridade.getSelectedItem()).getId();
-            String ilu = ((ComboItem) cbIlustracao.getSelectedItem()).getId();
+            // 14) Tipo da carta
+            ComboItem tipoItem = (ComboItem) cbTipoCarta.getSelectedItem();
+            String tipo = tipoItem != null
+                    ? tipoItem.getId()
+                    : "";
+            System.out.println("[LOG] tipo_id selecionado (tipo): " + tipo);
 
-            double precoCons = cons ? ((Number) tfPrecoConsignado.getValue()).doubleValue() : 0.0;
-            double percLoja = cons ? ((Number) tfPercentualLoja.getValue()).doubleValue() : 0.0;
-            double valorLoja = cons ? ((Number) tfValorLoja.getValue()).doubleValue() : 0.0;
+            // 15) Subtipo da carta
+            ComboItem subItem = (ComboItem) cbSubtipo.getSelectedItem();
+            String sub = subItem != null
+                    ? subItem.getId()
+                    : "";
+            System.out.println("[LOG] subtipo_id selecionado (sub): " + sub);
+
+            // 16) Raridade da carta
+            ComboItem raridadeItem = (ComboItem) cbRaridade.getSelectedItem();
+            String rar = raridadeItem != null
+                    ? raridadeItem.getId()
+                    : "";
+            System.out.println("[LOG] raridade_id selecionada (rar): " + rar);
+
+            // 17) Ilustração da carta
+            ComboItem iluItem = (ComboItem) cbIlustracao.getSelectedItem();
+            String ilu = iluItem != null
+                    ? iluItem.getId()
+                    : "";
+            System.out.println("[LOG] ilustracao_id selecionada (ilu): " + ilu);
+
+            // 18) Preço consignado, percentual e valor Loja
+            double precoCons = cons
+                    ? ((Number) tfPrecoConsignado.getValue()).doubleValue()
+                    : 0.0;
+            double percLoja = cons
+                    ? ((Number) tfPercentualLoja.getValue()).doubleValue()
+                    : 0.0;
+            double valorLoja = cons
+                    ? ((Number) tfValorLoja.getValue()).doubleValue()
+                    : 0.0;
+            System.out.println("[LOG] precoCons: " + precoCons
+                    + " | percLoja: " + percLoja
+                    + " | valorLoja: " + valorLoja);
+
+            // 19) Preço de venda
             double precoVenda = ((Number) tfPrecoVenda.getValue()).doubleValue();
+            System.out.println("[LOG] precoVenda: " + precoVenda);
 
+            // 20) Monta o objeto Carta para salvar
             model.Carta c = new model.Carta(
                     id, nome, setId, colecao, num, qtd,
                     precoVenda, precoCons, percLoja, valorLoja,
                     custo, cond, lang, cons, donoId,
                     tipo, sub, rar, srar, ilu,
-                    fornecedorSelecionado != null ? fornecedorSelecionado.getId() : null);
+                    fornecedorSelecionado != null
+                            ? fornecedorSelecionado.getId()
+                            : null
+            );
+            System.out.println("[LOG] Objeto Carta preparado para salvar: " + c);
 
-            // Uso do CartaService em vez de estoqueService + ProdutoEstoqueController
-            CartaService cartaService = new CartaService();
+            // 21) Chama o serviço para salvar ou atualizar
+            new CartaService().salvarOuAtualizarCarta(c);
+            System.out.println("[LOG] Carta enviada para CartaService.salvarOuAtualizarCarta()");
 
-            if (isEdicao) {
-                cartaService.atualizarCarta(c);
-            } else {
-                cartaService.salvarNovaCarta(c);
-            }
-
+            // 22) Fecha o diálogo
             dispose();
+            System.out.println("[LOG] CadastroCartaDialog fechado com sucesso.");
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace(System.out);
+            System.out.println("[LOG] Exceção ao salvar carta: " + ex.getMessage());
         }
     }
 }

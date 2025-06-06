@@ -191,6 +191,8 @@ public class ImportLigaDialog extends JDialog {
         System.out.println("===== INÍCIO DA IMPORTAÇÃO =====");
         int totalLinhasImportadas = 0;
         int totalLinhasIgnoradas = 0;
+        int totalInseridas = 0;
+        int totalAtualizadas = 0;
 
         // 1) Abrir arquivo e Workbook
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -428,6 +430,19 @@ public class ImportLigaDialog extends JDialog {
                     String subtipoId = "S1"; // Subtipo: Básico
                     System.out.println("[LOG] ID gerado para a carta: " + idCarta);
 
+                    // (k.1) Verificar se já existe no banco
+                    boolean jaExiste = false;
+                    try (PreparedStatement psCheck = conn.prepareStatement("SELECT 1 FROM cartas WHERE id = ?")) {
+                        psCheck.setString(1, idCarta);
+                        try (ResultSet rs = psCheck.executeQuery()) {
+                            jaExiste = rs.next();
+                        }
+                    }
+                    if (jaExiste)
+                        totalAtualizadas++;
+                    else
+                        totalInseridas++;
+
                     // (k) Preencher PreparedStatement
                     // @CTRL+F: PREPARED_STATEMENT_IMPORT
                     ps.setString(1, idCarta); // id
@@ -499,10 +514,12 @@ public class ImportLigaDialog extends JDialog {
 
             // 11) Resumo final
             String msg = String.format(
-                    "Importação concluída!\n" +
-                            "Linhas importadas: %d\n" +
-                            "Linhas ignoradas : %d",
-                    totalLinhasImportadas, totalLinhasIgnoradas);
+                    "✅ Importação concluída!\n\n" +
+                            "🆕 Novas cartas inseridas: %d\n" +
+                            "🔁 Cartas atualizadas: %d\n" +
+                            "⚠️ Cartas ignoradas: %d",
+                    totalInseridas, totalAtualizadas, totalLinhasIgnoradas);
+
             System.out.printf("[LOG] Resumo: importadas=%d | ignoradas=%d%n",
                     totalLinhasImportadas, totalLinhasIgnoradas);
             SwingUtilities.invokeLater(() -> AlertUtils.info(msg));

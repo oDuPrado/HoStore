@@ -86,4 +86,26 @@ public class ColecaoDAO {
         }
         return out;
     }
+
+    /** Busca uma coleção pelo ID (retorna null se não encontrar) */
+public ColecaoModel buscarPorId(String id) throws Exception {
+    String sql = "SELECT * FROM colecoes WHERE id = ?";
+    try (Connection c = DB.get();
+         PreparedStatement ps = c.prepareStatement(sql)) {
+        ps.setString(1, id);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                ColecaoModel m = new ColecaoModel();
+                m.setId(rs.getString("id"));
+                m.setName(rs.getString("nome"));
+                m.setSeries(rs.getString("series"));
+                m.setReleaseDate(rs.getString("data_lancamento"));
+                m.setSigla(rs.getString("sigla"));
+                return m;
+            }
+            return null;
+        }
+    }
+}
+
 }
