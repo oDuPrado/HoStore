@@ -51,7 +51,7 @@ public class ConfigLojaModel {
     private int    proxyPort;                  // Ex.: 3128
     private String proxyUsuario;               // Se necessário
     private String proxySenha;                 // Se necessário
-
+    
     /**
      * Construtor completo, usado ao ler do banco de dados.
      */

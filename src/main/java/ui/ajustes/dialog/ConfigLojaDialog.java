@@ -32,6 +32,8 @@ public class ConfigLojaDialog extends JDialog {
     private final JComboBox<String> cbRegimeTrib = new JComboBox<>(
             new String[] { "Simples Nacional", "Lucro Presumido", "Lucro Real" });
     private final JTextField tfCnae = new JTextField(10);
+    // Botão para abrir configurações fiscais
+    private final JButton btnFiscal = new JButton("Configuração Fiscal");
 
     // ===== Endereço =====
     private final JTextField tfLogradouro = new JTextField(20);
@@ -465,9 +467,20 @@ public class ConfigLojaDialog extends JDialog {
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
         painelPrincipal.add(rodape, BorderLayout.SOUTH);
 
+        btnFiscal.setPreferredSize(new Dimension(160, 30));
+        btnFiscal.setToolTipText("Abrir configurações fiscais (CFOP, CSOSN, NCM, etc.)");
+        btnFiscal.addActionListener(e -> {
+            // Passa o "this" como Frame e null como clienteId (ou um ID padrão)
+            ConfigFiscalDialog fiscalDialog = new ConfigFiscalDialog((Frame) SwingUtilities.getWindowAncestor(this),
+                    "LOJA");
+            fiscalDialog.setVisible(true);
+        });
+
         JButton btnSalvar = new JButton("Salvar");
         btnSalvar.setPreferredSize(new Dimension(100, 30));
         btnSalvar.addActionListener(e -> onSalvar());
+        rodape.add(btnFiscal);
+
         rodape.add(btnSalvar);
 
         JButton btnCancelar = new JButton("Cancelar");

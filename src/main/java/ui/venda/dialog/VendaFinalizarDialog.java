@@ -441,6 +441,9 @@ public class VendaFinalizarDialog extends JDialog {
             ta.setEditable(false);
             ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
+            // ⚠️ Adiciona o componente na tela
+            add(new JScrollPane(ta), BorderLayout.CENTER);
+
             // Formatação de moeda em Real
             NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
             StringBuilder sb = new StringBuilder();
@@ -462,7 +465,7 @@ public class VendaFinalizarDialog extends JDialog {
             String telefoneLoja = (config != null && config.getTelefone() != null) ? config.getTelefone() : "";
             String textoRodape = (config != null && config.getTextoRodapeNota() != null)
                     ? config.getTextoRodapeNota()
-                    : "Obrigado pela preferência!";
+                    : "";
             String modeloNota = (config != null && config.getModeloNota() != null) ? config.getModeloNota() : "65";
             String serieNota = (config != null && config.getSerieNota() != null) ? config.getSerieNota() : "001";
 
@@ -548,7 +551,8 @@ public class VendaFinalizarDialog extends JDialog {
             sb.append(padRight("Descontos:", ThirtySixChars(RECEIPT_WIDTH))).append(padLeft(cf.format(totDesconto), 8))
                     .append("\n");
             sb.append(padRight("Total Líquido:", ThirtySixChars(RECEIPT_WIDTH)))
-                    .append(padLeft(cf.format(totLiquidoFinal), 8)).append("\n");
+                    .append(padLeft(cf.format(totLiquidoFinal[0]), 8)).append("\n");
+
             sb.append(repeatChar('-', RECEIPT_WIDTH)).append("\n");
 
             // =========== 4) Pagamentos ===========
@@ -590,28 +594,51 @@ public class VendaFinalizarDialog extends JDialog {
             sb.append(center("Obrigado pela preferência!", RECEIPT_WIDTH)).append("\n");
             sb.append(center("Volte sempre!", RECEIPT_WIDTH)).append("\n");
 
-            // =========== 8) Botões de ação ===========
-            JPanel b = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            JButton btnPdf = botao("Imprimir PDF");
-            btnPdf.addActionListener(ev -> {
-                try {
-                    // Usa totLiquidoFinal[0] (double) em vez de totLiquidoFinal (double[])
-                    VendaModel vm = new VendaModel(
-                            String.valueOf(vendaId),
-                            null, 0, 0, totLiquidoFinal[0], null, parcelas, null);
-                    vm.setItens(itens);
-                    PDFGenerator.gerarComprovanteVenda(vm, itens);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            });
-            JButton btnClose = botao("Fechar");
-            btnClose.addActionListener(ev -> dispose());
-            b.add(btnPdf);
-            b.add(btnClose);
-            add(b, BorderLayout.SOUTH);
+            ta.setText(sb.toString());
+            ta.setCaretPosition(0);
 
-        }
+            // =========== 8) Botões de ação ===========
+JPanel b = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+JButton btnPdf = botao("Imprimir PDF");
+btnPdf.addActionListener(ev -> {
+    try {
+        // Cria model temporário com dados da venda
+        VendaModel vm = new VendaModel(
+                String.valueOf(vendaId),
+                null, 0, 0, totLiquidoFinal[0], null, parcelas, null);
+        vm.setItens(itens);
+
+        // Gera nome do arquivo com timestamp
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String nomeArquivo = "comprovante_" + vendaId + "_" + timestamp + ".pdf";
+
+        // Cria pasta se não existir
+        java.io.File pasta = new java.io.File("data/export");
+        if (!pasta.exists()) pasta.mkdirs();
+
+        // Caminho final do PDF
+        java.io.File destino = new java.io.File(pasta, nomeArquivo);
+
+        // Gera o PDF usando o novo método
+        PDFGenerator.gerarComprovanteVenda(vm, itens, destino.getAbsolutePath());
+
+        JOptionPane.showMessageDialog(this,
+            "Comprovante gerado com sucesso:\n" + destino.getPath(),
+            "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Erro ao gerar PDF:\n" + ex.getMessage(),
+            "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+});
+JButton btnClose = botao("Fechar");
+btnClose.addActionListener(ev -> dispose());
+b.add(btnPdf);
+b.add(btnClose);
+add(b, BorderLayout.SOUTH);
+}
 
         /**
          * Cria um botão estilizado.

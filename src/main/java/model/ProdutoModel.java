@@ -15,6 +15,13 @@ public class ProdutoModel {
     private LocalDateTime criadoEm;
     private LocalDateTime alteradoEm;
 
+    // Dados fiscais obrigatórios
+    private String ncm; // Código NCM (8 dígitos)
+    private String cfop; // Código CFOP (4 dígitos)
+    private String csosn; // Código CSOSN (ou CST)
+    private String origem; // Código de Origem (0–8)
+    private String unidade; // Unidade de comercialização, ex: "UN", "CX", "KG"
+
     /* ==================== CONSTRUTORES ==================== */
 
     public ProdutoModel(String id, String nome, String tipo,
@@ -110,4 +117,44 @@ public class ProdutoModel {
         this.codigoBarras = codigoBarras;
     }
 
+    // Getters e Setters fiscais
+    public String getNcm() {
+        return ncm;
+    }
+
+    public void setNcm(String ncm) {
+        this.ncm = ncm;
+    }
+
+    public String getCfop() {
+        return cfop;
+    }
+
+    public void setCfop(String cfop) {
+        this.cfop = cfop;
+    }
+
+    public String getCsosn() {
+        return csosn;
+    }
+
+    public void setCsosn(String csosn) {
+        this.csosn = csosn;
+    }
+
+    public String getOrigem() {
+        return origem;
+    }
+
+    public void setOrigem(String origem) {
+        this.origem = origem;
+    }
+
+    public String getUnidade() {
+        return unidade;
+    }
+
+    public void setUnidade(String unidade) {
+        this.unidade = unidade;
+    }
 }

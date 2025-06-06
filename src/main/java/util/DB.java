@@ -685,7 +685,133 @@ public class DB {
                                             )
                                         """);
 
-                        
+                        // ─────────── TABELAS FISCAIS ───────────
+
+                        // 1) NCM: código (8 dígitos) + descrição
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS ncm (" +
+                                                        "   codigo TEXT PRIMARY KEY, " + // ex: "95044000" (sem ponto)
+                                                        "   descricao TEXT NOT NULL        " + // ex: "Jogos de cartas,
+                                                                                               // para jogos de salão ou
+                                                                                               // de tabuleiro"
+                                                        ");");
+
+                        // 2) CFOP: código (4 dígitos) + descrição
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS cfop (" +
+                                                        "   codigo TEXT PRIMARY KEY, " + // ex: "5102"
+                                                        "   descricao TEXT NOT NULL        " + // ex: "Venda de produção
+                                                                                               // do estabelecimento"
+                                                        ");");
+
+                        // 3) CSOSN (para Simples Nacional) ou CST (para regime normal)
+                        // Aqui usaremos o nome "csosn" mesmo, mas você pode renomear para cst se for
+                        // regime normal.
+                        // A tabela guarda tanto CSOSN quanto CST (basta usar códigos predefinidos).
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS csosn (" +
+                                                        "   codigo TEXT PRIMARY KEY, " + // ex: "102"
+                                                        "   descricao TEXT NOT NULL        " + // ex: "Isento de ICMS
+                                                                                               // (Simples Nacional –
+                                                                                               // faixa de receita até
+                                                                                               // X)"
+                                                        ");");
+
+                        // 4) ORIGEM: código (0–8) + descrição (origem do produto)
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS origem (" +
+                                                        "   codigo TEXT PRIMARY KEY, " + // ex: "0"
+                                                        "   descricao TEXT NOT NULL        " + // ex: "0 – Nacional"
+                                                        ");");
+
+                        // ─────────── TABELA DE CONFIGURAÇÃO FISCAL ───────────
+                        st.execute(
+                                        "CREATE TABLE IF NOT EXISTS config_fiscal (" +
+                                                        "   id TEXT PRIMARY KEY, " +
+                                                        "   cliente_id TEXT UNIQUE, " + // Vincula à tabela 'clientes';
+                                                                                        // cada cliente tem no máximo
+                                                                                        // uma configuração
+                                                        "   regime_tributario TEXT,   " + // ex: "Simples Nacional",
+                                                                                          // "Lucro Presumido", "Lucro
+                                                                                          // Real"
+                                                        "   cfop_padrao TEXT,         " + // ex: "5102"
+                                                        "   csosn_padrao TEXT,        " + // ex: "102"
+                                                        "   origem_padrao TEXT,       " + // ex: "0"
+                                                        "   ncm_padrao TEXT,          " + // ex: "95044000"
+                                                        "   unidade_padrao TEXT,      " + // ex: "UN", "CX", "KG"
+                                                        "   FOREIGN KEY(cliente_id) REFERENCES clientes(id) " +
+                                                        ");");
+
+                        // ─────────── SINCRONIZAÇÃO FISCAL AUTOMÁTICA ───────────
+                        try {
+                                // NCM
+                                try {
+                                        List<model.NcmModel> listaNcms = service.FiscalApiService.listarNcms();
+                                        dao.NcmDAO ncmDAO = new dao.NcmDAO();
+                                        ncmDAO.sincronizarComApi(listaNcms);
+                                } catch (Exception e) {
+                                        System.err.println("⚠ Falha na API de NCM. Usando fallback...");
+                                        try (Connection conn = get(); Statement stncm = conn.createStatement()) {
+                                                stncm.execute("INSERT OR IGNORE INTO ncm (codigo, descricao) VALUES " +
+                                                                "('95044000','Jogos de cartas para jogos de salão ou tabuleiro'),"
+                                                                +
+                                                                "('49019900','Outros impressos');");
+                                        }
+                                }
+
+                                // CFOP
+                                try {
+                                        List<model.CfopModel> listaCfops = service.FiscalApiService.listarCfops();
+                                        dao.CfopDAO cfopDAO = new dao.CfopDAO();
+                                        cfopDAO.sincronizarComApi(listaCfops);
+                                } catch (Exception e) {
+                                        System.err.println("⚠ Falha na API de CFOP. Usando fallback...");
+                                        try (Connection conn = get(); Statement stcfop = conn.createStatement()) {
+                                                stcfop.execute("INSERT OR IGNORE INTO cfop (codigo, descricao) VALUES " +
+                                                                "('5101','Venda de produção do estabelecimento')," +
+                                                                "('5102','Venda de mercadoria adquirida ou recebida de terceiros');");
+                                        }
+                                }
+
+                                // CSOSN
+                                try {
+                                        List<model.CsosnModel> listaCsosns = service.FiscalApiService.listarCsosns();
+                                        dao.CsosnDAO csosnDAO = new dao.CsosnDAO();
+                                        csosnDAO.sincronizarComApi(listaCsosns);
+                                } catch (Exception e) {
+                                        System.err.println("⚠ Falha na API de CSOSN. Usando fallback...");
+                                        try (Connection conn = get(); Statement stcsosn = conn.createStatement()) {
+                                                stcsosn.execute("INSERT OR IGNORE INTO csosn (codigo, descricao) VALUES " +
+                                                                "('102','Tributada pelo Simples Nacional sem permissão de crédito'),"
+                                                                +
+                                                                "('500','ICMS cobrado anteriormente por substituição tributária');");
+                                        }
+                                }
+
+                                // Origem
+                                try {
+                                        List<model.OrigemModel> listaOrigens = service.FiscalApiService.listarOrigens();
+                                        dao.OrigemDAO origemDAO = new dao.OrigemDAO();
+                                        origemDAO.sincronizarComApi(listaOrigens);
+                                } catch (Exception e) {
+                                        System.err.println("⚠ Falha na API de Origem. Usando fallback...");
+                                        try (Connection conn = get(); Statement storg = conn.createStatement()) {
+                                                storg.execute("INSERT OR IGNORE INTO origem (codigo, descricao) VALUES " +
+                                                                "('0','Nacional, exceto as indicadas nos códigos 3 a 5'),"
+                                                                +
+                                                                "('1','Estrangeira – Importação direta, exceto a indicada no código 6'),"
+                                                                +
+                                                                "('2','Estrangeira – Adquirida no mercado interno, exceto a indicada no código 7');");
+                                        }
+                                }
+
+                                System.out.println("✅ Dados fiscais sincronizados com sucesso (com ou sem fallback)");
+
+                        } catch (Exception ex) {
+                                System.err.println("Erro geral na sincronização fiscal:");
+                                ex.printStackTrace();
+                        }
+
                         try {
                                 dao.ColecaoDAO colecaoDAO = new dao.ColecaoDAO();
                                 List<ColecaoModel> colecoes = service.ColecaoService.listarColecoes();
@@ -770,4 +896,5 @@ public class DB {
                         throw new RuntimeException(e);
                 }
         }
+
 }

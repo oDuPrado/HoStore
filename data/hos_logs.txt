@@ -1008,3 +1008,15 @@ jun. 04, 2025 3:22:38 PM util.LogService info
 INFORMAÇÕES: Venda 9 finalizada com sucesso
 jun. 04, 2025 3:27:27 PM util.LogService info
 INFORMAÇÕES: Venda 10 finalizada com sucesso
+jun. 06, 2025 4:03:06 PM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso
+jun. 06, 2025 4:06:28 PM util.LogService info
+INFORMAÇÕES: Venda 2 finalizada com sucesso
+jun. 06, 2025 4:08:22 PM util.LogService info
+INFORMAÇÕES: Venda 3 finalizada com sucesso
+jun. 06, 2025 4:09:35 PM util.LogService info
+INFORMAÇÕES: Venda 4 finalizada com sucesso
+jun. 06, 2025 4:13:31 PM util.LogService info
+INFORMAÇÕES: Venda 5 finalizada com sucesso
+jun. 06, 2025 4:29:29 PM util.LogService info
+INFORMAÇÕES: Venda 6 finalizada com sucesso
