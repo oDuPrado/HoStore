@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import model.ConfigLojaModel;
 import dao.ConfigLojaDAO;
+import ui.venda.dialog.EditarPrecoDialog;
 
 /**
  * Dialog de finalização de venda com:
@@ -160,6 +161,18 @@ public class VendaFinalizarDialog extends JDialog {
         linha1.add(new JLabel("Valor:"));
         linha1.add(txtValor);
         entrada.add(linha1);
+
+        /*/ ==== Botão "Editar Preço Base" ====
+        JButton btnEditarPreco = new JButton("Editar Preço Base");
+        btnEditarPreco.addActionListener(e -> {
+            EditarPrecoDialog dlg = new EditarPrecoDialog(SwingUtilities.getWindowAncestor(this), itens);
+            dlg.setVisible(true);
+            if (dlg.isOk()) {
+                atualizarValores(); // recalcula bruto, líquido, troco etc.
+                repaint(); // garante que os labels atualizem
+            }
+        });
+        linha1.add(btnEditarPreco); */
 
         /* ---- Linha 2: detalhes cartão + botão ---- */
         JPanel linha2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));

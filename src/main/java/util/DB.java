@@ -444,6 +444,24 @@ public class DB {
                                         "FOREIGN KEY(parcela_id) REFERENCES parcelas_contas_receber(id)" +
                                         ")");
 
+                        // TAXAS DE CARTÃO - CONFIGURAÇÃO DE MAQUININHA
+                        st.execute("CREATE TABLE IF NOT EXISTS taxas_cartao (" +
+                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                        "bandeira TEXT NOT NULL, " + // ex: Cielo, Stone, Rede
+                                        "tipo TEXT NOT NULL, " + // CREDITO, DEBITO
+                                        "min_parcelas INTEGER NOT NULL, " +
+                                        "max_parcelas INTEGER NOT NULL, " +
+                                        "mes_vigencia TEXT NOT NULL, " + // formato 'YYYY-MM'
+                                        "taxa_pct REAL NOT NULL, " + // ex: 3.49 (%)
+                                        "observacoes TEXT" + // configs extras, JSON ou texto livre
+                                        ")");
+                        st.execute("INSERT INTO taxas_cartao (" +
+                                        "bandeira, tipo, min_parcelas, max_parcelas, mes_vigencia, taxa_pct, observacoes"
+                                        +
+                                        ") VALUES (" +
+                                        "'PagSeguro', 'CREDITO', 1, 12, '2025-06', 3.49, 'Taxa padrão para testes'" +
+                                        ")");
+
                         // ──────── TABELA DE PEDIDOS DE COMPRA ────────
                         st.execute(
                                         "CREATE TABLE IF NOT EXISTS pedidos_compras (" +
@@ -767,7 +785,8 @@ public class DB {
                                 } catch (Exception e) {
                                         System.err.println("⚠ Falha na API de CFOP. Usando fallback...");
                                         try (Connection conn = get(); Statement stcfop = conn.createStatement()) {
-                                                stcfop.execute("INSERT OR IGNORE INTO cfop (codigo, descricao) VALUES " +
+                                                stcfop.execute("INSERT OR IGNORE INTO cfop (codigo, descricao) VALUES "
+                                                                +
                                                                 "('5101','Venda de produção do estabelecimento')," +
                                                                 "('5102','Venda de mercadoria adquirida ou recebida de terceiros');");
                                         }
@@ -781,7 +800,8 @@ public class DB {
                                 } catch (Exception e) {
                                         System.err.println("⚠ Falha na API de CSOSN. Usando fallback...");
                                         try (Connection conn = get(); Statement stcsosn = conn.createStatement()) {
-                                                stcsosn.execute("INSERT OR IGNORE INTO csosn (codigo, descricao) VALUES " +
+                                                stcsosn.execute("INSERT OR IGNORE INTO csosn (codigo, descricao) VALUES "
+                                                                +
                                                                 "('102','Tributada pelo Simples Nacional sem permissão de crédito'),"
                                                                 +
                                                                 "('500','ICMS cobrado anteriormente por substituição tributária');");
@@ -796,7 +816,8 @@ public class DB {
                                 } catch (Exception e) {
                                         System.err.println("⚠ Falha na API de Origem. Usando fallback...");
                                         try (Connection conn = get(); Statement storg = conn.createStatement()) {
-                                                storg.execute("INSERT OR IGNORE INTO origem (codigo, descricao) VALUES " +
+                                                storg.execute("INSERT OR IGNORE INTO origem (codigo, descricao) VALUES "
+                                                                +
                                                                 "('0','Nacional, exceto as indicadas nos códigos 3 a 5'),"
                                                                 +
                                                                 "('1','Estrangeira – Importação direta, exceto a indicada no código 6'),"

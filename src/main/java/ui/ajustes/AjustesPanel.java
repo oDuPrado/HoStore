@@ -20,7 +20,8 @@ import ui.ajustes.painel.TipoCartaPainel;
 import ui.ajustes.painel.PromocaoPainel;
 import ui.ajustes.painel.ClienteVipPainel;
 import service.SessaoService;
-
+import ui.ajustes.dialog.CartaAtributosDialog;
+import ui.ajustes.dialog.TaxaCartaoDialog;
 
 public class AjustesPanel extends JPanel {
 
@@ -41,22 +42,21 @@ public class AjustesPanel extends JPanel {
         // ==== CONFIGURAÇÕES DO SISTEMA ====
         container.add(criarBotao("🛍 Dados da Loja", () -> new ConfigLojaDialog(null).setVisible(true)));
         container.add(criarBotao("🖨 Impressão e PDF", () -> new ConfigImpressaoDialog(null).setVisible(true)));
-        container.add(criarBotao("🧾 Plano de Contas",       () -> new PlanoContaPainel().abrir()));
+        container.add(criarBotao("🧾 Plano de Contas", () -> new PlanoContaPainel().abrir()));
         container.add(criarBotao("🗄 Backup e Sistema", () -> new ConfigSistemaDialog(null).setVisible(true)));
         if (SessaoService.isAdmin()) {
             container.add(criarBotao("👥 Usuários e Permissões", () -> new UsuarioPainel().abrir()));
         }
-        
 
         // ==== CADASTROS GERAIS ====
         container.add(criarBotao("🚚 Fornecedores", () -> {
             // abre o painel de fornecedores
             new ui.ajustes.painel.FornecedorPainel().abrir();
         }));
-        container.add(criarBotao("📦 Categorias de Produtos", () -> new CategoriaProdutoPainel().abrir()));
+        container.add(criarBotao("📦 Temas de interface", () -> new CategoriaProdutoPainel().abrir()));
         container.add(criarBotao("📑 Condições de Produto", () -> new CondicaoPainel().abrir()));
-        container.add(criarBotao("🈯 Idiomas", () -> new IdiomaPainel().abrir()));
-        container.add(criarBotao("⚡ Tipos/Subtipos de Carta", () -> new TipoCartaPainel().abrir()));
+        container.add(criarBotao("💳 Taxas do Cartão", () -> new TaxaCartaoDialog(null).setVisible(true)));
+        container.add(criarBotao("🃏 Atributos da Carta", () -> new CartaAtributosDialog(null).setVisible(true)));
         container.add(criarBotao("🏷 Promoções e Descontos", () -> new PromocaoPainel().abrir()));
         container.add(criarBotao("⭐ Clientes VIP", () -> new ClienteVipPainel().abrir()));
 
