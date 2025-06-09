@@ -1,12 +1,13 @@
 package app;
 
-import com.formdev.flatlaf.FlatLightLaf; // fallback
+import com.formdev.flatlaf.FlatLightLaf;
 import dao.CartaDAO;
 import model.UsuarioModel;
 import service.SessaoService;
 import ui.TelaPrincipal;
 import ui.ajustes.dialog.LoginDialog;
 import ui.ajustes.painel.CategoriaProdutoPainel;
+import util.BackupUtils;
 
 import javax.swing.*;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -37,6 +38,9 @@ public class Main {
             }
 
             SessaoService.login(usuarioLogado);
+
+            // ativa backup automático, se configurado
+            BackupUtils.applyConfig(BackupUtils.loadConfig());
 
             // carta fake (depois do login pra garantir contexto)
             new CartaDAO().inserirCartaFake();
