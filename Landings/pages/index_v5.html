@@ -466,9 +466,9 @@
         // TRAVA: se já bateu 1, fecha as vagas de vez
         if (vagas === 1) {
           closeSlots();
+          return;
         }
 
-        localStorage.setItem("vagas", vagas);
         animateCount(previous, vagas);
         updateBadgeDisplay(vagas);
       } else {
@@ -511,12 +511,18 @@
         if (!document.getElementById("waBtn")) {
           const waBtn = document.createElement("a");
           waBtn.id = "waBtn";
-          waBtn.href = "https://wa.me/5511999999999";
+          waBtn.href = "https://wa.me/5567999527376";
           waBtn.target = "_blank";
           waBtn.textContent = "Falar com o Suporte";
           waBtn.setAttribute("aria-label", "Falar com o Suporte via WhatsApp");
           waBtn.className = "cta secondary";
           ctaWrap.appendChild(waBtn);
+          waBtn.addEventListener("click", () => {
+            gtag("event", "click", {
+              event_category: "cta",
+              event_label: "whatsapp_support",
+            });
+          });
         }
       }
 
