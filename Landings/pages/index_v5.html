@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HoStore — Domine sua loja de TCG</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#ff4c60;
+      --accent:#45EBA5;
+      --danger:#ffb400;
+      --bg:#0d0d0d;
+      --text:#f0f0f0;
+      --card:#181818;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+    body{background:var(--bg);color:var(--text);overflow-x:hidden;}
+    a{color:var(--accent);text-decoration:none;}
+    .container{max-width:1100px;margin:0 auto;padding:0 1rem;}
+    header{padding:6rem 0 4rem;text-align:center;position:relative;}
+    header h1{font-size:2.9rem;line-height:1.15;font-weight:700;margin-bottom:1rem;}
+    header p{font-size:1.15rem;color:#b3b3b3;margin-bottom:2.5rem;}
+    /* CTA wrapper */
+    .cta-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem;}
+    .cta{position:relative;display:inline-flex;align-items:center;gap:.8rem;background:var(--primary);padding:1rem 2.6rem;border:none;border-radius:10px;font-size:1.05rem;font-weight:700;color:#fff;cursor:pointer;overflow:hidden;}
+    .cta:hover{transform:scale(1.04);transition:transform .2s;}
+    .cta::after{content:'';position:absolute;inset:0;border-radius:10px;animation:pulse 2.5s infinite;background:var(--primary);filter:blur(20px);opacity:.5;z-index:-1;}
+    @keyframes pulse{0%{transform:scale(1);}70%{transform:scale(1.4);opacity:0;}100%{transform:scale(1.4);opacity:0;}}
+    .badge{background:rgba(0,0,0,.25);padding:.25rem .6rem;border-radius:6px;font-size:.85rem;font-weight:600;min-width:55px;text-align:center;transition:background .3s;}
+    .badge.low{background:var(--danger);color:#000;}
+    .secondary{background:var(--card);color:#fff;border:1px solid var(--accent);}
+    .secondary:hover{background:var(--accent);color:#000;}
+    .last-call{margin-top:.4rem;font-size:.9rem;color:var(--danger);font-weight:700;display:none;}
+    /* Alert */
+    .alert{display:none;background:var(--card);padding:1rem 1.5rem;border-radius:8px;margin-top:2rem;font-size:1rem;opacity:0;animation:fadeIn .6s forwards;}
+    @keyframes fadeIn{to{opacity:1;}}
+    /* Sections */
+    section{padding:4rem 0;opacity:0;transform:translateY(40px);transition:all .7s ease-out;}
+    section.show{opacity:1;transform:none;}
+    .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2rem;margin-top:3rem;}
+    .feature-card{background:var(--card);padding:1.8rem;border-radius:10px;text-align:center;min-height:180px;}
+    .feature-card h3{margin:1rem 0;font-size:1.3rem;}
+    /* Form */
+    #formSection{display:none;}
+    form{background:var(--card);padding:2rem;border-radius:10px;max-width:600px;margin:0 auto;}
+    label{display:block;margin-bottom:.5rem;font-weight:600;}
+    input{width:100%;padding:.85rem;border-radius:6px;border:none;background:#2a2a2a;color:#fff;margin-bottom:1.3rem;}
+    button[type="submit"]{width:100%;background:var(--accent);border:none;padding:1rem;border-radius:8px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+    button[type="submit"]:hover{opacity:.9;}
+    #thankYou{display:none;text-align:center;margin-top:2rem;}
+    footer{text-align:center;color:#777;padding:3rem 0 2rem;font-size:.85rem;}
+    .swirl{position:absolute;top:-60px;right:-120px;width:300px;height:300px;background:radial-gradient(circle,var(--primary),transparent 70%);filter:blur(60px);pointer-events:none;opacity:.45;}
+  </style>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>
+    window.dataLayer=window.dataLayer||[];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js',new Date());
+    gtag('config','G-XXXXXXX');
+  </script>
+</head>
+<body>
+  <header class="container">
+    <div class="swirl"></div>
+    <h1>Transforme sua loja de TCG em <span style="white-space:nowrap;">máquina de vendas</span></h1>
+    <p>Estoque perfeito. Vendas sem atrito. Relatórios que mostram dinheiro na mesa.<br>Você só ainda não sabia que isso existia.</p>
+
+    <div class="cta-wrap" id="ctaWrap">
+      <button id="ctaBtn" class="cta">
+        Tentar Grátis
+        <span id="badge" class="badge">--</span>
+      </button>
+      <div id="lastCall" class="last-call">Garanta as últimas vagas!</div>
+    </div>
+
+    <div id="alertMsg" class="alert">🚀 7 lojas já se inscreveram esta semana</div>
+  </header>
+
+  <section class="container">
+    <h2 style="text-align:center;font-size:1.9rem;">Pare de sofrer com planilhas & apps genéricos</h2>
+    <div class="features">
+      <div class="feature-card">
+        <h3>⏱️ Venda em segundos</h3>
+        <p>Busca ultra-rápida de cartas e boosters.<br>Troco e taxas calculados na hora.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🧮 Fluxo de caixa automático</h3>
+        <p>Entradas e saídas registradas sem esforço.<br>Sua margem, clara como cristal.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🔍 Estoque infalível</h3>
+        <p>Entrada por pedidos, baixa automática e alertas de ruptura.</p>
+      </div>
+      <div class="feature-card">
+        <h3>🚀 Atualizações em 1 clique</h3>
+        <p>Sempre na versão mais poderosa.<br>Você vende, nós cuidamos do resto.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hidden Form -->
+  <section id="formSection" class="container">
+    <form id="leadForm" action="https://formspree.io/f/yourFormID" method="POST">
+      <h2 style="text-align:center;margin-bottom:1.5rem;">Garanta seu acesso antecipado</h2>
+      <label for="loja">Nome da Loja*</label>
+      <input type="text" id="loja" name="Loja" required>
+      <label for="email">Email*</label>
+      <input type="email" id="email" name="Email" required>
+      <label for="whats">WhatsApp</label>
+      <input type="tel" id="whats" name="WhatsApp" placeholder="(xx) xxxxx-xxxx">
+      <!-- Hidden UTM -->
+      <input type="hidden" id="utm_source" name="utm_source">
+      <input type="hidden" id="utm_medium" name="utm_medium">
+      <input type="hidden" id="utm_campaign" name="utm_campaign">
+      <button type="submit">Quero meu convite</button>
+    </form>
+    <div id="thankYou">
+      <h2>🎉 Pedido recebido!</h2>
+      <p>Em breve você receberá o convite para o Early Access.<br>Prepare-se para dominar seu estoque.</p>
+    </div>
+  </section>
+
+  <footer>
+    © 2025 HoStore – HO Systems • <a href="https://github.com/oDuPrado/HoStore" target="_blank">GitHub</a> • <a href="mailto:contato@hostore.com">Contato</a>
+  </footer>
+
+  <script>
+    const badge=document.getElementById('badge');
+    const lastCall=document.getElementById('lastCall');
+    const alertMsg=document.getElementById('alertMsg');
+    const ctaBtn=document.getElementById('ctaBtn');
+    const ctaWrap=document.getElementById('ctaWrap');
+    const formSection=document.getElementById('formSection');
+    const leadForm=document.getElementById('leadForm');
+    const params=new URLSearchParams(window.location.search);
+
+    // Intersection reveal
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('show');observer.unobserve(entry.target);}});
+    },{threshold:.15});
+    document.querySelectorAll('section').forEach(sec=>observer.observe(sec));
+
+    /* ------------ vagas logic ------------ */
+    function animateCount(from,to){
+      let current=from, step=from>to?-1:1;
+      const interval=setInterval(()=>{
+        current+=step;
+        badge.textContent=current+' '+(current===1?'vaga':'vagas');
+        if(current===to)clearInterval(interval);
+      },70);
+    }
+
+    function updateBadgeDisplay(vagas){
+      badge.textContent=vagas+' '+(vagas===1?'vaga':'vagas');
+      if(vagas<5){
+        badge.classList.add('low');
+        lastCall.style.display='block';
+      }else{
+        badge.classList.remove('low');
+        lastCall.style.display='none';
+      }
+    }
+
+    let vagas=parseInt(localStorage.getItem('vagas'));
+    let closed=localStorage.getItem('closed')==='true';
+
+    if(isNaN(vagas)){
+      vagas=Math.floor(Math.random()*50)+1;
+      localStorage.setItem('vagas',vagas);
+    }
+
+    if(!closed){
+      // apply decrement on refresh
+      const previous=vagas;
+      vagas=Math.max(1,vagas-3);
+      localStorage.setItem('vagas',vagas);
+      animateCount(previous,vagas);
+      updateBadgeDisplay(vagas);
+    }else{
+      vagas=0;
+      badge.textContent='Encerrado';
+      badge.classList.add('low');
+      transformToWaitlist();
+    }
+
+    // urgency message after 45s if many vagas
+    if(vagas>=30){
+      setTimeout(()=>{alertMsg.style.display='block';},45000);
+    }
+
+    // auto close if vagas <=2 and no click after 90s
+    if(vagas<=2 && !closed){
+      setTimeout(()=>{
+        if(!closed){ // still open
+          closeSlots();
+        }
+      },90000);
+    }
+
+    function closeSlots(){
+      closed=true;
+      localStorage.setItem('closed','true');
+      badge.textContent='Encerrado';
+      badge.classList.add('low');
+      transformToWaitlist();
+    }
+
+    function transformToWaitlist(){
+      // change main CTA text
+      ctaBtn.textContent='Entrar na Fila de Espera';
+      ctaBtn.classList.add('secondary');
+      // add whatsapp button if not exists
+      if(!document.getElementById('waBtn')){
+        const waBtn=document.createElement('a');
+        waBtn.id='waBtn';
+        waBtn.href='https://wa.me/5511999999999';
+        waBtn.target='_blank';
+        waBtn.textContent='Falar com Especialista';
+        waBtn.className='cta secondary';
+        ctaWrap.appendChild(waBtn);
+      }
+    }
+
+    /* ------------ CTA actions ------------ */
+    ctaBtn.addEventListener('click',()=>{
+      gtag('event','click',{event_category:'cta',event_label:closed?'waitlist_cta':'hero_cta'});
+      formSection.style.display='block';
+      formSection.scrollIntoView({behavior:'smooth'});
+    });
+
+    /* ------------ UTM passthrough ------------ */
+    ['utm_source','utm_medium','utm_campaign'].forEach(p=>{
+      if(params.get(p))document.getElementById(p).value=params.get(p);
+    });
+
+    /* ------------ Form submit ------------ */
+    leadForm.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const data=new FormData(leadForm);
+      try{
+        await fetch(leadForm.action,{method:'POST',body:data,headers:{'Accept':'application/json'}});
+        gtag('event','lead_submitted',{event_category:'form',event_label:closed?'waitlist_form':'interest_form'});
+        leadForm.style.display='none';
+        document.getElementById('thankYou').style.display='block';
+      }catch(err){
+        alert('Erro ao enviar. Tente novamente mais tarde.');
+      }
+    });
+  </script>
+</body>
+</html>
