@@ -162,17 +162,20 @@ public class VendaFinalizarDialog extends JDialog {
         linha1.add(txtValor);
         entrada.add(linha1);
 
-        /*/ ==== Botão "Editar Preço Base" ====
-        JButton btnEditarPreco = new JButton("Editar Preço Base");
-        btnEditarPreco.addActionListener(e -> {
-            EditarPrecoDialog dlg = new EditarPrecoDialog(SwingUtilities.getWindowAncestor(this), itens);
-            dlg.setVisible(true);
-            if (dlg.isOk()) {
-                atualizarValores(); // recalcula bruto, líquido, troco etc.
-                repaint(); // garante que os labels atualizem
-            }
-        });
-        linha1.add(btnEditarPreco); */
+        /*
+         * / ==== Botão "Editar Preço Base" ====
+         * JButton btnEditarPreco = new JButton("Editar Preço Base");
+         * btnEditarPreco.addActionListener(e -> {
+         * EditarPrecoDialog dlg = new
+         * EditarPrecoDialog(SwingUtilities.getWindowAncestor(this), itens);
+         * dlg.setVisible(true);
+         * if (dlg.isOk()) {
+         * atualizarValores(); // recalcula bruto, líquido, troco etc.
+         * repaint(); // garante que os labels atualizem
+         * }
+         * });
+         * linha1.add(btnEditarPreco);
+         */
 
         /* ---- Linha 2: detalhes cartão + botão ---- */
         JPanel linha2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
@@ -274,8 +277,47 @@ public class VendaFinalizarDialog extends JDialog {
                         pagamentosModel.removeRow(r);
                     atualizarValores();
                 }));
+        // Atalhos de teclado
+        JRootPane root = getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "addPagamento");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "abrirParcelamento");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "confirmarVenda");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancelarVenda");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK), "focoValor");
+
+        am.put("addPagamento", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                onAddPagamento();
+            }
+        });
+        am.put("abrirParcelamento", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                if (btnParcelamento.isVisible())
+                    btnParcelamento.doClick();
+            }
+        });
+        am.put("confirmarVenda", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                onConfirm();
+            }
+        });
+        am.put("cancelarVenda", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+        am.put("focoValor", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                txtValor.requestFocusInWindow();
+            }
+        });
+
         painel.add(new JScrollPane(pagamentosTable), BorderLayout.CENTER);
         return painel;
+
     }
 
     /* ======= Rodapé ======= */

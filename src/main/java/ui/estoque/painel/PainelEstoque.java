@@ -191,6 +191,35 @@ public class PainelEstoque extends JPanel {
 
         // Carrega os produtos ao iniciar
         listar();
+        SwingUtilities.invokeLater(() -> {
+            JRootPane root = SwingUtilities.getRootPane(this);
+            if (root == null)
+                return;
+
+            InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap am = root.getActionMap();
+
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "focoBusca");
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "focoTabela");
+            im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "excluirSelecionado");
+
+            am.put("focoBusca", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    campoBusca.requestFocusInWindow();
+                }
+            });
+            am.put("focoTabela", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    tabela.requestFocusInWindow();
+                }
+            });
+            am.put("excluirSelecionado", new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    deletarSelecionado();
+                }
+            });
+        });
+
     }
 
     /**

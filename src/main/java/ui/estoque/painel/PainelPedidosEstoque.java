@@ -16,6 +16,10 @@ import java.awt.*;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.awt.event.KeyEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * Lista pedidos de estoque com filtros, Δ e ações.
@@ -48,6 +52,43 @@ public class PainelPedidosEstoque extends JDialog {
         loadData();
         setSize(820, 430);
         setLocationRelativeTo(owner);
+        // Atalhos de Teclado
+        JRootPane root = getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "filtrar");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "abrirProdutos");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0), "abrirEntrada");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "excluirPedido");
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "fechar");
+
+        am.put("filtrar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                loadData();
+            }
+        });
+        am.put("abrirProdutos", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                abrirProdutos();
+            }
+        });
+        am.put("abrirEntrada", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                abrirEntrada();
+            }
+        });
+        am.put("excluirPedido", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                excluirPedido();
+            }
+        });
+        am.put("fechar", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+
     }
 
     /* ---------- UI ---------- */

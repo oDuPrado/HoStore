@@ -455,12 +455,12 @@ public class DB {
                                         "taxa_pct REAL NOT NULL, " + // ex: 3.49 (%)
                                         "observacoes TEXT" + // configs extras, JSON ou texto livre
                                         ")");
-                        st.execute("INSERT INTO taxas_cartao (" +
+                        /*st.execute("INSERT INTO taxas_cartao (" +
                                         "bandeira, tipo, min_parcelas, max_parcelas, mes_vigencia, taxa_pct, observacoes"
                                         +
                                         ") VALUES (" +
                                         "'PagSeguro', 'CREDITO', 1, 12, '2025-06', 3.49, 'Taxa padrão para testes'" +
-                                        ")");
+                                        ")");*/
 
                         // ──────── TABELA DE PEDIDOS DE COMPRA ────────
                         st.execute(
@@ -915,6 +915,14 @@ public class DB {
                         return sb.toString();
                 } catch (Exception e) {
                         throw new RuntimeException(e);
+                }
+        }
+
+        public static boolean isConnected() {
+                try (Connection c = get()) {
+                        return c != null && !c.isClosed();
+                } catch (SQLException e) {
+                        return false;
                 }
         }
 

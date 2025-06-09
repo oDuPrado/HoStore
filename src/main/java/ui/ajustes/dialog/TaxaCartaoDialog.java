@@ -23,18 +23,17 @@ import java.util.Locale;
  */
 public class TaxaCartaoDialog extends JDialog {
     private final TaxaCartaoService service = new TaxaCartaoService();
-    private final DefaultTableModel tableModel = new DefaultTableModel(new String[]{
-        "ID", "Bandeira", "Tipo", "Min", "Max", "Mês", "Taxa (%)", "Observações"
+    private final DefaultTableModel tableModel = new DefaultTableModel(new String[] {
+            "ID", "Bandeira", "Tipo", "Min", "Max", "Mês", "Taxa (%)", "Observações"
     }, 0);
     private final JTable table = new JTable(tableModel);
 
     // Formulário
     private final JComboBox<String> cbBandeira = new JComboBox<>(
-        new String[]{"Cielo","Stone","Rede","Getnet","PagSeguro"}
-    );
-    private final JComboBox<String> cbTipo = new JComboBox<>(new String[]{"CREDITO","DEBITO"});
-    private final JSpinner spMin = new JSpinner(new SpinnerNumberModel(1,1,36,1));
-    private final JSpinner spMax = new JSpinner(new SpinnerNumberModel(1,1,36,1));
+            new String[] { "Cielo", "Stone", "Rede", "Getnet", "PagSeguro" });
+    private final JComboBox<String> cbTipo = new JComboBox<>(new String[] { "CREDITO", "DEBITO" });
+    private final JSpinner spMin = new JSpinner(new SpinnerNumberModel(1, 1, 36, 1));
+    private final JSpinner spMax = new JSpinner(new SpinnerNumberModel(1, 1, 36, 1));
     private final JComboBox<Integer> cbMes = new JComboBox<>();
     private final JFormattedTextField ftTaxa;
     private final JTextArea taObservacoes = new JTextArea();
@@ -42,7 +41,7 @@ public class TaxaCartaoDialog extends JDialog {
     public TaxaCartaoDialog(Frame owner) {
         super(owner, "Taxas de Cartão", true);
         // Formatter para Taxa (%)
-        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("pt","BR"));
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
         nf.setMinimumFractionDigits(2);
         nf.setMaximumFractionDigits(2);
         NumberFormatter taxaFmt = new NumberFormatter(nf);
@@ -62,21 +61,22 @@ public class TaxaCartaoDialog extends JDialog {
     }
 
     private void initComponents() {
-        setLayout(new BorderLayout(8,8));
-        ((JComponent)getContentPane())
-            .setBorder(new EmptyBorder(10,10,10,10));
+        setLayout(new BorderLayout(8, 8));
+        ((JComponent) getContentPane())
+                .setBorder(new EmptyBorder(10, 10, 10, 10));
 
         // popula combo Mês (1–12)
-        for(int m=1; m<=12; m++) cbMes.addItem(m);
-        cbMes.setRenderer(new DefaultListCellRenderer(){
+        for (int m = 1; m <= 12; m++)
+            cbMes.addItem(m);
+        cbMes.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list,Object value,
-                                                           int index,boolean sel,boolean focus){
-                super.getListCellRendererComponent(list,value,index,sel,focus);
-                if(value instanceof Integer){
-                    int mm=(Integer)value;
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                    int index, boolean sel, boolean focus) {
+                super.getListCellRendererComponent(list, value, index, sel, focus);
+                if (value instanceof Integer) {
+                    int mm = (Integer) value;
                     setText(Month.of(mm)
-                        .getDisplayName(TextStyle.FULL,new Locale("pt","BR")));
+                            .getDisplayName(TextStyle.FULL, new Locale("pt", "BR")));
                 }
                 return this;
             }
@@ -86,9 +86,9 @@ public class TaxaCartaoDialog extends JDialog {
         JPanel panelForm = new JPanel(new GridBagLayout());
         panelForm.setBorder(BorderFactory.createTitledBorder("Nova / Editar Taxa"));
         GridBagConstraints gc = new GridBagConstraints();
-        gc.insets = new Insets(6,6,6,6);
+        gc.insets = new Insets(6, 6, 6, 6);
         gc.anchor = GridBagConstraints.WEST;
-        gc.fill   = GridBagConstraints.HORIZONTAL;
+        gc.fill = GridBagConstraints.HORIZONTAL;
 
         // Coluna 0 (labels), peso 0
         gc.weightx = 0;
@@ -96,98 +96,135 @@ public class TaxaCartaoDialog extends JDialog {
         int row = 0;
 
         // Bandeira
-        gc.gridy = row; gc.gridx = 0; panelForm.add(new JLabel("Bandeira:"), gc);
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(cbBandeira, gc);
+        gc.gridy = row;
+        gc.gridx = 0;
+        panelForm.add(new JLabel("Bandeira:"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(cbBandeira, gc);
 
         // Tipo
         row++;
-        gc.gridy = row; gc.gridx = 0; gc.weightx = 0; panelForm.add(new JLabel("Tipo:"), gc);
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(cbTipo, gc);
+        gc.gridy = row;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panelForm.add(new JLabel("Tipo:"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(cbTipo, gc);
 
         // Min Parcelas
         row++;
-        gc.gridy = row; gc.gridx = 0; gc.weightx = 0; panelForm.add(new JLabel("Min Parcelas:"), gc);
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(spMin, gc);
+        gc.gridy = row;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panelForm.add(new JLabel("Min Parcelas:"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(spMin, gc);
 
         // Max Parcelas
         row++;
-        gc.gridy = row; gc.gridx = 0; gc.weightx = 0; panelForm.add(new JLabel("Max Parcelas:"), gc);
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(spMax, gc);
+        gc.gridy = row;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panelForm.add(new JLabel("Max Parcelas:"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(spMax, gc);
 
         // Mês
         row++;
-        gc.gridy = row; gc.gridx = 0; gc.weightx = 0; panelForm.add(new JLabel("Mês:"), gc);
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(cbMes, gc);
+        gc.gridy = row;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panelForm.add(new JLabel("Mês:"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(cbMes, gc);
 
         // Taxa (%)
         row++;
-        gc.gridy = row; gc.gridx = 0; gc.weightx = 0; panelForm.add(new JLabel("Taxa (%):"), gc);
-        JPanel pTaxa = new JPanel(new FlowLayout(FlowLayout.LEFT,4,0));
+        gc.gridy = row;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panelForm.add(new JLabel("Taxa (%):"), gc);
+        JPanel pTaxa = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         pTaxa.add(ftTaxa);
         pTaxa.add(new JLabel(" %"));
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(pTaxa, gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(pTaxa, gc);
 
         // Observações
         row++;
-        gc.gridy = row; gc.gridx = 0; gc.weightx = 0; panelForm.add(new JLabel("Observações:"), gc);
+        gc.gridy = row;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        panelForm.add(new JLabel("Observações:"), gc);
         JScrollPane spObs = new JScrollPane(taObservacoes);
         spObs.setPreferredSize(new Dimension(0, 100));
-        gc.gridx = 1; gc.weightx = 1; panelForm.add(spObs, gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        panelForm.add(spObs, gc);
 
         // Botões Limpar / Salvar
         JButton btnLimpar = new JButton("Limpar");
         JButton btnSalvar = new JButton("Salvar");
         btnLimpar.addActionListener(e -> clearForm());
         btnSalvar.addActionListener(e -> onSalvar());
-        JPanel pBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0));
+        JPanel pBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         pBtns.add(btnLimpar);
         pBtns.add(btnSalvar);
 
-        JPanel west = new JPanel(new BorderLayout(8,8));
+        JPanel west = new JPanel(new BorderLayout(8, 8));
         west.add(panelForm, BorderLayout.CENTER);
-        west.add(pBtns,    BorderLayout.SOUTH);
+        west.add(pBtns, BorderLayout.SOUTH);
         west.setMinimumSize(new Dimension(350, 0));
 
         // ─── Tabela ─────────────────────────────────────────
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         // formata coluna Taxa (%)
         table.getColumnModel().getColumn(6)
-             .setCellRenderer(new DefaultTableCellRenderer(){
-            private final NumberFormat fmt = NumberFormat.getNumberInstance(new Locale("pt","BR"));
-            { fmt.setMinimumFractionDigits(2); fmt.setMaximumFractionDigits(2); }
-            @Override
-            public Component getTableCellRendererComponent(JTable t,Object v,
-                    boolean s,boolean f,int r,int c){
-                super.getTableCellRendererComponent(t,v,s,f,r,c);
-                if(v instanceof Number){
-                    setText(fmt.format(((Number)v).doubleValue())+" %");
-                }
-                return this;
-            }
-        });
+                .setCellRenderer(new DefaultTableCellRenderer() {
+                    private final NumberFormat fmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
+                    {
+                        fmt.setMinimumFractionDigits(2);
+                        fmt.setMaximumFractionDigits(2);
+                    }
+
+                    @Override
+                    public Component getTableCellRendererComponent(JTable t, Object v,
+                            boolean s, boolean f, int r, int c) {
+                        super.getTableCellRendererComponent(t, v, s, f, r, c);
+                        if (v instanceof Number) {
+                            setText(fmt.format(((Number) v).doubleValue()) + " %");
+                        }
+                        return this;
+                    }
+                });
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createTitledBorder("Taxas Cadastradas"));
 
         // usa JSplitPane para redimensionar
         JSplitPane split = new JSplitPane(
-            JSplitPane.HORIZONTAL_SPLIT,
-            west,
-            scroll
-        );
+                JSplitPane.HORIZONTAL_SPLIT,
+                west,
+                scroll);
         split.setResizeWeight(0.35);
         split.setContinuousLayout(true);
 
         // ─── Rodapé ─────────────────────────────────────────
         JButton btnExcluir = new JButton("Excluir Selecionada");
         btnExcluir.addActionListener(e -> onExcluir());
-        JButton btnFechar  = new JButton("Fechar");
+        JButton btnFechar = new JButton("Fechar");
         btnFechar.addActionListener(e -> dispose());
-        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT,8,0));
+        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         south.add(btnExcluir);
         south.add(btnFechar);
 
         add(split, BorderLayout.CENTER);
-        add(south,  BorderLayout.SOUTH);
+        add(south, BorderLayout.SOUTH);
     }
 
     private void loadTaxas() {
@@ -195,24 +232,33 @@ public class TaxaCartaoDialog extends JDialog {
             tableModel.setRowCount(0);
             List<TaxaCartaoModel> lista = service.listar();
             for (TaxaCartaoModel m : lista) {
-                int mes = Integer.parseInt(m.getMesVigencia());
+                int mes = 1; // valor padrão
+                try {
+                    String[] partes = m.getMesVigencia().split("-");
+                    if (partes.length == 2) {
+                        mes = Integer.parseInt(partes[1]);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Erro ao parsear mes_vigencia: " + m.getMesVigencia());
+                }
+
                 String nomeMes = Month.of(mes)
-                    .getDisplayName(TextStyle.FULL, new Locale("pt","BR"));
-                tableModel.addRow(new Object[]{
-                    m.getId(),
-                    m.getBandeira(),
-                    m.getTipo(),
-                    m.getMinParcelas(),
-                    m.getMaxParcelas(),
-                    nomeMes,
-                    m.getTaxaPct(),
-                    m.getObservacoes()
+                        .getDisplayName(TextStyle.FULL, new Locale("pt", "BR"));
+                tableModel.addRow(new Object[] {
+                        m.getId(),
+                        m.getBandeira(),
+                        m.getTipo(),
+                        m.getMinParcelas(),
+                        m.getMaxParcelas(),
+                        nomeMes,
+                        m.getTaxaPct(),
+                        m.getObservacoes()
                 });
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao carregar taxas:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao carregar taxas:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -231,7 +277,8 @@ public class TaxaCartaoDialog extends JDialog {
         try {
             TaxaCartaoModel m = new TaxaCartaoModel();
             int sel = table.getSelectedRow();
-            if (sel >= 0) m.setId((Integer) tableModel.getValueAt(sel, 0));
+            if (sel >= 0)
+                m.setId((Integer) tableModel.getValueAt(sel, 0));
 
             m.setBandeira(cbBandeira.getSelectedItem().toString());
             m.setTipo(cbTipo.getSelectedItem().toString());
@@ -242,8 +289,8 @@ public class TaxaCartaoDialog extends JDialog {
             Number v = (Number) ftTaxa.getValue();
             if (v == null) {
                 JOptionPane.showMessageDialog(this,
-                    "Informe uma taxa válida!",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+                        "Informe uma taxa válida!",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             m.setTaxaPct(v.doubleValue());
@@ -254,19 +301,20 @@ public class TaxaCartaoDialog extends JDialog {
             clearForm();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao salvar:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao salvar:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void onExcluir() {
         int sel = table.getSelectedRow();
-        if (sel < 0) return;
+        if (sel < 0)
+            return;
         int id = (Integer) tableModel.getValueAt(sel, 0);
         if (JOptionPane.showConfirmDialog(this,
-            "Excluir taxa selecionada?",
-            "Confirmação", JOptionPane.YES_NO_OPTION)
-            != JOptionPane.YES_OPTION) return;
+                "Excluir taxa selecionada?",
+                "Confirmação", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
+            return;
 
         try {
             service.excluir(id);
@@ -274,8 +322,8 @@ public class TaxaCartaoDialog extends JDialog {
             clearForm();
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao excluir:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao excluir:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
