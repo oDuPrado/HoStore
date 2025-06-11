@@ -1026,3 +1026,23 @@ jun. 09, 2025 1:00:17 PM util.LogService info
 INFORMAÇÕES: Venda 2 finalizada com sucesso
 jun. 09, 2025 1:00:17 PM util.LogService info
 INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jun. 11, 2025 10:23:46 AM util.LogService info
+INFORMAÇÕES: Venda 3 finalizada com sucesso
+jun. 11, 2025 10:23:46 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jun. 11, 2025 11:45:38 AM util.LogService info
+INFORMAÇÕES: Venda 4 finalizada com sucesso
+jun. 11, 2025 11:45:38 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jun. 11, 2025 11:52:21 AM util.LogService info
+INFORMAÇÕES: Venda 5 finalizada com sucesso
+jun. 11, 2025 11:52:21 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jun. 11, 2025 11:56:11 AM util.LogService info
+INFORMAÇÕES: Venda 6 finalizada com sucesso
+jun. 11, 2025 11:56:11 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jun. 11, 2025 11:56:27 AM util.LogService info
+INFORMAÇÕES: Venda 7 finalizada com sucesso
+jun. 11, 2025 11:56:27 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.

@@ -8,6 +8,7 @@ import util.AlertUtils;
 import util.PDFGenerator;
 import model.VendaItemModel;
 import model.VendaModel;
+import service.CreditoLojaService;
 import ui.venda.painel.PainelVendas;
 
 import javax.swing.*;
@@ -144,7 +145,10 @@ public class VendaFinalizarDialog extends JDialog {
 
         /* ---- Linha 1: forma + valor ---- */
         JPanel linha1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        cboForma = new JComboBox<>(new String[] { "DINHEIRO", "PIX", "CARTAO", "VALE-PRESENTE", "OUTROS" });
+        cboForma = new JComboBox<>(new String[] {
+                "DINHEIRO", "PIX", "CARTAO", "VALE-PRESENTE", "CREDITO-LOJA", "OUTROS"
+        });
+
         linha1.add(new JLabel("Forma:"));
         linha1.add(cboForma);
 
@@ -346,6 +350,39 @@ public class VendaFinalizarDialog extends JDialog {
         String forma = (String) cboForma.getSelectedItem();
         double valor;
 
+        if ("CREDITO-LOJA".equalsIgnoreCase(forma)) {
+            // 1) Busca saldo disponível
+            double saldo = new CreditoLojaService().consultarSaldo(clienteId);
+            if (saldo <= 0) {
+                AlertUtils.error("Sem crédito de loja disponível.");
+                return;
+            }
+
+            // 2) Lê valor desejado (ou usa todo o saldo se nenhum valor informado)
+            try {
+                txtValor.commitEdit();
+            } catch (Exception ignored) {
+            }
+            Number raw = (Number) txtValor.getValue();
+            if (raw == null) {
+                valor = saldo;
+            } else {
+                valor = raw.doubleValue();
+                if (valor > saldo)
+                    valor = saldo;
+            }
+            if (valor <= 0) {
+                AlertUtils.error("Informe um valor válido para crédito.");
+                return;
+            }
+
+            // 3) Adiciona à lista de pagamentos (será efetivado no onConfirm)
+            pagamentosModel.addRow(new Object[] { "CREDITO-LOJA", valor, "" });
+            txtValor.setValue(null);
+            atualizarValores();
+            return;
+        }
+
         if ("CARTAO".equalsIgnoreCase(forma)) {
             // 1. Calcula valor total da venda
             double totalVenda = 0;
@@ -428,13 +465,21 @@ public class VendaFinalizarDialog extends JDialog {
             /* 2) Grava pagamentos */
             try (Connection c = DB.get()) {
                 for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
-                    String forma = (String) pagamentosModel.getValueAt(i, 0);
-                    Double valor = (Double) pagamentosModel.getValueAt(i, 1);
+                    String formaPgto = (String) pagamentosModel.getValueAt(i, 0);
+                    Double valorPgto = (Double) pagamentosModel.getValueAt(i, 1);
+
+                    // Se for crédito, efetua o débito no histórico
+                    if ("CREDITO-LOJA".equalsIgnoreCase(formaPgto)) {
+                        new CreditoLojaService()
+                                .usarCredito(clienteId, valorPgto, String.valueOf(vendaId));
+                    }
+
+                    // Insere no vendas_pagamentos
                     try (PreparedStatement ps = c.prepareStatement(
                             "INSERT INTO vendas_pagamentos(venda_id,tipo,valor) VALUES (?,?,?)")) {
                         ps.setInt(1, vendaId);
-                        ps.setString(2, forma);
-                        ps.setDouble(3, valor);
+                        ps.setString(2, formaPgto);
+                        ps.setDouble(3, valorPgto);
                         ps.executeUpdate();
                     }
                 }
@@ -443,6 +488,22 @@ public class VendaFinalizarDialog extends JDialog {
             /* 3) Atualiza UI principal */
             painelPai.carregarVendas(null, null, "Todos", "Todos");
             dispose();
+
+            // Atualiza painel de clientes (se for CREDITO-LOJA)
+            for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
+                String forma = (String) pagamentosModel.getValueAt(i, 0);
+                if ("CREDITO-LOJA".equalsIgnoreCase(forma)) {
+                    // Verifica se existe um painel de clientes aberto na UI
+                    // Isso assume que PainelClientes é acessível. Ajuste conforme necessário.
+                    for (Component comp : painelPai.getParent().getComponents()) {
+                        if (comp instanceof ui.clientes.painel.PainelClientes painelClientes) {
+                            painelClientes.atualizarCliente(clienteId);
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
 
             /* 4) Comprovante */
             double juros = parcelamentoConfig.juros;

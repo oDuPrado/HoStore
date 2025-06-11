@@ -455,12 +455,14 @@ public class DB {
                                         "taxa_pct REAL NOT NULL, " + // ex: 3.49 (%)
                                         "observacoes TEXT" + // configs extras, JSON ou texto livre
                                         ")");
-                        /*st.execute("INSERT INTO taxas_cartao (" +
-                                        "bandeira, tipo, min_parcelas, max_parcelas, mes_vigencia, taxa_pct, observacoes"
-                                        +
-                                        ") VALUES (" +
-                                        "'PagSeguro', 'CREDITO', 1, 12, '2025-06', 3.49, 'Taxa padrão para testes'" +
-                                        ")");*/
+                        /*
+                         * st.execute("INSERT INTO taxas_cartao (" +
+                         * "bandeira, tipo, min_parcelas, max_parcelas, mes_vigencia, taxa_pct, observacoes"
+                         * +
+                         * ") VALUES (" +
+                         * "'PagSeguro', 'CREDITO', 1, 12, '2025-06', 3.49, 'Taxa padrão para testes'" +
+                         * ")");
+                         */
 
                         // ──────── TABELA DE PEDIDOS DE COMPRA ────────
                         st.execute(
@@ -613,6 +615,29 @@ public class DB {
                                         "categoria TEXT, " +
                                         "criado_em TEXT, " +
                                         "observacoes TEXT)");
+
+                        // saldo de crédito de loja por cliente
+                        st.execute("""
+                                            CREATE TABLE IF NOT EXISTS credito_loja (
+                                                id TEXT PRIMARY KEY,
+                                                cliente_id TEXT NOT NULL,
+                                                valor REAL NOT NULL DEFAULT 0,
+                                                FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+                                            )
+                                        """);
+
+                        // histórico de movimentações de crédito de loja
+                        st.execute("""
+                                            CREATE TABLE IF NOT EXISTS credito_loja_movimentacoes (
+                                                id TEXT PRIMARY KEY,
+                                                cliente_id TEXT NOT NULL,
+                                                valor REAL NOT NULL,
+                                                tipo TEXT NOT NULL, -- "entrada" ou "uso"
+                                                referencia TEXT,     -- pode ser ID da venda, motivo, devolução, etc
+                                                data TEXT NOT NULL,
+                                                FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+                                            )
+                                        """);
 
                         // usuários
                         st.execute(
