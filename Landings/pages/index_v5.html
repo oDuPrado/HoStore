@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
+    <!-- ============================================================= -->
+    <!-- HEAD: meta, title e estilo principal                          -->
+    <!-- ============================================================= -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>HoStore — Domine sua loja de TCG</title>
@@ -11,6 +14,10 @@
       rel="stylesheet"
     />
 
+    <!-- ============================================================= -->
+    <!-- CSS PRINCIPAL                                               -->
+    <!-- Procure por “:root” para editar cores principais rapidamente -->
+    <!-- ============================================================= -->
     <style>
       :root {
         --primary: #ff4c60;
@@ -30,6 +37,9 @@
         background: var(--bg);
         color: var(--text);
         overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
       }
       a {
         color: var(--accent);
@@ -45,23 +55,14 @@
         text-align: center;
         position: relative;
       }
-      header h1 {
-        font-size: 2.9rem;
-        line-height: 1.15;
-        font-weight: 700;
-        margin-bottom: 1rem;
-      }
-      header p {
-        font-size: 1.15rem;
-        color: #b3b3b3;
-        margin-bottom: 2.5rem;
-      }
-      /* CTA wrapper */
+      /* CTA */
       .cta-wrap {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 4rem; /* antes era 2rem */
       }
       .cta {
         position: relative;
@@ -136,7 +137,7 @@
         font-weight: 700;
         display: none;
       }
-      /* Alert */
+      /* Feedback  */
       .alert {
         display: none;
         background: var(--card);
@@ -152,16 +153,10 @@
           opacity: 1;
         }
       }
-      /* Sections */
+      /* Features */
       section {
         padding: 4rem 0;
-        opacity: 0;
-        transform: translateY(40px);
-        transition: all 0.7s ease-out;
-      }
-      section.show {
-        opacity: 1;
-        transform: none;
+        /* força visibilidade: removido opacity=0/transforms */
       }
       .features {
         display: grid;
@@ -180,10 +175,12 @@
         margin: 1rem 0;
         font-size: 1.3rem;
       }
-      /* Form */
+      /* Formulário */
       #formSection {
-        display: none;
+        display: block; /* 👈 Sempre visível */
+        margin-top: 5rem;
       }
+
       form {
         background: var(--card);
         padding: 2rem;
@@ -229,53 +226,172 @@
         padding: 3rem 0 2rem;
         font-size: 0.85rem;
       }
-
+      html,
       body {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
+        height: 100%;
       }
       main {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin-top: 70px; /* espaço para header fixo */
       }
 
-      .swirl {
+      .top-header {
+        background: var(--bg); /* fundo igual ao resto da página */
+        border-bottom: 1px solid #222;
+        padding: 1rem 0.8rem;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 999;
+      }
+
+      .header-content {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .logo {
+        height: 32px;
+        width: auto;
+        border-radius: 6px;
+      }
+
+      .brand {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.5px;
+      }
+      .carousel {
+        position: relative;
+        overflow: hidden;
+        max-width: 100%;
+        margin: 0 auto;
+      }
+
+      .carousel-track {
+        display: flex;
+        transition: transform 0.4s ease;
+        width: 100%;
+      }
+
+      .carousel-track img {
+        max-width: 100%;
+        border-radius: 10px;
+        flex: 0 0 100%;
+        object-fit: contain;
+      }
+
+      .carousel-btn {
         position: absolute;
-        top: -60px;
-        right: -120px;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, var(--primary), transparent 70%);
-        filter: blur(60px);
-        pointer-events: none;
-        opacity: 0.45;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--card);
+        border: none;
+        color: var(--accent);
+        font-size: 2rem;
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+        z-index: 2;
+        opacity: 0.7;
+      }
+      .carousel-btn:hover {
+        opacity: 1;
+      }
+
+      .carousel-btn.prev {
+        left: 0.5rem;
+      }
+      .carousel-btn.next {
+        right: 0.5rem;
       }
     </style>
 
-    <!-- Google Analytics -->
+    <!-- ============================================================= -->
+    <!-- GOOGLE ANALYTICS (GA4)                                       -->
+    <!-- Ctrl+F "G-XXXXXXXXXX" para trocar pelo seu Measurement ID    -->
+    <!-- ============================================================= -->
     <script
       async
-      src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"
+      src="https://www.googletagmanager.com/gtag/js?id=G-R2JH14MRCH"
     ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
-      gtag("config", "G-XXXXXXX");
+
+      // Evento de carregamento de página com timestamp
+      window.addEventListener("load", () => {
+        gtag("js", new Date());
+        gtag("event", "page_load", {
+          timestamp: new Date().toISOString(),
+        });
+        gtag("config", "G-XXXXXXXXXX");
+      });
+
+      // Evento de saída de página (antes de fechar/atualizar)
+      window.addEventListener("beforeunload", () => {
+        gtag("event", "page_unload", {
+          timestamp: new Date().toISOString(),
+        });
+      });
     </script>
+
+    <!-- ============================================================= -->
+    <!-- GOOGLE TRANSLATE (PT → EN/ES)                                  -->
+    <!-- Tradução automática: procura por “google_translate_element”   -->
+    <!-- ============================================================= -->
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "pt",
+            includedLanguages: "en,es",
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+          },
+          "google_translate_element"
+        );
+      }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </head>
+
   <body>
+    <!-- ============================================================= -->
+    <!-- CONTÊINER GOOGLE TRANSLATE (Topo direito)                     -->
+    <!-- Ctrl+F “google_translate_element” para reposicionar           -->
+    <!-- ============================================================= -->
+    <div
+      id="google_translate_element"
+      style="position: fixed; top: 1rem; right: 1rem; z-index: 1000"
+    ></div>
+
+    <header class="top-header">
+      <div class="container header-content">
+        <img src="logo.png" alt="HoStore Logo" class="logo" />
+        <span class="brand">HoStore</span>
+      </div>
+    </header>
+
     <main>
+      <!-- =========================================================== -->
+      <!-- HEADER & CTA                                               -->
+      <!-- Procure por “cta-wrap” para editar texto do botão          -->
+      <!-- =========================================================== -->
       <header class="container">
-        <div class="swirl"></div>
         <h1>
           O ERP criado exclusivamente para
           <span style="white-space: nowrap">lojas de TCG</span>
         </h1>
         <p>
-          Controle de estoque dinamico e otimizado, vendas rápidas e relatórios
+          Controle de estoque dinâmico e otimizado, vendas rápidas e relatórios
           que realmente importam para sua loja.<br />Você só ainda não sabia que
           isso existia.
         </p>
@@ -286,17 +402,21 @@
           style="gap: 1.5rem; margin-bottom: 2rem"
         >
           <button id="ctaBtn" class="cta">
-            Garantir meu teste gratuito
+            Teste 7 Dias Grátis
             <span id="badge" class="badge">--</span>
           </button>
           <div id="lastCall" class="last-call">Garanta as últimas vagas!</div>
         </div>
 
         <div id="alertMsg" class="alert">
-          7 lojas de TCG já garantiram seu acessos betas hoje
+          7 lojas de TCG já garantiram seu acesso beta hoje
         </div>
       </header>
 
+      <!-- =========================================================== -->
+      <!-- FEATURES                                                   -->
+      <!-- Cards informativos                                          -->
+      <!-- =========================================================== -->
       <section class="container">
         <h2 style="text-align: center; font-size: 1.9rem">
           Pare de sofrer com planilhas & apps genéricos
@@ -347,7 +467,43 @@
         </div>
       </section>
 
-      <!-- Hidden Form -->
+      <!-- =========================================================== -->
+      <!-- CAROUSEL DE IMAGENS                                      -->
+      <!-- Mostra o HoStore em ação, com imagens reais do sistema     -->
+      <!-- =========================================================== -->
+
+      <section class="container" style="margin-top: 4rem">
+        <h2
+          style="text-align: center; font-size: 1.8rem; margin-bottom: 0.5rem"
+        >
+          Veja o HoStore em ação
+        </h2>
+        <p
+          style="
+            text-align: center;
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+          "
+        >
+          Interface real do sistema, simples e focada no que importa.
+        </p>
+
+        <div class="carousel">
+          <button class="carousel-btn prev">‹</button>
+          <div class="carousel-track">
+            <img src="dashboard.png" alt="Dashboard HoStore" />
+            <img src="estoque.png" alt="Estoque HoStore" />
+            <img src="vendas.png" alt="Vendas HoStore" />
+          </div>
+          <button class="carousel-btn next">›</button>
+        </div>
+      </section>
+
+      <!-- =========================================================== -->
+      <!-- FORMULÁRIO                                                 -->
+      <!-- Oculto até clicar no CTA                                   -->
+      <!-- =========================================================== -->
       <section id="formSection" class="container">
         <form
           id="leadForm"
@@ -355,8 +511,20 @@
           method="POST"
         >
           <h2 style="text-align: center; margin-bottom: 1.5rem">
-            Solicite seu convite exclusivo para testar o HoStore
+            Garanta 7 dias gratuitos no HoStore
           </h2>
+          <p
+            style="
+              color: #999;
+              font-size: 0.95rem;
+              text-align: center;
+              margin-bottom: 1.5rem;
+            "
+          >
+            O HoStore está em constante evolução com base no feedback real de
+            lojistas.
+          </p>
+
           <label for="loja">Nome da Loja*</label>
           <input type="text" id="loja" name="Loja" required />
           <label for="email">Email*</label>
@@ -368,7 +536,7 @@
             name="WhatsApp"
             placeholder="(xx) xxxxx-xxxx"
           />
-          <!-- Hidden UTM -->
+          <!-- UTM ocultos -->
           <input type="hidden" id="utm_source" name="utm_source" />
           <input type="hidden" id="utm_medium" name="utm_medium" />
           <input type="hidden" id="utm_campaign" name="utm_campaign" />
@@ -382,42 +550,51 @@
           </p>
         </div>
       </section>
-
-      <footer>
-        © 2025 HoStore – HO Systems •
-        <a href="https://github.com/oDuPrado/HoStore" target="_blank">GitHub</a>
-        •
-        <a href="mailto:contato@hostore.com">Contato</a>
-      </footer>
     </main>
 
+    <footer>
+      © 2025 HoStore – HO Systems •
+      <a href="https://github.com/oDuPrado/HoStore" target="_blank">GitHub</a> •
+      <a href="mailto:contato@hostore.com">Contato</a>
+    </footer>
+
+    <!-- ============================================================= -->
+    <!-- SCRIPTS: lógica de vagas, CTA, form e tracking extra          -->
+    <!-- ============================================================= -->
     <script>
+      // 1) Forçar visibilidade das sections/cards sem scroll
+      document
+        .querySelectorAll("section")
+        .forEach((sec) => sec.classList.add("show"));
+
+      // 2) Variáveis DOM
       const badge = document.getElementById("badge");
       const lastCall = document.getElementById("lastCall");
       const alertMsg = document.getElementById("alertMsg");
       const ctaBtn = document.getElementById("ctaBtn");
+      // ===========================================================
+      // TESTE A/B/C DE TEXTO DO BOTÃO CTA
+      // ===========================================================
+      const variants = [
+        "Teste 7 Dias Grátis", // Variante A
+        "Começar 7 dias grátis", // Variante B
+        "Quero testar o HoStore", // Variante C
+      ];
+      const variant = variants[Math.floor(Math.random() * variants.length)];
+      ctaBtn.textContent = variant;
+
+      // Rastreia variação exibida no GA4
+      gtag("event", "cta_variant", {
+        variant,
+        timestamp: new Date().toISOString(),
+      });
+
       const ctaWrap = document.getElementById("ctaWrap");
       const formSection = document.getElementById("formSection");
       const leadForm = document.getElementById("leadForm");
       const params = new URLSearchParams(window.location.search);
 
-      // Intersection reveal
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("show");
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.15 }
-      );
-      document
-        .querySelectorAll("section")
-        .forEach((sec) => observer.observe(sec));
-
-      /* ------------ vagas logic ------------ */
+      // 3) Funções de vagas
       function animateCount(from, to) {
         let current = from,
           step = from > to ? -1 : 1;
@@ -428,20 +605,13 @@
           if (current === to) clearInterval(interval);
         }, 70);
       }
-
       function updateBadgeDisplay(vagas) {
         badge.textContent = vagas + " " + (vagas === 1 ? "vaga" : "vagas");
-
         if (vagas < 5) {
           badge.classList.add("low");
-
-          if (!closed) {
-            lastCall.textContent = "Garanta as últimas vagas!";
-          } else {
-            lastCall.textContent =
-              "As vagas se esgotaram. Entre na fila de espera.";
-          }
-
+          lastCall.textContent = !closed
+            ? "Garanta as últimas vagas!"
+            : "As vagas se esgotaram. Entre na fila de espera.";
           lastCall.style.display = "block";
         } else {
           badge.classList.remove("low");
@@ -449,8 +619,9 @@
         }
       }
 
-      let vagas = parseInt(localStorage.getItem("vagas"));
-      let closed = localStorage.getItem("closed") === "true";
+      // 4) Inicializa vagas
+      let vagas = parseInt(localStorage.getItem("vagas")),
+        closed = localStorage.getItem("closed") === "true";
 
       if (isNaN(vagas)) {
         vagas = Math.floor(Math.random() * 50) + 1;
@@ -458,42 +629,32 @@
       }
 
       if (!closed) {
-        // apply decrement on refresh
         const previous = vagas;
         vagas = Math.max(1, vagas - 3);
         localStorage.setItem("vagas", vagas);
 
-        // TRAVA: se já bateu 1, fecha as vagas de vez
         if (vagas === 1) {
+          // exibe “1 vaga” antes de fechar
+          updateBadgeDisplay(vagas);
           closeSlots();
-          return;
+        } else {
+          animateCount(previous, vagas);
+          // atualização de estado logo em seguida
+          updateBadgeDisplay(vagas);
         }
-
-        animateCount(previous, vagas);
-        updateBadgeDisplay(vagas);
       } else {
-        vagas = 0;
         badge.textContent = "Encerrado";
         badge.classList.add("low");
         transformToWaitlist();
       }
 
-      // urgency message after 45s if many vagas
-      if (vagas >= 30) {
+      // continua auto-alert e auto-close
+      if (vagas >= 30)
+        setTimeout(() => (alertMsg.style.display = "block"), 45000);
+      if (vagas <= 2 && !closed)
         setTimeout(() => {
-          alertMsg.style.display = "block";
-        }, 45000);
-      }
-
-      // auto close if vagas <=2 and no click after 90s
-      if (vagas <= 2 && !closed) {
-        setTimeout(() => {
-          if (!closed) {
-            // still open
-            closeSlots();
-          }
+          if (!closed) closeSlots();
         }, 90000);
-      }
 
       function closeSlots() {
         closed = true;
@@ -502,12 +663,9 @@
         badge.classList.add("low");
         transformToWaitlist();
       }
-
       function transformToWaitlist() {
-        // change main CTA text
         ctaBtn.textContent = "Entrar na Fila de Espera";
         ctaBtn.classList.add("secondary");
-        // add whatsapp button if not exists
         if (!document.getElementById("waBtn")) {
           const waBtn = document.createElement("a");
           waBtn.id = "waBtn";
@@ -516,32 +674,56 @@
           waBtn.textContent = "Falar com o Suporte";
           waBtn.setAttribute("aria-label", "Falar com o Suporte via WhatsApp");
           waBtn.className = "cta secondary";
-          ctaWrap.appendChild(waBtn);
           waBtn.addEventListener("click", () => {
             gtag("event", "click", {
               event_category: "cta",
               event_label: "whatsapp_support",
+              timestamp: new Date().toISOString(),
             });
           });
+          ctaWrap.appendChild(waBtn);
         }
       }
 
-      /* ------------ CTA actions ------------ */
+      // 5) Ações do CTA principal (corrigido)
       ctaBtn.addEventListener("click", () => {
-        gtag("event", "click", {
+        // rastreia clique
+        gtag("event", "cta_click", {
           event_category: "cta",
           event_label: closed ? "waitlist_cta" : "hero_cta",
+          variant,
+          timestamp: new Date().toISOString(),
         });
-        formSection.style.display = "block";
+
+        // força exibir o formSection mesmo se algum CSS estiver bloqueando
+        formSection.style.removeProperty("display");
+        formSection.style.setProperty("display", "block", "important");
+
+        console.log("Formulário exibido, display =", formSection.style.display);
         formSection.scrollIntoView({ behavior: "smooth" });
       });
 
-      /* ------------ UTM passthrough ------------ */
+      // 6) UTM passthrough
       ["utm_source", "utm_medium", "utm_campaign"].forEach((p) => {
         if (params.get(p)) document.getElementById(p).value = params.get(p);
       });
 
-      /* ------------ Form submit ------------ */
+      // 7) Rastreio de form_start
+      leadForm.addEventListener(
+        "focusin",
+        (e) => {
+          if (e.target.tagName === "INPUT") {
+            gtag("event", "form_start", {
+              event_category: "form",
+              event_label: "init_form",
+              timestamp: new Date().toISOString(),
+            });
+          }
+        },
+        { once: true }
+      );
+
+      // 8) Submissão de formulário + lead_submitted
       leadForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const data = new FormData(leadForm);
@@ -554,13 +736,72 @@
           gtag("event", "lead_submitted", {
             event_category: "form",
             event_label: closed ? "waitlist_form" : "interest_form",
+            variant,
+            timestamp: new Date().toISOString(),
           });
+
           leadForm.style.display = "none";
           document.getElementById("thankYou").style.display = "block";
         } catch (err) {
           alert("Erro ao enviar. Tente novamente mais tarde.");
         }
       });
+
+      const formObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              gtag("event", "view_form", {
+                event_category: "form",
+                event_label: "form_visible",
+                timestamp: new Date().toISOString(),
+              });
+              formObserver.disconnect(); // só rastreia uma vez
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      formObserver.observe(formSection);
+
+      // Carrossel simples de imagens
+      const track = document.querySelector(".carousel-track");
+      const slides = Array.from(track.children);
+      const prevBtn = document.querySelector(".carousel-btn.prev");
+      const nextBtn = document.querySelector(".carousel-btn.next");
+      let currentIndex = 0;
+
+      function updateCarousel() {
+        const slideWidth = slides[0].getBoundingClientRect().width;
+        track.style.transform = `translateX(-${currentIndex * slideWidth}px)`;
+      }
+
+      function trackCarouselEvent(type) {
+        const currentSlide = slides[currentIndex];
+        const imageName =
+          currentSlide.getAttribute("alt") || `slide_${currentIndex}`;
+        gtag("event", type, {
+          event_category: "carousel",
+          event_label: imageName,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      nextBtn.addEventListener("click", () => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        updateCarousel();
+        trackCarouselEvent("carousel_next");
+      });
+
+      prevBtn.addEventListener("click", () => {
+        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+        updateCarousel();
+        trackCarouselEvent("carousel_prev");
+      });
+
+      // rastreia a primeira exibição
+      trackCarouselEvent("carousel_view");
     </script>
   </body>
 </html>
