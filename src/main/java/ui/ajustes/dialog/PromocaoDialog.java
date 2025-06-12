@@ -1,77 +1,173 @@
 package ui.ajustes.dialog;
 
 import com.toedter.calendar.JDateChooser;
-import dao.CadastroGenericoDAO;
+import dao.PromocaoDAO;
+import dao.TipoPromocaoDAO;
+import model.PromocaoModel;
+import model.TipoDesconto;
+import model.AplicaEm;
 import model.TipoPromocaoModel;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.LinkedHashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
+/**
+ * @TODO: AJUSTAR_PROMOCAO_DIALOG
+ *        Dialog para criar/editar uma promoção usando o novo PromocaoModel e
+ *        DAO.
+ */
 public class PromocaoDialog extends JDialog {
 
+    // campos do formulário
     private final JTextField tfNome = new JTextField();
+    private final JComboBox<TipoDesconto> cbTipoDesconto = new JComboBox<>();
     private final JTextField tfDesconto = new JTextField();
+    private final JComboBox<AplicaEm> cbAplicaEm = new JComboBox<>();
+    private final JComboBox<TipoPromocaoModel> cbTipoDef = new JComboBox<>();
     private final JDateChooser dcInicio = new JDateChooser();
     private final JDateChooser dcFim = new JDateChooser();
     private final JTextArea taObs = new JTextArea(3, 20);
-    private final JComboBox<TipoPromocaoModel> cbTipoPromocao = new JComboBox<>();
 
     private final boolean isEdicao;
     private final String idOriginal;
-    private final CadastroGenericoDAO dao;
+    private final PromocaoDAO dao = new PromocaoDAO();
+    private final TipoPromocaoDAO tipoDao = new TipoPromocaoDAO();
 
-    public PromocaoDialog(JFrame owner, Map<String, String> dados) {
+    public PromocaoDialog(JFrame owner, String promocaoId) throws Exception {
         super(owner, true);
-        this.setTitle(dados == null ? "Nova Promoção" : "Editar Promoção");
-        this.setSize(450, 480);
-        this.setLocationRelativeTo(owner);
-        this.setLayout(new BorderLayout());
+        this.isEdicao = promocaoId != null;
+        this.idOriginal = isEdicao ? promocaoId : UUID.randomUUID().toString();
 
-        this.isEdicao = dados != null;
-        this.idOriginal = isEdicao ? dados.get("id") : UUID.randomUUID().toString();
-        this.dao = new CadastroGenericoDAO("promocoes",
-            "id", "nome", "desconto", "data_inicio", "data_fim", "observacoes", "tipo_id"
-        );
+        setTitle(isEdicao ? "Editar Promoção" : "Nova Promoção");
+        setSize(480, 520);
+        setLocationRelativeTo(owner);
+        setLayout(new BorderLayout());
 
-        JPanel form = new JPanel(new GridLayout(0, 1, 8, 8));
+        // === prepara painel de formulário com 2 colunas
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        gbc.gridx = 0;
+
         form.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
 
-        carregarTiposPromocao();
+        // carrega combos
+        for (TipoDesconto td : TipoDesconto.values())
+            cbTipoDesconto.addItem(td);
+        for (AplicaEm ae : AplicaEm.values())
+            cbAplicaEm.addItem(ae);
+        List<TipoPromocaoModel> tipos = tipoDao.listarTodos();
+        tipos.forEach(cbTipoDef::addItem);
 
-        form.add(new JLabel("Nome:"));            form.add(tfNome);
-        form.add(new JLabel("Desconto (%):"));    form.add(tfDesconto);
-        form.add(new JLabel("Tipo de Promoção:"));form.add(cbTipoPromocao);
-        form.add(new JLabel("Data Início:"));     form.add(dcInicio);
-        form.add(new JLabel("Data Fim:"));        form.add(dcFim);
-        form.add(new JLabel("Observações:"));     form.add(new JScrollPane(taObs));
+        // ajustes visuais dos campos
+        tfNome.setPreferredSize(new Dimension(200, 28));
+        tfDesconto.setPreferredSize(new Dimension(120, 28));
+        cbTipoDesconto.setPreferredSize(new Dimension(150, 28));
+        cbAplicaEm.setPreferredSize(new Dimension(150, 28));
+        cbTipoDef.setPreferredSize(new Dimension(150, 28));
+        dcInicio.setPreferredSize(new Dimension(140, 28));
+        dcFim.setPreferredSize(new Dimension(140, 28));
+        taObs.setRows(3);
 
+        // adiciona campos
+        GridBagConstraints gbcc = new GridBagConstraints();
+        gbcc.insets = new Insets(10, 10, 4, 10);
+        gbcc.anchor = GridBagConstraints.WEST;
+        gbcc.fill = GridBagConstraints.HORIZONTAL;
+        gbcc.weightx = 1.0;
+
+        // Nome
+        gbcc.gridy = 0;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Nome:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(tfNome, gbcc);
+
+        // Tipo de Desconto
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Tipo de Desconto:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(cbTipoDesconto, gbcc);
+
+        // Valor do Desconto
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Valor do Desconto:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(tfDesconto, gbcc);
+
+        // Aplica em
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Aplica em:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(cbAplicaEm, gbcc);
+
+        // Tipo de Promoção
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Tipo de Promoção:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(cbTipoDef, gbcc);
+
+        // Data Início
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Data Início:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(dcInicio, gbcc);
+
+        // Data Fim
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Data Fim:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(dcFim, gbcc);
+
+        // Observações
+        gbcc.gridy++;
+        gbcc.gridx = 0;
+        form.add(new JLabel("Observações:"), gbcc);
+        gbcc.gridx = 1;
+        form.add(new JScrollPane(taObs), gbcc);
+
+        // se for edição, carrega campos do modelo
         if (isEdicao) {
-            tfNome.setText(dados.get("nome"));
-            tfDesconto.setText(dados.get("desconto"));
-            taObs.setText(dados.get("observacoes"));
-
-            try {
-                dcInicio.setDate(java.sql.Date.valueOf(dados.get("data_inicio")));
-                dcFim.setDate(java.sql.Date.valueOf(dados.get("data_fim")));
-
-                // Corrige seleção do tipo no combo
-                String tipoId = dados.get("tipo_id");
-                for (int i = 0; i < cbTipoPromocao.getItemCount(); i++) {
-                    TipoPromocaoModel tipo = cbTipoPromocao.getItemAt(i);
-                    if (tipo.getId().equals(tipoId)) {
-                        cbTipoPromocao.setSelectedItem(tipo);
-                        break;
-                    }
+            PromocaoModel p = dao.buscarPorId(idOriginal)
+                    .orElseThrow(() -> new IllegalStateException("Promoção não encontrada"));
+            tfNome.setText(p.getNome());
+            cbTipoDesconto.setSelectedItem(p.getTipoDesconto());
+            tfDesconto.setText(p.getDesconto().toString());
+            cbAplicaEm.setSelectedItem(p.getAplicaEm());
+            // seleciona o TipoPromocaoModel correto
+            for (int i = 0; i < cbTipoDef.getItemCount(); i++) {
+                if (cbTipoDef.getItemAt(i).getId().equals(p.getTipoId())) {
+                    cbTipoDef.setSelectedIndex(i);
+                    break;
                 }
-            } catch (Exception ignored) {}
+            }
+            dcInicio.setDate(p.getDataInicio());
+            dcFim.setDate(p.getDataFim());
+            taObs.setText(p.getObservacoes());
         }
 
+        // botão Salvar
         JButton btnSalvar = new JButton("💾 Salvar");
-        btnSalvar.addActionListener(e -> salvar());
+        btnSalvar.addActionListener(e -> {
+            try {
+                salvar();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Erro ao salvar:\n" + ex.getMessage());
+            }
+        });
 
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rodape.add(btnSalvar);
@@ -80,53 +176,28 @@ public class PromocaoDialog extends JDialog {
         add(rodape, BorderLayout.SOUTH);
     }
 
-    private void carregarTiposPromocao() {
-        try {
-            CadastroGenericoDAO tipoDao = new CadastroGenericoDAO("tipos_promocao", "id", "nome", "descricao");
-            List<Map<String, String>> tipos = tipoDao.listar();
-            cbTipoPromocao.removeAllItems();
-            for (Map<String, String> t : tipos) {
-                TipoPromocaoModel tipo = new TipoPromocaoModel(
-                    t.get("id"),
-                    t.get("nome"),
-                    t.get("descricao")
-                );
-                cbTipoPromocao.addItem(tipo);
-            }
-        } catch (Exception e) {
-            cbTipoPromocao.addItem(new TipoPromocaoModel("padrao", "Padrão", ""));
-            e.printStackTrace();
+    /**
+     * @TODO: AJUSTAR_PROMOCAO_DIALOG
+     *        Constrói o PromocaoModel a partir dos campos e chama DAO
+     *        inserir/atualizar.
+     */
+    private void salvar() throws Exception {
+        PromocaoModel p = new PromocaoModel();
+        p.setId(idOriginal);
+        p.setNome(tfNome.getText().trim());
+        p.setTipoDesconto((TipoDesconto) cbTipoDesconto.getSelectedItem());
+        p.setDesconto(Double.parseDouble(tfDesconto.getText().trim()));
+        p.setAplicaEm((AplicaEm) cbAplicaEm.getSelectedItem());
+        p.setTipoId(((TipoPromocaoModel) cbTipoDef.getSelectedItem()).getId());
+        p.setDataInicio(dcInicio.getDate());
+        p.setDataFim(dcFim.getDate());
+        p.setObservacoes(taObs.getText().trim());
+
+        if (isEdicao) {
+            dao.atualizar(p);
+        } else {
+            dao.inserir(p);
         }
-    }
-
-    private void salvar() {
-        try {
-            if (cbTipoPromocao.getSelectedItem() == null) {
-                JOptionPane.showMessageDialog(this, "Selecione um tipo de promoção.");
-                return;
-            }
-
-            TipoPromocaoModel tipoSelecionado = (TipoPromocaoModel) cbTipoPromocao.getSelectedItem();
-
-            Map<String, String> dados = new LinkedHashMap<>();
-            dados.put("id", idOriginal);
-            dados.put("nome", tfNome.getText().trim());
-            dados.put("desconto", tfDesconto.getText().trim());
-            dados.put("data_inicio", new java.sql.Date(dcInicio.getDate().getTime()).toString());
-            dados.put("data_fim", new java.sql.Date(dcFim.getDate().getTime()).toString());
-            dados.put("observacoes", taObs.getText().trim());
-            dados.put("tipo_id", tipoSelecionado.getId());
-
-            if (isEdicao) {
-                dao.atualizar(idOriginal, dados);
-            } else {
-                dao.inserir(dados);
-            }
-
-            dispose();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Erro ao salvar promoção:\n" + ex.getMessage());
-        }
+        dispose();
     }
 }

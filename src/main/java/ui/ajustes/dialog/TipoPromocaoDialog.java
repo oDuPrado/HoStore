@@ -8,9 +8,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.UUID;
 
+/**
+ * @TODO: AJUSTAR_TIPO_PROMOCAO_DIALOG
+ * Dialog para cadastrar/editar Tipos de Promoção (sem alterações funcionais).
+ */
 public class TipoPromocaoDialog extends JDialog {
-    private final JTextField tfNome = new JTextField();
-    private final JTextArea taDescricao = new JTextArea(5, 20);
+    private final JTextField tfNome        = new JTextField();
+    private final JTextArea taDescricao    = new JTextArea(5, 20);
     private final DefaultTableModel modelo;
     private final Integer linhaSelecionada;
 
@@ -55,6 +59,7 @@ public class TipoPromocaoDialog extends JDialog {
         add(form, BorderLayout.CENTER);
         add(botoes, BorderLayout.SOUTH);
 
+        // se edição, pré-preenche
         if (linha != null) {
             tfNome.setText(modelo.getValueAt(linha, 1).toString());
             taDescricao.setText(modelo.getValueAt(linha, 2).toString());
@@ -64,6 +69,10 @@ public class TipoPromocaoDialog extends JDialog {
         setLocationRelativeTo(null);
     }
 
+    /**
+     * @TODO: AJUSTAR_TIPO_PROMOCAO_DIALOG
+     * Salva via TipoPromocaoDAO inserir/atualizar.
+     */
     private void salvar() {
         String nome = tfNome.getText().trim();
         String desc = taDescricao.getText().trim();
@@ -78,7 +87,6 @@ public class TipoPromocaoDialog extends JDialog {
         tipo.setDescricao(desc);
 
         TipoPromocaoDAO dao = new TipoPromocaoDAO();
-
         try {
             if (linhaSelecionada == null) {
                 tipo.setId(UUID.randomUUID().toString());

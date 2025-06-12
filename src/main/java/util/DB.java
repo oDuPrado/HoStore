@@ -578,15 +578,17 @@ public class DB {
                                         "id INTEGER PRIMARY KEY AUTOINCREMENT, usuario_id TEXT, data TEXT," +
                                         "tipo TEXT, descricao TEXT, FOREIGN KEY(usuario_id) REFERENCES usuarios(id))");
 
-                        // Promoções (versão final correta)
+                        // @FIX: Criação correta da tabela de promoções com campos novos
                         st.execute("CREATE TABLE IF NOT EXISTS promocoes (" +
                                         "id TEXT PRIMARY KEY, " +
-                                        "nome TEXT, " +
-                                        "desconto REAL, " +
-                                        "data_inicio TEXT, " +
-                                        "data_fim TEXT, " +
+                                        "nome TEXT NOT NULL, " +
+                                        "desconto REAL NOT NULL, " +
+                                        "tipo_desconto TEXT NOT NULL, " + // 'PORCENTAGEM' ou 'VALOR'
+                                        "aplica_em TEXT NOT NULL, " + // 'PRODUTO', 'CATEGORIA', 'CLIENTE_VIP'
+                                        "tipo_id TEXT, " + // vinculado a tipos_promocao (informativo)
+                                        "data_inicio TEXT NOT NULL, " +
+                                        "data_fim TEXT NOT NULL, " +
                                         "observacoes TEXT, " +
-                                        "tipo_id TEXT, " +
                                         "FOREIGN KEY(tipo_id) REFERENCES tipos_promocao(id)" +
                                         ")");
 

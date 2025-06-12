@@ -6,7 +6,7 @@ public class ConsultaSQLiteSimples {
     private static final String DATABASE_URL = "jdbc:sqlite:C:/Users/Marco Prado/Documents/APP/ERP/HoStore/data/hostore.db";
 
     // 🔍 Consulta a tabela sets_jogos ordenando por jogo e nome do set
-    private static final String QUERY = "SELECT * FROM taxas_cartao";
+    private static final String QUERY = "SELECT * FROM promocoes";
 
     public static void main(String[] args) {
         try (Connection conn = DriverManager.getConnection(DATABASE_URL);

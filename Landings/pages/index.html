@@ -419,7 +419,9 @@
       <!-- =========================================================== -->
       <section class="container">
         <h2 style="text-align: center; font-size: 1.9rem">
-          Pare de sofrer com planilhas & apps genéricos
+          Oferta exclusiva de lançamento
+          <span style="color: var(--accent)">–</span> Desconto vitalício
+          <span style="color: var(--accent)">–</span> Vagas limitadas
         </h2>
         <div class="features">
           <div class="feature-card">
@@ -511,7 +513,7 @@
           method="POST"
         >
           <h2 style="text-align: center; margin-bottom: 1.5rem">
-            Garanta 7 dias gratuitos no HoStore
+            Garanta seu desconto e 7 dias gratis no HoStore
           </h2>
           <p
             style="
@@ -545,7 +547,7 @@
         <div id="thankYou">
           <h2>🎉 Recebemos seu pedido!</h2>
           <p>
-            Você acaba de garantir um lugar na lista exclusiva de testes.<br />Fique
+            Você acaba de garantir um lugar na lista exclusiva de clientes.<br />Fique
             atento: entraremos em contato em breve para liberar seu acesso.
           </p>
         </div>
@@ -577,7 +579,7 @@
       // ===========================================================
       const variants = [
         "Teste 7 Dias Grátis", // Variante A
-        "Começar 7 dias grátis", // Variante B
+        "Garante seu desconto Vitalicio", // Variante B
         "Quero testar o HoStore", // Variante C
       ];
       const variant = variants[Math.floor(Math.random() * variants.length)];
@@ -664,7 +666,7 @@
         transformToWaitlist();
       }
       function transformToWaitlist() {
-        ctaBtn.textContent = "Entrar na Fila de Espera";
+        ctaBtn.textContent = "Garantir meu desconto vitalício";
         ctaBtn.classList.add("secondary");
         if (!document.getElementById("waBtn")) {
           const waBtn = document.createElement("a");
