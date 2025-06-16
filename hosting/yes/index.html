@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!-- Arquivo: yes/index.html -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma"        content="no-cache">
+  <meta http-equiv="Expires"       content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HoStore – Atualização & Download</title>
+
+  <!-- Fonte Roboto (se quiser, já está no projeto em data/fonts) -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset & variáveis */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-body: #f0f0f0;
+      --fg-text: #222;
+      --fg-muted: #555;
+      --primary: #1e88e5;
+      --card-bg: #fff;
+      --radius: 8px;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg-body);
+      color: var(--fg-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    /* Card central */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      max-width: 360px;
+      width: 100%;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+    .card h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    .card p.subtitle {
+      color: var(--fg-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Versão e changelog */
+    .version {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .changelog {
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .changelog h2 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .changelog ul {
+      list-style: disc inside;
+      color: var(--fg-muted);
+    }
+
+    /* Botão de download */
+    .btn {
+      display: inline-block;
+      background: var(--primary);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--radius);
+      font-weight: 500;
+      transition: background 0.2s;
+      margin-bottom: 1rem;
+    }
+    .btn:hover {
+      background: #1565c0;
+    }
+
+    /* Detalhes do checksum */
+    details {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-top: 0.5rem;
+    }
+    details summary {
+      cursor: pointer;
+      user-select: none;
+    }
+    details p {
+      margin-top: 0.5rem;
+      word-break: break-all;
+    }
+
+    /* Rodapé */
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--fg-muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>HoStore</h1>
+    <p class="subtitle">Atualização &amp; Download</p>
+
+    <!-- Loader enquanto busca update.json -->
+    <div id="loader" style="margin:2rem auto;">
+      <svg width="48" height="48" viewBox="0 0 50 50">
+        <circle cx="25" cy="25" r="20" fill="none" stroke="#ddd" stroke-width="6"></circle>
+        <path id="spinner" fill="#1e88e5" d="M25 5 A20 20 0 0 1 45 25 L40 25 A15 15 0 0 0 25 10 Z">
+          <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25"
+            dur="1s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+    </div>
+
+    <!-- Conteúdo principal, escondido até o fetch -->
+    <div id="content" style="display:none;">
+      <p class="version">Versão <span id="version"></span></p>
+
+      <div class="changelog">
+        <h2>Changelog</h2>
+        <ul id="changelog-list"></ul>
+      </div>
+
+      <!-- Botão de download usa link relativo para NÃO dar 404 -->
+      <a id="download-btn" class="btn" href="/HoStore.jar" download>Baixar</a>
+
+      <!-- checksum só se você quiser ver -->
+      <details>
+        <summary>Verificar checksum SHA-256</summary>
+        <p id="checksum"></p>
+      </details>
+
+      <p class="footer">
+        <a href="/update.json" target="_blank">Ver raw update.json</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    (async () => {
+      try {
+        const res = await fetch('update.json');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        // Preenche versão
+        document.getElementById('version').textContent = data.latest_version;
+
+        // Preenche changelog
+        const ul = document.getElementById('changelog-list');
+        data.changelog.split('\\n').forEach(line => {
+          const li = document.createElement('li');
+          li.textContent = line;
+          ul.appendChild(li);
+        });
+
+        // Preenche checksum
+        document.getElementById('checksum').textContent = data.checksum_sha256;
+
+        // Atualiza texto do botão
+        const btn = document.getElementById('download-btn');
+        btn.textContent = `Baixar v${data.latest_version}`;
+
+        // Mostra conteúdo e esconde loader
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('content').style.display = 'block';
+      } catch (e) {
+        console.error(e);
+        document.querySelector('.card').innerHTML = `
+          <p style="color:red; text-align:center; margin:2rem 0;">
+            ❌ Não foi possível carregar a atualização.<br>${e.message}
+          </p>
+        `;
+      }
+    })();
+  </script>
+</body>
+</html>

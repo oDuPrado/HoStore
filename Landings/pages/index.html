@@ -361,6 +361,44 @@
       }
     </script>
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Meta Pixel Code -->
+    <script>
+      !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+          n.callMethod
+            ? n.callMethod.apply(n, arguments)
+            : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+      })(
+        window,
+        document,
+        "script",
+        "https://connect.facebook.net/en_US/fbevents.js"
+      );
+      fbq("init", "306670140459065");
+      fbq("track", "PageView");
+    </script>
+    <noscript>
+      <img
+        height="1"
+        width="1"
+        style="display: none"
+        src="https://www.facebook.com/tr?id=306670140459065&ev=PageView&noscript=1"
+      />
+    </noscript>
+    <!-- End Meta Pixel Code -->
   </head>
 
   <body>
@@ -696,6 +734,7 @@
           variant,
           timestamp: new Date().toISOString(),
         });
+        fbq("track", "ViewContent");
 
         // força exibir o formSection mesmo se algum CSS estiver bloqueando
         formSection.style.removeProperty("display");
@@ -720,6 +759,8 @@
               event_label: "init_form",
               timestamp: new Date().toISOString(),
             });
+
+            fbq("track", "InitiateCheckout");
           }
         },
         { once: true }
@@ -741,6 +782,7 @@
             variant,
             timestamp: new Date().toISOString(),
           });
+          fbq("track", "Lead");
 
           leadForm.style.display = "none";
           document.getElementById("thankYou").style.display = "block";
@@ -758,6 +800,8 @@
                 event_label: "form_visible",
                 timestamp: new Date().toISOString(),
               });
+              fbq("trackCustom", "FormVisible");
+
               formObserver.disconnect(); // só rastreia uma vez
             }
           });

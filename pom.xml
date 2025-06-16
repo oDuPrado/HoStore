@@ -105,6 +105,34 @@
                     <release>21</release>
                 </configuration>
             </plugin>
+            <!-- Plugin para gerar um .jar executável com todas as dependências -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>app.Main</mainClass> <!-- Altere se seu main estiver em outro
+                            pacote -->
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>HoStore-${project.version}</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>montar-jar-completo</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
 
             <!-- Execução da Main -->
             <plugin>
