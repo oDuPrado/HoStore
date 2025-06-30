@@ -1,9 +1,9 @@
-// Caminho no projeto: src/ui/estoque/dialog/CadastroAcessorioDialog.java
 package ui.estoque.dialog;
 
 import controller.ProdutoEstoqueController;
 import model.AcessorioModel;
 import model.FornecedorModel;
+import service.NcmService;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
 import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
@@ -12,6 +12,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.UUID;
+import controller.ProdutoEstoqueController;
+import model.AcessorioModel;
+import model.FornecedorModel;
+import model.NcmModel;           // <-- ADICIONE ESTA LINHA
+import service.NcmService;
+import service.ProdutoEstoqueService;
 
 public class CadastroAcessorioDialog extends JDialog {
 
@@ -34,6 +40,8 @@ public class CadastroAcessorioDialog extends JDialog {
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
     private final JFormattedTextField tfPreco = FormatterFactory.getFormattedDoubleField(0.0);
+
+    private final JComboBox<String> cbNcm = new JComboBox<>();
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
@@ -107,6 +115,19 @@ public class CadastroAcessorioDialog extends JDialog {
         });
         // *** Fim da seção Código de Barras ***
 
+        // NCM: combo com todos os NCMs cadastrados
+        try {
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+        add(new JLabel("NCM:")); add(cbNcm);
+
         add(new JLabel("Quantidade:"));    add(tfQtd);
         add(new JLabel("Custo (R$):"));    add(tfCusto);
         add(new JLabel("Preço Venda (R$):")); add(tfPreco);
@@ -169,6 +190,16 @@ public class CadastroAcessorioDialog extends JDialog {
         fornecedorSel.setId(acessoOrig.getFornecedorId());
         fornecedorSel.setNome(acessoOrig.getFornecedorNome());
         lblFornecedor.setText(acessoOrig.getFornecedorNome());
+
+        // Seleciona o NCM correspondente se existir
+        if (acessoOrig.getNcm() != null) {
+            for (int i = 0; i < cbNcm.getItemCount(); i++) {
+                if (cbNcm.getItemAt(i).startsWith(acessoOrig.getNcm())) {
+                    cbNcm.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void salvar() {
@@ -201,6 +232,13 @@ public class CadastroAcessorioDialog extends JDialog {
                 codigoBarras = "";
             }
 
+            // Recupera o código do NCM selecionado
+            String ncmCombo = (String) cbNcm.getSelectedItem();
+            String ncm = "";
+            if (ncmCombo != null && ncmCombo.contains("-")) {
+                ncm = ncmCombo.split("-")[0].trim();
+            }
+
             int qtd = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();
             double preco = ((Number) tfPreco.getValue()).doubleValue();
@@ -216,6 +254,7 @@ public class CadastroAcessorioDialog extends JDialog {
                 fornId, categoria, arte, cor
             );
             a.setFornecedorNome(fornNom);
+            a.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {

@@ -1,8 +1,9 @@
-// Caminho no projeto: src/ui/estoque/dialog/CadastroProdutoAlimenticioDialog.java
 package ui.estoque.dialog;
 
 import model.AlimentoModel;
 import model.FornecedorModel;
+import model.NcmModel;
+import service.NcmService;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
 import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
@@ -12,6 +13,7 @@ import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 public class CadastroProdutoAlimenticioDialog extends JDialog {
@@ -39,6 +41,8 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
     private final JLabel lblFornecedor        = new JLabel("Nenhum");
     private final JButton btnSelectFornec     = new JButton("Escolher Fornecedor");
     private FornecedorModel fornecedorSel;
+
+    private final JComboBox<String> cbNcm = new JComboBox<>();
 
     private static final DateTimeFormatter DISPLAY_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -139,6 +143,19 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             }
         });
         // ** Fim da seção Código de Barras **
+
+        // NCM: combo com todos os NCMs cadastrados
+        try {
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+        add(new JLabel("NCM:"));    add(cbNcm);
 
         add(new JLabel("Quantidade:"));           add(tfQtd);
         add(new JLabel("Custo (R$):"));           add(tfCusto);
@@ -262,6 +279,16 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         fornecedorSel.setId(alimentoOrig.getFornecedorId());
         fornecedorSel.setNome(alimentoOrig.getFornecedorNome());
         lblFornecedor.setText(alimentoOrig.getFornecedorNome());
+
+        // Seleciona o NCM correspondente se existir
+        if (alimentoOrig.getNcm() != null) {
+            for (int i = 0; i < cbNcm.getItemCount(); i++) {
+                if (cbNcm.getItemAt(i).startsWith(alimentoOrig.getNcm())) {
+                    cbNcm.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void salvar() {
@@ -280,6 +307,13 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         }
 
         try {
+            // Recupera o código do NCM selecionado
+            String ncmCombo = (String) cbNcm.getSelectedItem();
+            String ncm = null;
+            if (ncmCombo != null && ncmCombo.contains("-")) {
+                ncm = ncmCombo.split("-")[0].trim();
+            }
+
             String id = isEdicao ? alimentoOrig.getId() : UUID.randomUUID().toString();
             String nome = tfNome.getText().trim();
             String categoria  = (String) cbCategoria.getSelectedItem();
@@ -311,6 +345,8 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 fornId, categoria, subtipo, marca, sabor,
                 lote, peso, unidade, codigo, dataVal
             );
+
+            a.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) service.atualizarAlimento(a);

@@ -13,11 +13,14 @@ import service.ProdutoEstoqueService;
 import util.MaskUtils;
 import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
 
+import model.NcmModel;
+import service.NcmService;
+import javax.swing.JComboBox;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import java.awt.*;
-import java.util.List;
 import java.util.UUID;
 import java.util.Comparator;
 import java.util.ArrayList;
@@ -51,6 +54,8 @@ public class CadastroEtbDialog extends JDialog {
             "Booster Box", "Pokémon Center", "ETB", "Mini ETB", "Collection Box",
             "Special Collection", "Latas", "Box colecionáveis", "Trainer Kit", "Mini Booster Box"
     });
+    // NCM combo
+    private final JComboBox<String> cbNcm = new JComboBox<>();
     private final JComboBox<String> cbVersao = new JComboBox<>(new String[] {
             "Nacional", "Americana"
     });
@@ -121,6 +126,23 @@ public class CadastroEtbDialog extends JDialog {
         // → Tipo
         content.add(new JLabel("Tipo:"));
         content.add(cbTipo);
+
+        // Ajusta visibilidade de série/coleção e sets conforme o tipo
+        cbTipo.addActionListener(e -> adjustFieldsByTipo());
+
+        // NCM: combo com todos os NCMs cadastrados
+        try {
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+        content.add(new JLabel("NCM:"));
+        content.add(cbNcm);
 
         // → Versão
         content.add(new JLabel("Versão:"));
@@ -404,6 +426,13 @@ public class CadastroEtbDialog extends JDialog {
         }
 
         try {
+            // Recupera o código do NCM selecionado
+            String ncmCombo = (String) cbNcm.getSelectedItem();
+            String ncm = null;
+            if (ncmCombo != null && ncmCombo.contains("-")) {
+                ncm = ncmCombo.split("-")[0].trim();
+            }
+
             String id = isEdicao
                     ? etbOrig.getId()
                     : UUID.randomUUID().toString();
@@ -451,7 +480,7 @@ public class CadastroEtbDialog extends JDialog {
                     (String) cbVersao.getSelectedItem(),
                     jogoSel.getId());
 
-            
+            e.setNcm(ncm);
             e.setCodigoBarras(codigoBarras);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
@@ -467,5 +496,29 @@ public class CadastroEtbDialog extends JDialog {
                     "Erro ao salvar ETB:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    /**
+     * Ajusta visibilidade de campos de série/coleção e set de acordo com o tipo selecionado.
+     */
+    private void adjustFieldsByTipo() {
+        String tipo = (String) cbTipo.getSelectedItem();
+        boolean isBox = "Box colecionáveis".equals(tipo);
+        boolean isTrainer = "Trainer Kit".equals(tipo);
+
+        // Para Box colecionáveis, esconde todos os campos de set/coleção
+        cbSerie.setVisible(!isBox && !isTrainer);
+        cbColecao.setVisible(!isBox && !isTrainer);
+        // O panelSetSwitcher controla set genérico/manual
+        panelSetSwitcher.setVisible(!isBox);
+
+        // Para Trainer Kit, mantém apenas panelSetSwitcher visível
+        if (isTrainer) {
+            panelSetSwitcher.setVisible(true);
+        }
+
+        // Revalida layout
+        revalidate();
+        repaint();
     }
 }

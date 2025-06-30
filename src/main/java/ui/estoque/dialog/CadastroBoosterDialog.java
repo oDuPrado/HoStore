@@ -9,6 +9,8 @@ import model.JogoModel;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
 import util.ScannerUtils;
+import model.NcmModel;
+import service.NcmService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -56,6 +58,8 @@ public class CadastroBoosterDialog extends JDialog {
     private final JLabel lblFornecedor = new JLabel("Nenhum");
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
     private FornecedorModel fornecedorSel;
+
+    private final JComboBox<String> cbNcm = new JComboBox<>();
 
     private static final DateTimeFormatter DISPLAY_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -143,6 +147,20 @@ public class CadastroBoosterDialog extends JDialog {
         painelCodBarras.add(btnManual);
         painelCodBarras.add(lblCodigoLido);
         add(painelCodBarras);
+
+        // NCM: combo com todos os NCMs cadastrados
+        try {
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+        add(new JLabel("NCM:"));
+        add(cbNcm);
 
         // Ação para chamar o util
         btnScanner.addActionListener(e -> {
@@ -358,6 +376,16 @@ public class CadastroBoosterDialog extends JDialog {
         fornecedorSel.setId(boosterOrig.getFornecedor());
         fornecedorSel.setNome(boosterOrig.getFornecedorNome());
         lblFornecedor.setText(boosterOrig.getFornecedorNome());
+
+        // Seleciona o NCM correspondente se existir
+        if (boosterOrig.getNcm() != null) {
+            for (int i = 0; i < cbNcm.getItemCount(); i++) {
+                if (cbNcm.getItemAt(i).startsWith(boosterOrig.getNcm())) {
+                    cbNcm.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void salvar() {
@@ -377,6 +405,13 @@ public class CadastroBoosterDialog extends JDialog {
         }
 
         try {
+            // Recupera o código do NCM selecionado
+            String ncmCombo = (String) cbNcm.getSelectedItem();
+            String ncm = "";
+            if (ncmCombo != null && ncmCombo.contains("-")) {
+                ncm = ncmCombo.split("-")[0].trim();
+            }
+
             String id = isEdicao
                     ? boosterOrig.getId()
                     : UUID.randomUUID().toString();
@@ -416,6 +451,7 @@ public class CadastroBoosterDialog extends JDialog {
                     jogoId // NOVO
             );
             b.setFornecedorNome(fornNom);
+            b.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {
