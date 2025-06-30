@@ -13,6 +13,7 @@ import ui.ajustes.dialog.ConfigSistemaDialog;
 import ui.ajustes.painel.UsuarioPainel;
 import ui.ajustes.painel.FornecedorPainel;
 import ui.ajustes.painel.CategoriaProdutoPainel;
+import ui.ajustes.painel.NcmPainel;
 import ui.ajustes.painel.CondicaoPainel;
 import ui.ajustes.painel.IdiomaPainel;
 import ui.ajustes.painel.PlanoContaPainel;
@@ -54,7 +55,7 @@ public class AjustesPanel extends JPanel {
             new ui.ajustes.painel.FornecedorPainel().abrir();
         }));
         container.add(criarBotao("📦 Temas de interface", () -> new CategoriaProdutoPainel().abrir()));
-        container.add(criarBotao("📑 Condições de Produto", () -> new CondicaoPainel().abrir()));
+        container.add(criarBotao("📑 Configuracao de NCM", () -> new NcmPainel().abrir()));
         container.add(criarBotao("💳 Taxas do Cartão", () -> new TaxaCartaoDialog(null).setVisible(true)));
         container.add(criarBotao("🃏 Atributos da Carta", () -> new CartaAtributosDialog(null).setVisible(true)));
         container.add(criarBotao("🏷 Promoções e Descontos", () -> new PromocaoPainel().abrir()));

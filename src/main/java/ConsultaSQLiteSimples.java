@@ -3,10 +3,10 @@ import java.sql.*;
 public class ConsultaSQLiteSimples {
 
     // 🛠️ Caminho para seu banco (ajuste se precisar)
-    private static final String DATABASE_URL = "jdbc:sqlite:C:/Users/Marco Prado/Documents/APP/ERP/HoStore/data/hostore.db";
+    private static final String DATABASE_URL = "jdbc:sqlite:/Users/marcoprado/Documents/HoStore/data/hostore.db";
 
     // 🔍 Consulta a tabela sets_jogos ordenando por jogo e nome do set
-    private static final String QUERY = "SELECT * FROM promocoes";
+    private static final String QUERY = "SELECT * FROM produtos";
 
     public static void main(String[] args) {
         try (Connection conn = DriverManager.getConnection(DATABASE_URL);
@@ -15,6 +15,7 @@ public class ConsultaSQLiteSimples {
 
             // 🔥 Pega automaticamente todas as colunas
             ResultSetMetaData meta = rs.getMetaData();
+            
             int colunas = meta.getColumnCount();
 
             while (rs.next()) {

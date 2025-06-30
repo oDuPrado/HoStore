@@ -1,18 +1,20 @@
+// src/main/java/model/NcmModel.java
 package model;
 
 /**
- * Representa uma entrada de NCM (8 dígitos) com sua descrição oficial.
+ * Model simples de NCM (Código + Descrição).
  */
 public class NcmModel {
-    private String codigo;    // ex: "95044000"
-    private String descricao; // ex: "Jogos de cartas, para jogos de salão ou de tabuleiro"
+    private String codigo;
+    private String descricao;
+
+    public NcmModel() {}
 
     public NcmModel(String codigo, String descricao) {
         this.codigo = codigo;
         this.descricao = descricao;
     }
 
-    // Getters / Setters
     public String getCodigo() {
         return codigo;
     }
@@ -25,5 +27,23 @@ public class NcmModel {
     }
     public void setDescricao(String descricao) {
         this.descricao = descricao;
+    }
+
+    @Override
+    public String toString() {
+        return codigo + " - " + descricao;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof NcmModel)) return false;
+        NcmModel that = (NcmModel) o;
+        return codigo != null && codigo.equals(that.codigo);
+    }
+
+    @Override
+    public int hashCode() {
+        return codigo != null ? codigo.hashCode() : 0;
     }
 }

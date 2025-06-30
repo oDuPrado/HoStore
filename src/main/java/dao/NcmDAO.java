@@ -1,3 +1,4 @@
+// src/main/java/dao/NcmDAO.java
 package dao;
 
 import model.NcmModel;
@@ -8,47 +9,75 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DAO responsável por inserir, atualizar e buscar a tabela 'ncm'.
+ * DAO responsável por operações CRUD na tabela 'ncm'.
  */
 public class NcmDAO {
 
     /**
-     * Sincroniza a lista de NCMs obtida da API com o banco local.
-     * Se o código já existir, faz UPDATE; senão, faz INSERT.
+     * Exclui todos os registros da tabela NCM.
      */
-    public void sincronizarComApi(List<NcmModel> lista) throws SQLException {
-        String sql = "INSERT INTO ncm (codigo, descricao) VALUES (?, ?) " +
-                     "ON CONFLICT(codigo) DO UPDATE SET descricao = excluded.descricao";
+    public void deleteAll() throws SQLException {
+        String sql = "DELETE FROM ncm";
         try (Connection conn = DB.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            conn.setAutoCommit(false);
-            for (NcmModel ncm : lista) {
-                ps.setString(1, ncm.getCodigo());
-                ps.setString(2, ncm.getDescricao());
-                ps.addBatch();
-            }
-            ps.executeBatch();
-            conn.commit();
+            ps.executeUpdate();
         }
     }
 
     /**
-     * Retorna todos os NCMs existentes no banco, ordenados por código.
+     * Insere um novo NCM.
      */
-    public List<NcmModel> buscarTodos() throws SQLException {
-        List<NcmModel> lista = new ArrayList<>();
+    public void insert(NcmModel ncm) throws SQLException {
+        String sql = "INSERT INTO ncm (codigo, descricao) VALUES (?, ?)";
+        try (Connection conn = DB.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ncm.getCodigo());
+            ps.setString(2, ncm.getDescricao());
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Atualiza um NCM existente.
+     */
+    public void update(NcmModel ncm) throws SQLException {
+        String sql = "UPDATE ncm SET descricao = ? WHERE codigo = ?";
+        try (Connection conn = DB.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ncm.getDescricao());
+            ps.setString(2, ncm.getCodigo());
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Remove um NCM específico.
+     */
+    public void delete(String codigo) throws SQLException {
+        String sql = "DELETE FROM ncm WHERE codigo = ?";
+        try (Connection conn = DB.get();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, codigo);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Retorna todos os registros de NCM.
+     */
+    public List<NcmModel> findAll() throws SQLException {
+        List<NcmModel> list = new ArrayList<>();
         String sql = "SELECT codigo, descricao FROM ncm ORDER BY codigo";
         try (Connection conn = DB.get();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
-                String codigo = rs.getString("codigo");
-                String descricao = rs.getString("descricao");
-                lista.add(new NcmModel(codigo, descricao));
+                list.add(new NcmModel(
+                    rs.getString("codigo"),
+                    rs.getString("descricao")
+                ));
             }
         }
-        return lista;
+        return list;
     }
 }

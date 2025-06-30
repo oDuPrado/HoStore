@@ -12,7 +12,8 @@ import service.SetJogoService;
 
 public class DB {
 
-        private static final String URL = "jdbc:sqlite:data/hostore.db";
+       private static final String URL =
+        "jdbc:sqlite:" + System.getProperty("user.dir") + "/data/hostore.db";
 
         static {
                 init();
@@ -212,20 +213,20 @@ public class DB {
 
                         // produtos (estoque geral)
                         st.execute(
-                                        "CREATE TABLE IF NOT EXISTS produtos (" +
-                                                        "id TEXT PRIMARY KEY, " +
-                                                        "nome TEXT NOT NULL, " +
-                                                        "jogo_id TEXT, " + // vincula ao jogo (Pokémon, etc)
-                                                        "tipo TEXT NOT NULL, " +
-                                                        "quantidade INTEGER NOT NULL, " +
-                                                        "preco_compra REAL, " +
-                                                        "preco_venda REAL, " +
-                                                        "codigo_barras TEXT, " +
-                                                        "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, "
-                                                        +
-                                                        "criado_em TEXT, " +
-                                                        "alterado_em TEXT" +
-                                                        ")");
+    "CREATE TABLE IF NOT EXISTS produtos (" +
+        "id TEXT PRIMARY KEY, " +
+        "nome TEXT NOT NULL, " +
+        "jogo_id TEXT, " +
+        "tipo TEXT NOT NULL, " +
+        "quantidade INTEGER NOT NULL, " +
+        "preco_compra REAL, " +
+        "preco_venda REAL, " +
+        "codigo_barras TEXT, " +
+        "ncm TEXT, " + // ✅ novo campo para armazenar o código NCM do produto
+        "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, " +
+        "criado_em TEXT, " +
+        "alterado_em TEXT" +
+        ")");
 
                         // detalhes extras por categoria (guarda campos específicos)
                         st.execute(
@@ -789,20 +790,6 @@ public class DB {
 
                         // ─────────── SINCRONIZAÇÃO FISCAL AUTOMÁTICA ───────────
                         try {
-                                // NCM
-                                try {
-                                        List<model.NcmModel> listaNcms = service.FiscalApiService.listarNcms();
-                                        dao.NcmDAO ncmDAO = new dao.NcmDAO();
-                                        ncmDAO.sincronizarComApi(listaNcms);
-                                } catch (Exception e) {
-                                        System.err.println("⚠ Falha na API de NCM. Usando fallback...");
-                                        try (Connection conn = get(); Statement stncm = conn.createStatement()) {
-                                                stncm.execute("INSERT OR IGNORE INTO ncm (codigo, descricao) VALUES " +
-                                                                "('95044000','Jogos de cartas para jogos de salão ou tabuleiro'),"
-                                                                +
-                                                                "('49019900','Outros impressos');");
-                                        }
-                                }
 
                                 // CFOP
                                 try {

@@ -197,7 +197,7 @@ public class ConfigFiscalDialog extends JDialog {
 
             // NCM
             NcmDAO ncmDAO = new NcmDAO();
-            List<NcmModel> listaNcm = ncmDAO.buscarTodos();
+            List<NcmModel> listaNcm = ncmDAO.findAll();
             for (NcmModel item : listaNcm) {
                 // Exibe "95044000 - Jogos de cartas..."
                 cbNcm.addItem(item.getCodigo() + " - " + item.getDescricao());
