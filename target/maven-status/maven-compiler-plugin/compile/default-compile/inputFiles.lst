@@ -1,215 +1,218 @@
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\FornecedorDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\AlimentoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PagamentoContaPagarDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\api\CardGamesApi.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\CartaDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CadastroAcessorioDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\EstoqueService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\TituloContaReceberDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\api\PokeTcgApi.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\CreditoLojaModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\VendaModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ParcelaContaPagarDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\painel\PainelPedidosEstoque.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\ContaReceberService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\Carta.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\VendaPagamentoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\ScannerUtils.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\ConfigImpressaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\VendaNovaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\BoosterDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\TituloContaReceberModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\clientes\dialog\ClienteCadastroDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\FornecedorModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\CfopModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\AjustesPanel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\VendaDevolucaoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\BancoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\VendaDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\dialog\SelectCartaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\VendaDevolucaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\EtbDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\LogService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\controller\EstoqueController.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\VendaDevolucaoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\PedidosCompraDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\BancoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\FormatterFactory.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CadastroEtbDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\VincularColecaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\PromocaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\painel\PainelFinanceiro.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\ContaPagarService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\VendaDetalhesDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\VendaDevolucaoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\FornecedorSelectionDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\MovimentacaoEstoqueModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ConfigLojaDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\CartaService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\CreditoLojaService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\SenhaUtils.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\OrigemDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ContaPagarPedidoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\CreditoLojaDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\AcessorioDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PrinterConfigModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ClienteDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\TipoPromocaoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\CreditoLojaMovimentacaoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PromocaoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\ClienteVipPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\PlanoContaPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CadastroProdutoAlimenticioDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\ColecaoMapper.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\PedidoCompraService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ParcelaContaReceberModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\TipoCartaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\TipoCartaPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\ClienteVipDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\clientes\painel\PainelClientes.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ClienteModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\VendaItemModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\app\Main.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\UsuarioDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PromocaoProdutoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\SetJogoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\PromocaoPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\DateUtils.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\BackupUtils.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\BancoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\VendaEstornoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\TaxaCartaoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\BancoPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\UsuarioPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\TituloContaPagarModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\LoginDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PagamentoContaPagarModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\ParcelasTituloDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\TelaPrincipal.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\EditarPrecoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\ConfigFinanceiroDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\EstoqueDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\ClienteService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\TipoPromocaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\ContaReceberDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\painel\PainelVendas.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\ConfigFiscalDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ConfigLojaModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\MovimentacaoEstoqueService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\FornecedorDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\OrigemModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\VincularPedidosDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\EstornoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\FiscalApiService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\PlanoContaService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\JogoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\CategoriaProdutoPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ConfigFiscalModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\NcmDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\TipoPromocaoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\factory\VendaFactory.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ProdutoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\CondicaoPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\ParcelasContaReceberDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\ImportLigaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\BoosterModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\CadastroGenericoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PedidoCompraModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\DeckDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\controller\ProdutoEstoqueController.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\UsuarioDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\AcessorioModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\CondicaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CadastroDeckDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\CategoriaProdutoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PromocaoProdutoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\NovoPedidoEstoqueDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\DeckModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CriarPedidoEstoqueDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\PagamentoReceberDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\VendaFinalizarDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ConsultaSQLiteSimples.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\dash\painel\DashboardPanel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CadastroCartaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ProdutoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PromocaoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\VendaEstornoFinanceiroDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\SetDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ColecaoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\CsosnModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\ConfigSistemaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\PlanoContaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\SelecionarPlanoContaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\TaxaCartaoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\TaxaCartaoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PagamentoContaReceberModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\AplicaEm.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\ColecaoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PlanoContaModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\FornecedorPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\MovimentacaoEstoqueDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\ParcelamentoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\VincularProdutosDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\BuscarCartaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\TipoDesconto.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\PythonCaller.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\SessaoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\IdiomaPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\TesteConexao.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\clientes\dialog\CreditoLojaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\PagamentoContaPagarDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\painel\PainelEstoque.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\CsosnDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\UsuarioModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\DBPostgres.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\CfopDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\ProdutosDoPedidoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\VendaService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ParcelaContaPagarModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\CartaAtributosPanel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ConfigFiscalDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\ParcelaContaReceberDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\EntradaPedidoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\venda\dialog\SelectProdutoDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ColecaoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\MaskUtils.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\VendaItemDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\dialog\SelecionarCategoriaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\TaxaCartaoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\TituloContaPagarDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\AlimentoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\VerProdutosVinculadosDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\BancoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\NcmModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\dialog\CartaFormDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\CartaAtributosDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\PromocaoService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\TipoPromocaoPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PagamentoContaReceberDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\DB.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\JogoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\dialog\ContaPagarDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\ProdutoEstoqueService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\ConfigLojaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\MovimentacaoEstoqueDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\ProdutoEstoqueDTO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\IdiomaDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PrinterConfigDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\dialog\AbstractCrudPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\SetModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\ajustes\painel\AbstractCrudPainel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\EntradaProdutosDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PedidoEstoqueProdutoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\financeiro\painel\PainelContasReceber.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\PDFGenerator.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\SetJogoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PedidoCompraDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\ProdutoCadastroDialog.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\service\SetService.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\SetJogoDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\PedidoEstoqueProdutoModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\util\AlertUtils.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\controller\VendaController.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\model\EtbModel.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\dao\PlanoContaDAO.java
-C:\Users\Marco Prado\Documents\APP\ERP\HoStore\src\main\java\ui\estoque\dialog\CadastroBoosterDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/VendaDevolucaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/TaxaCartaoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/Carta.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/TaxaCartaoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/ProdutoEstoqueService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/PedidoCompraService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/TipoCartaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/NovoPedidoEstoqueDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/CreditoLojaService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/api/PokeTcgApi.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/PlanoContaService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/BackupUtils.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CadastroCartaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/TipoCartaPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/PlanoContaPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/LoginDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/IdiomaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/PDFGenerator.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PedidoCompraDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PromocaoProdutoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/CfopModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/ColecaoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/PromocaoPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/AjustesPanel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/UsuarioDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/BancoPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/VendaPagamentoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/IdiomaPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/VendaDetalhesDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/BancoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PrinterConfigDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/CategoriaProdutoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/CsosnDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/UsuarioModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/ImportLigaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/FornecedorSelectionDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/CreditoLojaDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/clientes/painel/PainelClientes.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/DBPostgres.java
+/Users/marcoprado/Documents/HoStore/src/main/java/controller/EstoqueController.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/NcmPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/CartaService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/ConfigLojaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/controller/VendaController.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ColecaoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/FornecedorModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ParcelaContaReceberDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/EtbModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/dash/painel/DashboardPanel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CadastroAcessorioDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/ParcelasTituloDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/EstoqueDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/VerProdutosVinculadosDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/VendaEstornoFinanceiroDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/PagamentoContaPagarDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CadastroBoosterDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/ConfigFiscalDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/CsosnModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/CartaAtributosDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/ConfigImpressaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PromocaoProdutoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/TaxaCartaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PagamentoContaReceberModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/ContaPagarDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ProdutoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/NcmDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/app/Main.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/DB.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/ScannerUtils.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PrinterConfigModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/painel/PainelVendas.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/CreditoLojaModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/AbstractCrudPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/UsuarioDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ConsultaSQLiteSimples.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/VendaService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/ProdutosDoPedidoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/BoosterModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/SetDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/SetModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/ConfigSistemaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ConfigFiscalDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/VendaModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/dialog/SelectCartaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/EntradaPedidoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ConfigLojaDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PlanoContaDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/ContaReceberDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/VendaNovaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ClienteDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/VendaDevolucaoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/JogoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/MovimentacaoEstoqueDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/AlertUtils.java
+/Users/marcoprado/Documents/HoStore/src/main/java/controller/ProdutoEstoqueController.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/TipoDesconto.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ContaPagarPedidoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/TituloContaReceberModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/CartaDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/painel/PainelContasReceber.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/BuscarCartaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/SelecionarPlanoContaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ColecaoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/clientes/dialog/CreditoLojaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/FornecedorDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ProdutoEstoqueDTO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/DateUtils.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/ParcelamentoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ConfigFiscalModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PedidoEstoqueProdutoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/SetService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/EstornoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CadastroEtbDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/MovimentacaoEstoqueService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/JogoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CadastroProdutoAlimenticioDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/TipoPromocaoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/AlimentoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/PromocaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/MovimentacaoEstoqueDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CriarPedidoEstoqueDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/BoosterDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/VendaItemModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/AcessorioModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ParcelaContaPagarModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/ParcelasContaReceberDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/EstoqueService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PagamentoContaPagarDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ConfigLojaModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/CartaAtributosPanel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/VincularColecaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/SetJogoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PedidoEstoqueProdutoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PlanoContaModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ParcelaContaReceberModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/api/CardGamesApi.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/LogService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/ConfigFinanceiroDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/DeckDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/VendaFinalizarDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/DeckModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/CreditoLojaMovimentacaoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/VendaDevolucaoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/ParcelaContaPagarDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/OrigemDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/ClienteVipDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/AbstractCrudPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/PedidosCompraDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/VendaItemDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/CfopDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/MaskUtils.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/MovimentacaoEstoqueModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/TipoPromocaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/SetJogoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/PlanoContaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/FormatterFactory.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/TaxaCartaoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/ColecaoMapper.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/AcessorioDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/SelectProdutoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/dialog/CartaFormDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/PythonCaller.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/VendaDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/VendaDevolucaoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/NcmModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PagamentoContaPagarModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/CondicaoPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ProdutoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/util/SenhaUtils.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/TituloContaPagarDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/AplicaEm.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/UsuarioPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/clientes/dialog/ClienteCadastroDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/EditarPrecoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/TituloContaReceberDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/OrigemModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/PagamentoReceberDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/TituloContaPagarModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/NcmDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/BancoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/PromocaoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/ProdutoCadastroDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/NcmService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/CondicaoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/BancoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/dialog/SelecionarCategoriaDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/FiscalApiService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/CadastroDeckDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/TipoPromocaoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/FornecedorDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/TelaPrincipal.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PagamentoContaReceberDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/dialog/EntradaProdutosDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/AlimentoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/PromocaoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/FornecedorPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/CadastroGenericoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PromocaoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/ContaPagarService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/dialog/VincularPedidosDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/EtbDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/TipoPromocaoPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/TesteConexao.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/painel/PainelEstoque.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/estoque/painel/PainelPedidosEstoque.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/venda/dialog/VendaEstornoDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/BancoModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/dao/SetJogoDAO.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/ClienteModel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/financeiro/painel/PainelFinanceiro.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/ClienteVipPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/SessaoService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/dialog/VincularProdutosDialog.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/ContaReceberService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/factory/VendaFactory.java
+/Users/marcoprado/Documents/HoStore/src/main/java/ui/ajustes/painel/CategoriaProdutoPainel.java
+/Users/marcoprado/Documents/HoStore/src/main/java/service/ClienteService.java
+/Users/marcoprado/Documents/HoStore/src/main/java/model/PedidoCompraModel.java

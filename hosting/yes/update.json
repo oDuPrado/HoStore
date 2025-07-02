@@ -1,6 +1,6 @@
 {
-  "latest_version": "1.0.0",
+  "latest_version": "1.0.1",
   "download_url": "https://hostore-7c455.web.app/yes/HoStore.jar",
   "checksum_sha256": "4e63da280d985ce8b0ac372c551775f9634a77abb8dbfdae7829c9758cc4121e",
-  "changelog": "Versão inicial com sistema de estoque, vendas e auto-update."
+  "changelog": "Versão inicial atualizada com NCM, cadastro ajustado e bugs visuais corrigidos."
 }
