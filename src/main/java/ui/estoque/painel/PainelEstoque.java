@@ -11,6 +11,9 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -47,6 +50,14 @@ public class PainelEstoque extends JPanel {
     private final JList<String> listaCategorias;
     private final JComboBox<JogoModel> comboJogo;
     private final JButton botaoAdicionar;
+
+    // Summary labels
+    private final JLabel lblTotalEstoque = new JLabel("Total Estoque: R$ 0,00");
+    private final JLabel lblPmz          = new JLabel("PMZ: R$ 0,00");
+    private final JLabel lblTicketCount  = new JLabel("Ticket Count: 0");
+    private final JLabel lblTicketMedio  = new JLabel("Ticket Médio: R$ 0,00");
+
+    private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
 
     public PainelEstoque() {
         setLayout(new BorderLayout(10, 10));
@@ -133,7 +144,7 @@ public class PainelEstoque extends JPanel {
 
         /* =============================== TABELA =============================== */
         modeloTabela = new DefaultTableModel(new String[] {
-                "Fornecedor", "Nome", "Tipo", "Qtd", "R$ Compra", "R$ Venda"
+                "Nome", "Tipo", "Quantidade", "R$ Compra", "R$ Venda", "Fornecedor"
         }, 0) {
             @Override
             public boolean isCellEditable(int linha, int coluna) {
@@ -142,6 +153,29 @@ public class PainelEstoque extends JPanel {
         };
         tabela = new JTable(modeloTabela);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        // Centralizar colunas de números e formatar moeda
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+
+        DefaultTableCellRenderer moeda = new DefaultTableCellRenderer() {
+            @Override
+            public void setValue(Object value) {
+                if (value instanceof Number) {
+                    setText(brl.format(((Number) value).doubleValue()));
+                } else {
+                    super.setValue(value);
+                }
+            }
+        };
+        moeda.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Quantidade = col 2
+        tabela.getColumnModel().getColumn(2).setCellRenderer(center);
+        // R$ Compra = col 3
+        tabela.getColumnModel().getColumn(3).setCellRenderer(moeda);
+        // R$ Venda  = col 4
+        tabela.getColumnModel().getColumn(4).setCellRenderer(moeda);
 
         // Duplo-clique = editar
         tabela.addMouseListener(new MouseAdapter() {
@@ -189,7 +223,17 @@ public class PainelEstoque extends JPanel {
         });
         painelRodape.add(botaoMovimentacoes);
 
-        add(painelRodape, BorderLayout.SOUTH);
+        // painel de resumo abaixo da tabela
+        JPanel painelResumo = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
+        painelResumo.add(lblTotalEstoque);
+        painelResumo.add(lblPmz);
+        painelResumo.add(lblTicketCount);
+        painelResumo.add(lblTicketMedio);
+
+        JPanel wrapperSouth = new JPanel(new BorderLayout());
+        wrapperSouth.add(painelResumo, BorderLayout.NORTH);
+        wrapperSouth.add(painelRodape, BorderLayout.SOUTH);
+        add(wrapperSouth, BorderLayout.SOUTH);
 
         // Carrega os produtos ao iniciar
         listar();
@@ -379,14 +423,29 @@ public class PainelEstoque extends JPanel {
             }
 
             modeloTabela.addRow(new Object[] {
-                    produto.getFornecedorNome(),
-                    produto.getNome(),
-                    tipoExibido,
-                    produto.getQuantidade(),
-                    produto.getPrecoCompra(),
-                    produto.getPrecoVenda()
+                produto.getNome(),
+                tipoExibido,
+                produto.getQuantidade(),
+                produto.getPrecoCompra(),
+                produto.getPrecoVenda(),
+                produto.getFornecedorNome()
             });
         }
+
+        // Summary calculation
+        int totalQtd = filtradosPorJogo.stream().mapToInt(ProdutoModel::getQuantidade).sum();
+        double totalCompra = filtradosPorJogo.stream()
+                .mapToDouble(p -> p.getQuantidade() * p.getPrecoCompra()).sum();
+        double totalVenda  = filtradosPorJogo.stream()
+                .mapToDouble(p -> p.getQuantidade() * p.getPrecoVenda()).sum();
+
+        double pmz = totalQtd > 0 ? totalCompra / totalQtd : 0;
+        double ticketMedio = totalQtd > 0 ? totalVenda / totalQtd : 0;
+
+        lblTotalEstoque.setText("Total Estoque: " + brl.format(totalCompra));
+        lblPmz.setText("PMZ: " + brl.format(pmz));
+        lblTicketCount.setText("Ticket Count: " + totalQtd);
+        lblTicketMedio.setText("Ticket Médio: " + brl.format(ticketMedio));
     }
 
     /* ------------------------------ AÇÕES CRUD ------------------------------ */

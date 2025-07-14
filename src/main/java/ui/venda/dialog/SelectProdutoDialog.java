@@ -1,4 +1,3 @@
-// src/ui/venda/dialog/SelectProdutoDialog.java
 package ui.venda.dialog;
 
 import dao.ProdutoDAO;
@@ -89,27 +88,28 @@ public class SelectProdutoDialog extends JDialog {
         JButton btnScan = new JButton("📷 Ler Código de Barras");
         btnScan.addActionListener(e -> {
             ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                Optional<ProdutoModel> encontrado = todosProdutos.stream()
-                        .filter(p -> p.getCodigoBarras() != null && p.getCodigoBarras().equalsIgnoreCase(codigo))
-                        .findFirst();
+                List<ProdutoModel> encontrados = todosProdutos.stream()
+                    .filter(p -> p.getCodigoBarras() != null && p.getCodigoBarras().equalsIgnoreCase(codigo))
+                    .collect(Collectors.toList());
 
-                if (encontrado.isPresent()) {
-                    ProdutoModel p = encontrado.get();
-
-                    // Itera sobre a tabela e marca o checkbox da linha correspondente
-                    for (int i = 0; i < table.getRowCount(); i++) {
-                        String idTabela = (String) model.getValueAt(i, 1); // coluna ID (oculta)
-                        if (idTabela.equals(p.getId())) {
-                            model.setValueAt(true, i, 0); // marca o checkbox
-                            table.scrollRectToVisible(table.getCellRect(i, 0, true)); // rola até a linha
-                            table.setRowSelectionInterval(i, i); // destaca a linha
-                            return;
-                        }
-                    }
-
-                    AlertUtils.warn("Produto encontrado, mas está sem estoque ou não visível na tabela.");
-                } else {
+                if (encontrados.isEmpty()) {
                     AlertUtils.warn("Nenhum produto com este código de barras foi encontrado.");
+                } else if (encontrados.size() == 1) {
+                    marcarProdutoNaTabela(encontrados.get(0));
+                } else {
+                    // múltiplas opções, pergunta ao usuário
+                    ProdutoModel escolhido = (ProdutoModel) JOptionPane.showInputDialog(
+                        this,
+                        "Múltiplos produtos encontrados com este código. Escolha o correto:",
+                        "Selecionar Produto",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        encontrados.toArray(),
+                        encontrados.get(0)
+                    );
+                    if (escolhido != null) {
+                        marcarProdutoNaTabela(escolhido);
+                    }
                 }
             });
         });
@@ -276,5 +276,21 @@ public class SelectProdutoDialog extends JDialog {
     /** Retorna os produtos marcados após fechar o diálogo */
     public List<ProdutoModel> getSelecionados() {
         return selecionados;
+    }
+
+    /**
+     * Marca na tabela o produto correspondente ao modelo fornecido.
+     */
+    private void marcarProdutoNaTabela(ProdutoModel p) {
+        for (int i = 0; i < table.getRowCount(); i++) {
+            String idTabela = (String) model.getValueAt(i, 1); // coluna ID oculta
+            if (idTabela.equals(p.getId())) {
+                model.setValueAt(true, i, 0); // marca checkbox
+                table.scrollRectToVisible(table.getCellRect(i, 0, true));
+                table.setRowSelectionInterval(i, i);
+                return;
+            }
+        }
+        AlertUtils.warn("Produto encontrado, mas está sem estoque ou não visível na tabela.");
     }
 }
