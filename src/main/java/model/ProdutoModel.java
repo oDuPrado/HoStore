@@ -9,6 +9,8 @@ public class ProdutoModel {
     private String tipo; // "Carta", "Booster", etc.
     private String jogoId;
     private String codigoBarras;
+    private String fornecedorId; // ID do fornecedor associado a este produto
+    private String fornecedorNome; // Nome do fornecedor para exibição na UI
     private int quantidade;
     private double precoCompra;
     private double precoVenda;
@@ -156,5 +158,27 @@ public class ProdutoModel {
 
     public void setUnidade(String unidade) {
         this.unidade = unidade;
+    }
+
+    /**
+     * ID do fornecedor associado a este produto.
+     */
+    public String getFornecedorId() {
+        return fornecedorId;
+    }
+
+    public void setFornecedorId(String fornecedorId) {
+        this.fornecedorId = fornecedorId;
+    }
+
+    /**
+     * Nome do fornecedor para exibição na UI.
+     */
+    public String getFornecedorNome() {
+        return fornecedorNome;
+    }
+
+    public void setFornecedorNome(String fornecedorNome) {
+        this.fornecedorNome = fornecedorNome;
     }
 }

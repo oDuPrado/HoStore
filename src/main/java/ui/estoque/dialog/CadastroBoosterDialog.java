@@ -450,6 +450,8 @@ public class CadastroBoosterDialog extends JDialog {
                     idioma, validade, codigo,
                     jogoId // NOVO
             );
+            // Assegura que o fornecedorId seja preenchido corretamente
+            b.setFornecedorId(fornId);
             b.setFornecedorNome(fornNom);
             b.setNcm(ncm);
 

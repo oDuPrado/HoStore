@@ -345,7 +345,8 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 fornId, categoria, subtipo, marca, sabor,
                 lote, peso, unidade, codigo, dataVal
             );
-
+            // Garante que o fornecedorId seja propagado corretamente
+            a.setFornecedorId(fornId);
             a.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();

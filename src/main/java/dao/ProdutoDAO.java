@@ -17,8 +17,8 @@ public class ProdutoDAO {
     public void insert(ProdutoModel p) throws SQLException {
         String sql = "INSERT INTO produtos " +
     "(id, nome, jogo_id, tipo, quantidade, preco_compra, preco_venda, codigo_barras, " +
-    "ncm, cfop, csosn, origem, unidade, criado_em, alterado_em) " +
-    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    "ncm, cfop, csosn, origem, unidade, criado_em, alterado_em, fornecedor_id) " +
+    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
             bindInsert(ps, p);
@@ -32,7 +32,7 @@ public class ProdutoDAO {
     public void update(ProdutoModel p) throws SQLException {
         String sql = "UPDATE produtos SET " +
     "nome = ?, jogo_id = ?, tipo = ?, quantidade = ?, preco_compra = ?, preco_venda = ?, " +
-    "codigo_barras = ?, ncm=?, cfop=?, csosn=?, origem=?, unidade=?, alterado_em = ? " +
+    "codigo_barras = ?, ncm=?, cfop=?, csosn=?, origem=?, unidade=?, fornecedor_id = ?, alterado_em = ? " +
     "WHERE id = ?";
 
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
@@ -48,8 +48,10 @@ ps.setString(9, p.getCfop());
 ps.setString(10, p.getCsosn());
 ps.setString(11, p.getOrigem());
 ps.setString(12, p.getUnidade());
-ps.setString(13, p.getAlteradoEm().toString());
-ps.setString(14, p.getId());
+ps.setString(13, p.getFornecedorId());
+ps.setString(14, p.getAlteradoEm().toString());
+ps.setString(15, p.getId());
+           ps.executeUpdate();
         }
     }
 
@@ -60,7 +62,7 @@ ps.setString(14, p.getId());
     public void update(ProdutoModel p, Connection c) throws SQLException {
         String sql = "UPDATE produtos SET " +
     "nome = ?, jogo_id = ?, tipo = ?, quantidade = ?, preco_compra = ?, preco_venda = ?, " +
-    "codigo_barras = ?, ncm=?, cfop=?, csosn=?, origem=?, unidade=?, alterado_em = ? " +
+    "codigo_barras = ?, ncm=?, cfop=?, csosn=?, origem=?, unidade=?, fornecedor_id = ?, alterado_em = ? " +
     "WHERE id = ?";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, p.getNome());
@@ -75,8 +77,10 @@ ps.setString(9, p.getCfop());
 ps.setString(10, p.getCsosn());
 ps.setString(11, p.getOrigem());
 ps.setString(12, p.getUnidade());
-ps.setString(13, p.getAlteradoEm().toString());
-ps.setString(14, p.getId());
+ps.setString(13, p.getFornecedorId());
+ps.setString(14, p.getAlteradoEm().toString());
+ps.setString(15, p.getId());
+            ps.executeUpdate();
         }
     }
 
@@ -146,6 +150,7 @@ p.setCfop(rs.getString("cfop"));
 p.setCsosn(rs.getString("csosn"));
 p.setOrigem(rs.getString("origem"));
 p.setUnidade(rs.getString("unidade"));
+p.setFornecedorId(rs.getString("fornecedor_id"));
         return p;
     }
 
@@ -169,5 +174,6 @@ p.setUnidade(rs.getString("unidade"));
     ps.setString(13, p.getUnidade());
     ps.setString(14, p.getCriadoEm().toString());
     ps.setString(15, p.getAlteradoEm().toString());
+    ps.setString(16, p.getFornecedorId());
 }
 }

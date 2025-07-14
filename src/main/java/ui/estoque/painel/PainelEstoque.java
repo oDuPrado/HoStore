@@ -41,6 +41,8 @@ public class PainelEstoque extends JPanel {
     private final ProdutoEstoqueController ctrl = new ProdutoEstoqueController();
     private final JTextField campoBusca = new JTextField();
     private final DefaultTableModel modeloTabela;
+    // Lista para armazenar os produtos atualmente exibidos na tabela
+    private List<ProdutoModel> produtosFiltrados;
     private final JTable tabela;
     private final JList<String> listaCategorias;
     private final JComboBox<JogoModel> comboJogo;
@@ -131,7 +133,7 @@ public class PainelEstoque extends JPanel {
 
         /* =============================== TABELA =============================== */
         modeloTabela = new DefaultTableModel(new String[] {
-                "ID", "Nome", "Tipo", "Qtd", "R$ Compra", "R$ Venda"
+                "Fornecedor", "Nome", "Tipo", "Qtd", "R$ Compra", "R$ Venda"
         }, 0) {
             @Override
             public boolean isCellEditable(int linha, int coluna) {
@@ -280,6 +282,20 @@ public class PainelEstoque extends JPanel {
         modeloTabela.setRowCount(0);
         List<ProdutoModel> produtos = ctrl.listar(campoBusca.getText().trim());
 
+        // Preencher o nome do fornecedor a partir do ID
+        for (ProdutoModel p : produtos) {
+            try {
+                if (p.getFornecedorId() != null) {
+                    model.FornecedorModel fornecedor = new dao.FornecedorDAO().buscarPorId(p.getFornecedorId());
+                    if (fornecedor != null) {
+                        p.setFornecedorNome(fornecedor.getNome());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         List<ProdutoModel> filtradosPorCategoria = produtos.stream().filter(produto -> {
             String tipo = produto.getTipo();
 
@@ -302,7 +318,6 @@ public class PainelEstoque extends JPanel {
                         "Box colecionáveis",
                         "Mini Booster Box",
                         "Trainer Kit").contains(tipo);
-
             }
 
             return tipo.equalsIgnoreCase(categoriaFiltro);
@@ -315,6 +330,9 @@ public class PainelEstoque extends JPanel {
             }
             return jogoFiltroId.equals(produto.getJogoId());
         }).collect(Collectors.toList());
+
+        // Salva a lista filtrada para uso em editar
+        produtosFiltrados = filtradosPorJogo;
 
         // Agora preenche a tabela conforme antiga lógica, mas apenas com
         // filtradosPorJogo
@@ -361,7 +379,7 @@ public class PainelEstoque extends JPanel {
             }
 
             modeloTabela.addRow(new Object[] {
-                    produto.getId(),
+                    produto.getFornecedorNome(),
                     produto.getNome(),
                     tipoExibido,
                     produto.getQuantidade(),
@@ -409,10 +427,11 @@ public class PainelEstoque extends JPanel {
             return;
         }
 
-        String idSelecionado = (String) modeloTabela.getValueAt(linhaSelecionada, 0);
-        ProdutoModel produtoSelecionado = ctrl.listar("").stream()
-                .filter(produto -> produto.getId().equals(idSelecionado))
-                .findFirst().orElse(null);
+        if (produtosFiltrados == null || linhaSelecionada >= produtosFiltrados.size()) {
+            JOptionPane.showMessageDialog(this, "Erro ao localizar produto selecionado.");
+            return;
+        }
+        ProdutoModel produtoSelecionado = produtosFiltrados.get(linhaSelecionada);
         if (produtoSelecionado == null) {
             return;
         }
@@ -449,10 +468,17 @@ public class PainelEstoque extends JPanel {
             case "ETB":
             case "Booster Box":
             case "Pokémon Center":
+            case "Mini ETB":
+            case "Collection Box":
+            case "Special Collection":
+            case "Latas":
+            case "Box colecionáveis":
+            case "Mini Booster Box":
+            case "Trainer Kit":
                 try {
                     model.EtbModel etb = new dao.EtbDAO().buscarPorId(produtoSelecionado.getId());
                     if (etb != null) {
-                        new ui.estoque.dialog.CadastroEtbDialog((JFrame) owner, etb).setVisible(true);
+                        new CadastroEtbDialog((JFrame) owner, etb).setVisible(true);
                     }
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(this, "Erro ao buscar ETB: " + e.getMessage());
@@ -498,14 +524,27 @@ public class PainelEstoque extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um item.");
             return;
         }
-        String idSelecionado = modeloTabela.getValueAt(linhaSelecionada, 0).toString();
-        String nomeSelecionado = modeloTabela.getValueAt(linhaSelecionada, 1).toString();
+
+        if (produtosFiltrados == null || linhaSelecionada >= produtosFiltrados.size()) {
+            JOptionPane.showMessageDialog(this, "Erro ao localizar produto selecionado.");
+            return;
+        }
+
+        ProdutoModel produtoSelecionado = produtosFiltrados.get(linhaSelecionada);
+        if (produtoSelecionado == null) {
+            JOptionPane.showMessageDialog(this, "Produto não encontrado.");
+            return;
+        }
+
+        String idSelecionado = produtoSelecionado.getId();
+        String nomeSelecionado = produtoSelecionado.getNome();
 
         int opcao = JOptionPane.showConfirmDialog(
                 this,
                 "Excluir o produto \"" + nomeSelecionado + "\"?",
                 "Confirmação",
                 JOptionPane.OK_CANCEL_OPTION);
+
         if (opcao == JOptionPane.OK_OPTION) {
             ctrl.remover(idSelecionado);
             listar();

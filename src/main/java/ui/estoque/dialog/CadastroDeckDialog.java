@@ -1,10 +1,11 @@
-// Caminho no projeto: src/ui/estoque/dialog/CadastroDeckDialog.java
 package ui.estoque.dialog;
 
 import dao.JogoDAO;
 import model.DeckModel;
 import model.JogoModel;
+import model.FornecedorModel;
 import service.ProdutoEstoqueService;
+import ui.estoque.dialog.FornecedorSelectionDialog;
 import util.MaskUtils;
 import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
 
@@ -35,12 +36,15 @@ public class CadastroDeckDialog extends JDialog {
     private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
     private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
-    private final JTextField tfFornec = new JTextField(20);
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
 
     // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
     // ***
     private final JLabel lblCodigoLido = new JLabel("");
+
+    private final JLabel lblFornecedor = new JLabel("Nenhum");
+    private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
+    private FornecedorModel fornecedorSel;
 
     public CadastroDeckDialog(JFrame owner) {
         this(owner, null);
@@ -96,7 +100,19 @@ public class CadastroDeckDialog extends JDialog {
 
         // Fornecedor
         content.add(new JLabel("Fornecedor:"));
-        content.add(tfFornec);
+        content.add(lblFornecedor);
+        content.add(new JLabel());
+        content.add(btnSelectFornec);
+
+        btnSelectFornec.addActionListener(e -> {
+            FornecedorSelectionDialog dlg = new FornecedorSelectionDialog((JFrame) getOwner());
+            dlg.setVisible(true);
+            FornecedorModel f = dlg.getSelectedFornecedor();
+            if (f != null) {
+                fornecedorSel = f;
+                lblFornecedor.setText(f.getNome());
+            }
+        });
 
         // *** NOVO: Seção Código de Barras ***
         content.add(new JLabel("Código de Barras:"));
@@ -161,7 +177,11 @@ public class CadastroDeckDialog extends JDialog {
         tfQtd.setValue(deckOrig.getQuantidade());
         tfCusto.setValue(deckOrig.getPrecoCompra());
         tfPreco.setValue(deckOrig.getPrecoVenda());
-        tfFornec.setText(deckOrig.getFornecedor());
+
+        fornecedorSel = new FornecedorModel();
+        fornecedorSel.setId(deckOrig.getFornecedor());
+        fornecedorSel.setNome(deckOrig.getFornecedor());
+        lblFornecedor.setText(deckOrig.getFornecedor());
 
         // Selecionar jogo no combo
         String jogoId = deckOrig.getJogoId();
@@ -187,8 +207,8 @@ public class CadastroDeckDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Nome é obrigatório.");
             return;
         }
-        if (tfFornec.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Fornecedor é obrigatório.");
+        if (fornecedorSel == null) {
+            JOptionPane.showMessageDialog(this, "Selecione um fornecedor.");
             return;
         }
         JogoModel jogoSel = (JogoModel) cbJogo.getSelectedItem();
@@ -217,7 +237,7 @@ public class CadastroDeckDialog extends JDialog {
                     ((Number) tfQtd.getValue()).intValue(),
                     ((Number) tfCusto.getValue()).doubleValue(),
                     ((Number) tfPreco.getValue()).doubleValue(),
-                    tfFornec.getText().trim(),
+                    fornecedorSel.getNome(),
                     tfColecao.getText().trim(),
                     (String) cbTipoDeck.getSelectedItem(),
                     (String) cbCategoria.getSelectedItem(),
@@ -225,6 +245,7 @@ public class CadastroDeckDialog extends JDialog {
 
             
             d.setCodigoBarras(codigoBarras);
+            d.setFornecedorId(fornecedorSel.getId());
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {

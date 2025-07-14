@@ -253,6 +253,8 @@ public class CadastroAcessorioDialog extends JDialog {
                 id, nome, qtd, custo, preco,
                 fornId, categoria, arte, cor
             );
+            a.setFornecedorId(fornId);
+
             a.setFornecedorNome(fornNom);
             a.setNcm(ncm);
 

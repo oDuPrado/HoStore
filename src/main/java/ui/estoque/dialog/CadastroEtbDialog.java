@@ -5,6 +5,7 @@ import dao.ColecaoDAO;
 import dao.EtbDAO;
 import dao.JogoDAO;
 import dao.SetDAO;
+import ui.estoque.dialog.CadastroEtbDialog;
 import model.ColecaoModel;
 import model.EtbModel;
 import model.FornecedorModel;
@@ -466,21 +467,23 @@ public class CadastroEtbDialog extends JDialog {
             // inclua no construtor de EtbModel e no DAO.)
 
             EtbModel e = new EtbModel(
-                    id,
-                    tfNome.getText().trim(),
-                    ((Number) tfQtd.getValue()).intValue(),
-                    ((Number) tfCusto.getValue()).doubleValue(),
-                    ((Number) tfPreco.getValue()).doubleValue(),
-                    fornecedorSel.getId(),
-                    setSelecionado,
-                    (String) ((cbColecao.getSelectedItem() != null)
-                            ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
-                            : ""),
-                    (String) cbTipo.getSelectedItem(),
-                    (String) cbVersao.getSelectedItem(),
-                    jogoSel.getId());
+                id,
+                tfNome.getText().trim(),
+                ((Number) tfQtd.getValue()).intValue(),
+                ((Number) tfCusto.getValue()).doubleValue(),
+                ((Number) tfPreco.getValue()).doubleValue(),
+                fornecedorSel != null ? fornecedorSel.getId() : null,
+                setSelecionado,
+                (String) ((cbColecao.getSelectedItem() != null)
+                    ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
+                    : ""),
+                (String) cbTipo.getSelectedItem(),
+                (String) cbVersao.getSelectedItem(),
+                jogoSel.getId());
 
             e.setNcm(ncm);
+            // Garante que o ID do fornecedor seja persistido na tabela produtos
+            e.setFornecedorId(fornecedorSel.getId());
             e.setCodigoBarras(codigoBarras);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();

@@ -225,8 +225,11 @@ public class DB {
         "ncm TEXT, " + // ✅ novo campo para armazenar o código NCM do produto
         "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, " +
         "criado_em TEXT, " +
-        "alterado_em TEXT" +
-        ")");
+        "alterado_em TEXT, " +
+        "fornecedor_id TEXT" +
+    ")" +
+    " FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id)"
+);
 
                         // detalhes extras por categoria (guarda campos específicos)
                         st.execute(
