@@ -20,26 +20,27 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
     private final boolean isEdicao;
     private final AlimentoModel alimentoOrig;
 
-    private final JTextField tfNome         = new JTextField(20);
-    private final JComboBox<String> cbCategoria = new JComboBox<>(new String[]{"Comida","Bebida"});
-    private final JComboBox<String> cbSubtipo   = new JComboBox<>();
-    private final JComboBox<String> cbMarca     = new JComboBox<>();
-    private final JTextField tfMarcaOutro      = new JTextField(20);
-    private final JComboBox<String> cbSabor     = new JComboBox<>();
-    private final JTextField tfLote            = new JTextField(10);
-    private final JFormattedTextField tfPeso   = FormatterFactory.getFormattedDoubleField(0.0);
-    private final JLabel lblPeso               = new JLabel("Peso (g):");
+    private final JTextField tfNome = new JTextField(20);
+    private final JComboBox<String> cbCategoria = new JComboBox<>(new String[] { "Comida", "Bebida" });
+    private final JComboBox<String> cbSubtipo = new JComboBox<>();
+    private final JComboBox<String> cbMarca = new JComboBox<>();
+    private final JTextField tfMarcaOutro = new JTextField(20);
+    private final JComboBox<String> cbSabor = new JComboBox<>();
+    private final JTextField tfLote = new JTextField(10);
+    private final JFormattedTextField tfPeso = FormatterFactory.getFormattedDoubleField(0.0);
+    private final JLabel lblPeso = new JLabel("Peso (g):");
     private final JFormattedTextField tfDataValidade;
-    // private final JTextField tfCodigoBarras    = new JTextField(15); // removido para usar leitor
-    private final JFormattedTextField tfQtd    = FormatterFactory.getFormattedIntField(0);
-    private final JFormattedTextField tfCusto  = FormatterFactory.getFormattedDoubleField(0.0);
-    private final JFormattedTextField tfPreco  = FormatterFactory.getFormattedDoubleField(0.0);
+    // private final JTextField tfCodigoBarras = new JTextField(15); // removido
+    // para usar leitor
+    private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
+    private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
+    private final JFormattedTextField tfPreco = FormatterFactory.getFormattedDoubleField(0.0);
 
     // NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
-    private final JLabel lblCodigoLido         = new JLabel("");
+    private final JLabel lblCodigoLido = new JLabel(" ");
 
-    private final JLabel lblFornecedor        = new JLabel("Nenhum");
-    private final JButton btnSelectFornec     = new JButton("Escolher Fornecedor");
+    private final JLabel lblFornecedor = new JLabel("Nenhum");
+    private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
     private FornecedorModel fornecedorSel;
 
     private final JComboBox<String> cbNcm = new JComboBox<>();
@@ -52,7 +53,7 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
 
     public CadastroProdutoAlimenticioDialog(JFrame owner, AlimentoModel a) {
         super(owner, a == null ? "Novo Produto Alimentício" : "Editar Produto Alimentício", true);
-        this.isEdicao     = a != null;
+        this.isEdicao = a != null;
         this.alimentoOrig = a;
         // máscara data
         JFormattedTextField temp;
@@ -66,7 +67,8 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         this.tfDataValidade = temp;
 
         buildUI(owner);
-        if (isEdicao) preencherCampos();
+        if (isEdicao)
+            preencherCampos();
     }
 
     private void buildUI(JFrame owner) {
@@ -102,21 +104,34 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         });
 
         // layout
-        add(new JLabel("Nome:"));                 add(tfNome);
-        add(new JLabel("Categoria:"));            add(cbCategoria);
-        add(new JLabel("Subtipo:"));              add(cbSubtipo);
-        add(new JLabel("Marca:"));                add(cbMarca);
-        add(new JLabel("Marca (Outros):"));       add(tfMarcaOutro);
-        add(new JLabel("Sabor (apenas Suco):"));  add(cbSabor);
-        add(new JLabel("Lote:"));                 add(tfLote);
-        add(lblPeso);                             add(tfPeso);
-        add(new JLabel("Data Validade:"));        add(tfDataValidade);
+        add(new JLabel("Nome:"));
+        add(tfNome);
+        add(new JLabel("Categoria:"));
+        add(cbCategoria);
+        add(new JLabel("Subtipo:"));
+        add(cbSubtipo);
+        add(new JLabel("Marca:"));
+        add(cbMarca);
+        add(new JLabel("Marca (Outros):"));
+        add(tfMarcaOutro);
+        add(new JLabel("Sabor (apenas Suco):"));
+        add(cbSabor);
+        add(new JLabel("Lote:"));
+        add(tfLote);
+        add(lblPeso);
+        add(tfPeso);
+        add(new JLabel("Data Validade:"));
+        add(tfDataValidade);
 
         // ** Seção Código de Barras **
         add(new JLabel("Código de Barras:"));
         JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnScanner = new JButton("Ler com Scanner");
         JButton btnManual = new JButton("Inserir Manualmente");
+
+        // deixa o label visível
+        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
 
         painelCodBarras.add(btnScanner);
         painelCodBarras.add(btnManual);
@@ -129,6 +144,10 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 lblCodigoLido.setText(codigo);
                 lblCodigoLido.setToolTipText(codigo);
                 lblCodigoLido.putClientProperty("codigoBarras", codigo);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             });
         });
 
@@ -140,8 +159,13 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 lblCodigoLido.setText(c);
                 lblCodigoLido.setToolTipText(c);
                 lblCodigoLido.putClientProperty("codigoBarras", c);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             }
         });
+
         // ** Fim da seção Código de Barras **
 
         // NCM: combo com todos os NCMs cadastrados
@@ -152,20 +176,27 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao carregar NCMs:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
-        add(new JLabel("NCM:"));    add(cbNcm);
+        add(new JLabel("NCM:"));
+        add(cbNcm);
 
-        add(new JLabel("Quantidade:"));           add(tfQtd);
-        add(new JLabel("Custo (R$):"));           add(tfCusto);
-        add(new JLabel("Preço Venda (R$):"));     add(tfPreco);
-        add(new JLabel("Fornecedor:"));           add(lblFornecedor);
-        add(new JLabel());                        add(btnSelectFornec);
+        add(new JLabel("Quantidade:"));
+        add(tfQtd);
+        add(new JLabel("Custo (R$):"));
+        add(tfCusto);
+        add(new JLabel("Preço Venda (R$):"));
+        add(tfPreco);
+        add(new JLabel("Fornecedor:"));
+        add(lblFornecedor);
+        add(new JLabel());
+        add(btnSelectFornec);
 
         JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
         btnSalvar.addActionListener(e -> salvar());
-        add(new JLabel());                        add(btnSalvar);
+        add(new JLabel());
+        add(btnSalvar);
 
         pack();
         setLocationRelativeTo(owner);
@@ -175,11 +206,11 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         cbSubtipo.removeAllItems();
 
         if ("Comida".equals(cbCategoria.getSelectedItem())) {
-            for (String s : new String[]{"Salgadinho", "Doce"})
+            for (String s : new String[] { "Salgadinho", "Doce" })
                 cbSubtipo.addItem(s);
         } else {
-            for (String s : new String[]{"Refrigerante", "Suco",
-                                         "Achocolatado", "Água", "Bebida energética"})
+            for (String s : new String[] { "Refrigerante", "Suco",
+                    "Achocolatado", "Água", "Bebida energética" })
                 cbSubtipo.addItem(s);
         }
 
@@ -192,47 +223,53 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         cbMarca.removeAllItems();
         String st = (String) cbSubtipo.getSelectedItem();
 
-        if (st == null) return; // Protege o switch
+        if (st == null)
+            return; // Protege o switch
 
         String[] arr;
         switch (st) {
             case "Salgadinho":
-                arr = new String[]{"Elma Chips", "Cheetos", "Fandangos", "Doritos", "Ruffles", "Lay's", "Torcida", "Yoki", "Outros"};
+                arr = new String[] { "Elma Chips", "Cheetos", "Fandangos", "Doritos", "Ruffles", "Lay's", "Torcida",
+                        "Yoki", "Outros" };
                 break;
             case "Doce":
-                arr = new String[]{"Garoto", "Lacta", "Nestlé", "Ferrero Rocher", "Kopenhagen", "Hershey's", "Outros"};
+                arr = new String[] { "Garoto", "Lacta", "Nestlé", "Ferrero Rocher", "Kopenhagen", "Hershey's",
+                        "Outros" };
                 break;
             case "Refrigerante":
-                arr = new String[]{"Coca-Cola", "Pepsi", "Guaraná Antarctica", "Fanta", "Sprite", "Outros"};
+                arr = new String[] { "Coca-Cola", "Pepsi", "Guaraná Antarctica", "Fanta", "Sprite", "Outros" };
                 break;
             case "Achocolatado":
-                arr = new String[]{"Nescau", "Toddy", "Ovomaltine", "Toddynho", "Nescau Pronto", "Outros"};
+                arr = new String[] { "Nescau", "Toddy", "Ovomaltine", "Toddynho", "Nescau Pronto", "Outros" };
                 break;
             case "Água":
-                arr = new String[]{"Crystal", "Bonafont", "Minalba", "São Lourenço", "Pureza Vital", "Outros"};
+                arr = new String[] { "Crystal", "Bonafont", "Minalba", "São Lourenço", "Pureza Vital", "Outros" };
                 break;
             case "Bebida energética":
-                arr = new String[]{"Red Bull", "Monster", "Burn", "TNT", "Fusion", "Outros"};
+                arr = new String[] { "Red Bull", "Monster", "Burn", "TNT", "Fusion", "Outros" };
                 break;
             default:
-                arr = new String[]{"Outros"};
+                arr = new String[] { "Outros" };
                 break;
         }
 
-        for (String m : arr) cbMarca.addItem(m);
+        for (String m : arr)
+            cbMarca.addItem(m);
     }
 
     private void carregarSabores() {
         cbSabor.removeAllItems();
 
         String st = (String) cbSubtipo.getSelectedItem();
-        if (st == null) return;
+        if (st == null)
+            return;
 
         if ("Suco".equals(st)) {
-            for (String s : new String[]{
+            for (String s : new String[] {
                     "Laranja", "Uva", "Maçã", "Maracujá", "Manga",
                     "Abacaxi", "Acerola", "Goiaba", "Pêssego", "Limão", "Outros"
-            }) cbSabor.addItem(s);
+            })
+                cbSabor.addItem(s);
         }
     }
 
@@ -267,8 +304,9 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
 
         // Preenche o código de barras existente no lblCodigoLido
         String codigoExistente = alimentoOrig.getCodigoBarras();
-        if (codigoExistente != null) {
+        if (codigoExistente != null && !codigoExistente.isBlank()) {
             lblCodigoLido.setText(codigoExistente);
+            lblCodigoLido.setToolTipText(codigoExistente);
             lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
         }
 
@@ -301,7 +339,7 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             return;
         }
         if ("Outros".equals(cbMarca.getSelectedItem()) &&
-            tfMarcaOutro.getText().trim().isEmpty()) {
+                tfMarcaOutro.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Informe a marca.");
             return;
         }
@@ -316,52 +354,53 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
 
             String id = isEdicao ? alimentoOrig.getId() : UUID.randomUUID().toString();
             String nome = tfNome.getText().trim();
-            String categoria  = (String) cbCategoria.getSelectedItem();
-            String subtipo    = (String) cbSubtipo.getSelectedItem();
-            String marca      = "Outros".equals(cbMarca.getSelectedItem())
-                                ? tfMarcaOutro.getText().trim()
-                                : (String) cbMarca.getSelectedItem();
-            String sabor      = cbSabor.isVisible()
-                                ? (String) cbSabor.getSelectedItem()
-                                : "";
-            String lote       = tfLote.getText().trim();
-            double peso       = ((Number) tfPeso.getValue()).doubleValue();
-            String unidade    = "Bebida".equals(categoria) ? "ml" : "g";
-            String dataVal    = tfDataValidade.getText().trim();
+            String categoria = (String) cbCategoria.getSelectedItem();
+            String subtipo = (String) cbSubtipo.getSelectedItem();
+            String marca = "Outros".equals(cbMarca.getSelectedItem())
+                    ? tfMarcaOutro.getText().trim()
+                    : (String) cbMarca.getSelectedItem();
+            String sabor = cbSabor.isVisible()
+                    ? (String) cbSabor.getSelectedItem()
+                    : "";
+            String lote = tfLote.getText().trim();
+            double peso = ((Number) tfPeso.getValue()).doubleValue();
+            String unidade = "Bebida".equals(categoria) ? "ml" : "g";
+            String dataVal = tfDataValidade.getText().trim();
 
-            // Recupera o código de barras lido (se houver), caso contrário, deixa em branco.
-            String codigo     = (String) lblCodigoLido.getClientProperty("codigoBarras");
+            // Recupera o código de barras lido (se houver), caso contrário, deixa em
+            // branco.
+            String codigo = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigo == null) {
                 codigo = "";
             }
 
-            int quantidade    = ((Number) tfQtd.getValue()).intValue();
-            double custo      = ((Number) tfCusto.getValue()).doubleValue();
-            double preco      = ((Number) tfPreco.getValue()).doubleValue();
-            String fornId     = fornecedorSel.getId();
+            int quantidade = ((Number) tfQtd.getValue()).intValue();
+            double custo = ((Number) tfCusto.getValue()).doubleValue();
+            double preco = ((Number) tfPreco.getValue()).doubleValue();
+            String fornId = fornecedorSel.getId();
 
             AlimentoModel a = new AlimentoModel(
-                id, nome, quantidade, custo, preco,
-                fornId, categoria, subtipo, marca, sabor,
-                lote, peso, unidade, codigo, dataVal
-            );
+                    id, nome, quantidade, custo, preco,
+                    fornId, categoria, subtipo, marca, sabor,
+                    lote, peso, unidade, codigo, dataVal);
             // Garante que o fornecedorId seja propagado corretamente
             a.setFornecedorId(fornId);
             a.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
-            if (isEdicao) service.atualizarAlimento(a);
-            else          service.salvarNovoAlimento(a);
+            if (isEdicao)
+                service.atualizarAlimento(a);
+            else
+                service.salvarNovoAlimento(a);
 
             dispose();
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(
-                this,
-                "Erro ao salvar Produto Alimentício:\n" + ex.getMessage(),
-                "Erro",
-                JOptionPane.ERROR_MESSAGE
-            );
+                    this,
+                    "Erro ao salvar Produto Alimentício:\n" + ex.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }

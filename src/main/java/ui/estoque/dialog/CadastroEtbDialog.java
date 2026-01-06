@@ -16,7 +16,7 @@ import util.ScannerUtils; // <-- import necessário para o leitor de código de 
 
 import model.NcmModel;
 import service.NcmService;
-import javax.swing.JComboBox;
+
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -66,7 +66,7 @@ public class CadastroEtbDialog extends JDialog {
 
     // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
     // ***
-    private final JLabel lblCodigoLido = new JLabel("");
+    private final JLabel lblCodigoLido = new JLabel(" ");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
@@ -139,8 +139,8 @@ public class CadastroEtbDialog extends JDialog {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao carregar NCMs:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
         content.add(new JLabel("NCM:"));
         content.add(cbNcm);
@@ -167,6 +167,9 @@ public class CadastroEtbDialog extends JDialog {
         JButton btnScanner = new JButton("Ler com Scanner");
         JButton btnManual = new JButton("Inserir Manualmente");
 
+        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+
         painelCodBarras.add(btnScanner);
         painelCodBarras.add(btnManual);
         painelCodBarras.add(lblCodigoLido); // exibe o código lido
@@ -178,6 +181,10 @@ public class CadastroEtbDialog extends JDialog {
                 lblCodigoLido.setText(codigo);
                 lblCodigoLido.setToolTipText(codigo);
                 lblCodigoLido.putClientProperty("codigoBarras", codigo);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             });
         });
 
@@ -189,8 +196,13 @@ public class CadastroEtbDialog extends JDialog {
                 lblCodigoLido.setText(c);
                 lblCodigoLido.setToolTipText(c);
                 lblCodigoLido.putClientProperty("codigoBarras", c);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             }
         });
+
         // *** Fim da seção Código de Barras ***
 
         // → Fornecedor via diálogo de seleção
@@ -348,6 +360,13 @@ public class CadastroEtbDialog extends JDialog {
             }
         }
 
+        String cod = etbOrig.getCodigoBarras();
+        if (cod != null && !cod.isBlank()) {
+            lblCodigoLido.setText(cod);
+            lblCodigoLido.setToolTipText(cod);
+            lblCodigoLido.putClientProperty("codigoBarras", cod);
+        }
+
         // Carrega automaticamente a UI de “set” / “série/coleção”
         atualizarCamposPorJogo();
 
@@ -467,19 +486,19 @@ public class CadastroEtbDialog extends JDialog {
             // inclua no construtor de EtbModel e no DAO.)
 
             EtbModel e = new EtbModel(
-                id,
-                tfNome.getText().trim(),
-                ((Number) tfQtd.getValue()).intValue(),
-                ((Number) tfCusto.getValue()).doubleValue(),
-                ((Number) tfPreco.getValue()).doubleValue(),
-                fornecedorSel != null ? fornecedorSel.getId() : null,
-                setSelecionado,
-                (String) ((cbColecao.getSelectedItem() != null)
-                    ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
-                    : ""),
-                (String) cbTipo.getSelectedItem(),
-                (String) cbVersao.getSelectedItem(),
-                jogoSel.getId());
+                    id,
+                    tfNome.getText().trim(),
+                    ((Number) tfQtd.getValue()).intValue(),
+                    ((Number) tfCusto.getValue()).doubleValue(),
+                    ((Number) tfPreco.getValue()).doubleValue(),
+                    fornecedorSel != null ? fornecedorSel.getId() : null,
+                    setSelecionado,
+                    (String) ((cbColecao.getSelectedItem() != null)
+                            ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
+                            : ""),
+                    (String) cbTipo.getSelectedItem(),
+                    (String) cbVersao.getSelectedItem(),
+                    jogoSel.getId());
 
             e.setNcm(ncm);
             // Garante que o ID do fornecedor seja persistido na tabela produtos
@@ -502,7 +521,8 @@ public class CadastroEtbDialog extends JDialog {
     }
 
     /**
-     * Ajusta visibilidade de campos de série/coleção e set de acordo com o tipo selecionado.
+     * Ajusta visibilidade de campos de série/coleção e set de acordo com o tipo
+     * selecionado.
      */
     private void adjustFieldsByTipo() {
         String tipo = (String) cbTipo.getSelectedItem();

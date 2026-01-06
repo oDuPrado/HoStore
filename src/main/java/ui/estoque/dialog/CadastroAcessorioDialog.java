@@ -15,7 +15,7 @@ import java.util.UUID;
 import controller.ProdutoEstoqueController;
 import model.AcessorioModel;
 import model.FornecedorModel;
-import model.NcmModel;           // <-- ADICIONE ESTA LINHA
+import model.NcmModel; // <-- ADICIONE ESTA LINHA
 import service.NcmService;
 import service.ProdutoEstoqueService;
 
@@ -25,9 +25,9 @@ public class CadastroAcessorioDialog extends JDialog {
     private final AcessorioModel acessoOrig;
 
     private final JTextField tfNome = new JTextField(20);
-    private final JComboBox<String> cbCategoria = new JComboBox<>(new String[]{
-        "Chaveiros", "Moedas", "Marcadores", "Kit (Moeda + Marcador)",
-        "Sleeve", "Playmats", "Lancheiras", "Outros"
+    private final JComboBox<String> cbCategoria = new JComboBox<>(new String[] {
+            "Chaveiros", "Moedas", "Marcadores", "Kit (Moeda + Marcador)",
+            "Sleeve", "Playmats", "Lancheiras", "Outros"
     });
     private final JLabel lblArte = new JLabel("Arte:");
     private final JComboBox<String> cbArte = new JComboBox<>();
@@ -35,7 +35,7 @@ public class CadastroAcessorioDialog extends JDialog {
     private final JTextField tfCor = new JTextField();
 
     // *** NOVO: Label que exibirá o código lido (via scanner ou manual) ***
-    private final JLabel lblCodigoLido = new JLabel("");
+    private final JLabel lblCodigoLido = new JLabel(" ");
 
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
@@ -56,7 +56,8 @@ public class CadastroAcessorioDialog extends JDialog {
         this.isEdicao = acesso != null;
         this.acessoOrig = acesso;
         buildUI(owner);
-        if (isEdicao) preencherCampos();
+        if (isEdicao)
+            preencherCampos();
     }
 
     private void buildUI(JFrame owner) {
@@ -78,20 +79,30 @@ public class CadastroAcessorioDialog extends JDialog {
         });
 
         // Montagem do formulário
-        add(new JLabel("Nome:"));          add(tfNome);
-        add(new JLabel("Categoria:"));     add(cbCategoria);
-        add(lblArte);                      add(cbArte);
-        add(lblCor);                       add(tfCor);
+        add(new JLabel("Nome:"));
+        add(tfNome);
+        add(new JLabel("Categoria:"));
+        add(cbCategoria);
+        add(lblArte);
+        add(cbArte);
+        add(lblCor);
+        add(tfCor);
 
         // *** NOVO: Seção Código de Barras ***
         add(new JLabel("Código de Barras:"));
+
         JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnScanner = new JButton("Ler com Scanner");
         JButton btnManual = new JButton("Inserir Manualmente");
 
+        // 👇 CONFIGURAÇÃO DO LABEL (AQUI)
+        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+
         painelCodBarras.add(btnScanner);
         painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido); // exibe o código lido
+        painelCodBarras.add(lblCodigoLido);
+
         add(painelCodBarras);
 
         // Ação para chamar o util de leitura
@@ -100,6 +111,10 @@ public class CadastroAcessorioDialog extends JDialog {
                 lblCodigoLido.setText(codigo);
                 lblCodigoLido.setToolTipText(codigo);
                 lblCodigoLido.putClientProperty("codigoBarras", codigo);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             });
         });
 
@@ -111,8 +126,13 @@ public class CadastroAcessorioDialog extends JDialog {
                 lblCodigoLido.setText(c);
                 lblCodigoLido.setToolTipText(c);
                 lblCodigoLido.putClientProperty("codigoBarras", c);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             }
         });
+
         // *** Fim da seção Código de Barras ***
 
         // NCM: combo com todos os NCMs cadastrados
@@ -123,20 +143,27 @@ public class CadastroAcessorioDialog extends JDialog {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao carregar NCMs:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
-        add(new JLabel("NCM:")); add(cbNcm);
+        add(new JLabel("NCM:"));
+        add(cbNcm);
 
-        add(new JLabel("Quantidade:"));    add(tfQtd);
-        add(new JLabel("Custo (R$):"));    add(tfCusto);
-        add(new JLabel("Preço Venda (R$):")); add(tfPreco);
-        add(new JLabel("Fornecedor:"));    add(lblFornecedor);
-        add(new JLabel());                 add(btnSelectFornec);
+        add(new JLabel("Quantidade:"));
+        add(tfQtd);
+        add(new JLabel("Custo (R$):"));
+        add(tfCusto);
+        add(new JLabel("Preço Venda (R$):"));
+        add(tfPreco);
+        add(new JLabel("Fornecedor:"));
+        add(lblFornecedor);
+        add(new JLabel());
+        add(btnSelectFornec);
 
         JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
         btnSalvar.addActionListener(e -> salvar());
-        add(new JLabel());                 add(btnSalvar);
+        add(new JLabel());
+        add(btnSalvar);
 
         pack();
         setLocationRelativeTo(owner);
@@ -152,11 +179,11 @@ public class CadastroAcessorioDialog extends JDialog {
 
         if ("Playmats".equals(cat)) {
             lblArte.setVisible(true);
-            cbArte.setModel(new DefaultComboBoxModel<>(new String[]{"Pokémon", "Treinador", "Outros"}));
+            cbArte.setModel(new DefaultComboBoxModel<>(new String[] { "Pokémon", "Treinador", "Outros" }));
             cbArte.setVisible(true);
         } else if ("Sleeve".equals(cat)) {
             lblArte.setVisible(true);
-            cbArte.setModel(new DefaultComboBoxModel<>(new String[]{"Pokémon", "Treinador", "Outros", "Cor Única"}));
+            cbArte.setModel(new DefaultComboBoxModel<>(new String[] { "Pokémon", "Treinador", "Outros", "Cor Única" }));
             cbArte.setVisible(true);
             cbArte.addActionListener(e -> {
                 boolean corUnica = "Cor Única".equals(cbArte.getSelectedItem());
@@ -181,7 +208,8 @@ public class CadastroAcessorioDialog extends JDialog {
             }
         }
 
-        // Se o modelo AcessorioModel tivesse um campo “codigoBarras”, aqui preencheríamos:
+        // Se o modelo AcessorioModel tivesse um campo “codigoBarras”, aqui
+        // preencheríamos:
         // String codigoExistente = acessoOrig.getCodigoBarras();
         // lblCodigoLido.setText(codigoExistente);
         // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
@@ -214,19 +242,20 @@ public class CadastroAcessorioDialog extends JDialog {
 
         try {
             String id = isEdicao
-                ? acessoOrig.getId()
-                : UUID.randomUUID().toString();
+                    ? acessoOrig.getId()
+                    : UUID.randomUUID().toString();
 
             String nome = tfNome.getText().trim();
             String categoria = (String) cbCategoria.getSelectedItem();
             String arte = cbArte.isVisible()
-                ? (String) cbArte.getSelectedItem()
-                : "";
+                    ? (String) cbArte.getSelectedItem()
+                    : "";
             String cor = tfCor.isVisible()
-                ? tfCor.getText().trim()
-                : "";
+                    ? tfCor.getText().trim()
+                    : "";
 
-            // Recupera o código de barras lido (se houver); caso contrário, deixa em branco.
+            // Recupera o código de barras lido (se houver); caso contrário, deixa em
+            // branco.
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigoBarras == null) {
                 codigoBarras = "";
@@ -250,9 +279,8 @@ public class CadastroAcessorioDialog extends JDialog {
             // o valor em lblCodigoLido, caso mais tarde queira estender o model/DAO.
 
             AcessorioModel a = new AcessorioModel(
-                id, nome, qtd, custo, preco,
-                fornId, categoria, arte, cor
-            );
+                    id, nome, qtd, custo, preco,
+                    fornId, categoria, arte, cor);
             a.setFornecedorId(fornId);
 
             a.setFornecedorNome(fornNom);
@@ -260,7 +288,7 @@ public class CadastroAcessorioDialog extends JDialog {
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) {
-                service.atualizarAcessorio(a);  // método existente no service
+                service.atualizarAcessorio(a); // método existente no service
             } else {
                 service.salvarNovoAcessorio(a);
             }
@@ -268,8 +296,8 @@ public class CadastroAcessorioDialog extends JDialog {
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
-                "Erro ao salvar Acessório:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao salvar Acessório:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

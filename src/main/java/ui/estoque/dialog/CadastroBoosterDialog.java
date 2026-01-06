@@ -143,6 +143,11 @@ public class CadastroBoosterDialog extends JDialog {
         JButton btnScanner = new JButton("Ler com Scanner");
         JButton btnManual = new JButton("Inserir Manualmente");
 
+        // deixa o label "visível" mesmo vazio
+        lblCodigoLido.setText(" ");
+        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+
         painelCodBarras.add(btnScanner);
         painelCodBarras.add(btnManual);
         painelCodBarras.add(lblCodigoLido);
@@ -156,8 +161,8 @@ public class CadastroBoosterDialog extends JDialog {
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                "Erro ao carregar NCMs:\n" + ex.getMessage(),
-                "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
         add(new JLabel("NCM:"));
         add(cbNcm);
@@ -168,6 +173,10 @@ public class CadastroBoosterDialog extends JDialog {
                 lblCodigoLido.setText(codigo);
                 lblCodigoLido.setToolTipText(codigo);
                 lblCodigoLido.putClientProperty("codigoBarras", codigo);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             });
         });
 
@@ -179,6 +188,10 @@ public class CadastroBoosterDialog extends JDialog {
                 lblCodigoLido.setText(c);
                 lblCodigoLido.setToolTipText(c);
                 lblCodigoLido.putClientProperty("codigoBarras", c);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             }
         });
 
@@ -369,7 +382,12 @@ public class CadastroBoosterDialog extends JDialog {
         // Tipo + Idioma + Código de Barras
         cbTipo.setSelectedItem(boosterOrig.getTipoBooster());
         cbIdioma.setSelectedItem(boosterOrig.getIdioma());
-        tfCodigoBarras.setText(boosterOrig.getCodigoBarras());
+        String cod = boosterOrig.getCodigoBarras();
+        if (cod != null && !cod.isBlank()) {
+            lblCodigoLido.setText(cod);
+            lblCodigoLido.setToolTipText(cod);
+            lblCodigoLido.putClientProperty("codigoBarras", cod);
+        }
 
         // Fornecedor
         fornecedorSel = new FornecedorModel();

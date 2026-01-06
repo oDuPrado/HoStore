@@ -40,7 +40,7 @@ public class CadastroDeckDialog extends JDialog {
 
     // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
     // ***
-    private final JLabel lblCodigoLido = new JLabel("");
+    private final JLabel lblCodigoLido = new JLabel(" ");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
@@ -120,9 +120,13 @@ public class CadastroDeckDialog extends JDialog {
         JButton btnScanner = new JButton("Ler com Scanner");
         JButton btnManual = new JButton("Inserir Manualmente");
 
+        // deixa o label visível mesmo antes de ter código
+        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+
         painelCodBarras.add(btnScanner);
         painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido); // exibe o código lido
+        painelCodBarras.add(lblCodigoLido);
         content.add(painelCodBarras);
 
         // Ação para chamar o util de leitura
@@ -131,6 +135,10 @@ public class CadastroDeckDialog extends JDialog {
                 lblCodigoLido.setText(codigo);
                 lblCodigoLido.setToolTipText(codigo);
                 lblCodigoLido.putClientProperty("codigoBarras", codigo);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             });
         });
 
@@ -142,8 +150,13 @@ public class CadastroDeckDialog extends JDialog {
                 lblCodigoLido.setText(c);
                 lblCodigoLido.setToolTipText(c);
                 lblCodigoLido.putClientProperty("codigoBarras", c);
+
+                lblCodigoLido.revalidate();
+                lblCodigoLido.repaint();
+                pack();
             }
         });
+
         // *** Fim da seção Código de Barras ***
 
         // Botão Salvar/Atualizar
@@ -177,6 +190,12 @@ public class CadastroDeckDialog extends JDialog {
         tfQtd.setValue(deckOrig.getQuantidade());
         tfCusto.setValue(deckOrig.getPrecoCompra());
         tfPreco.setValue(deckOrig.getPrecoVenda());
+        String cod = deckOrig.getCodigoBarras();
+        if (cod != null && !cod.isBlank()) {
+            lblCodigoLido.setText(cod);
+            lblCodigoLido.setToolTipText(cod);
+            lblCodigoLido.putClientProperty("codigoBarras", cod);
+        }
 
         fornecedorSel = new FornecedorModel();
         fornecedorSel.setId(deckOrig.getFornecedor());
@@ -243,7 +262,6 @@ public class CadastroDeckDialog extends JDialog {
                     (String) cbCategoria.getSelectedItem(),
                     jogoSel.getId());
 
-            
             d.setCodigoBarras(codigoBarras);
             d.setFornecedorId(fornecedorSel.getId());
 
