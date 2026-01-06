@@ -52,12 +52,13 @@ public class PainelEstoque extends JPanel {
     private final JButton botaoAdicionar;
 
     // Summary labels
-    private final JLabel lblTotalEstoque = new JLabel("Total Estoque: R$ 0,00");
-    private final JLabel lblPmz          = new JLabel("PMZ: R$ 0,00");
-    private final JLabel lblTicketCount  = new JLabel("Ticket Count: 0");
-    private final JLabel lblTicketMedio  = new JLabel("Ticket Médio: R$ 0,00");
+    private final JLabel lblTotalEstoqueCusto = new JLabel("Estoque (Custo): R$ 0,00");
+    private final JLabel lblTotalEstoqueVenda = new JLabel("Estoque (Venda): R$ 0,00");
+    private final JLabel lblPmz = new JLabel("PMZ: R$ 0,00");
+    private final JLabel lblItensEstoque = new JLabel("Itens em Estoque: 0");
+    private final JLabel lblPrecoMedioVenda = new JLabel("Preço Médio Venda: R$ 0,00");
 
-    private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
+    private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     public PainelEstoque() {
         setLayout(new BorderLayout(10, 10));
@@ -174,7 +175,7 @@ public class PainelEstoque extends JPanel {
         tabela.getColumnModel().getColumn(2).setCellRenderer(center);
         // R$ Compra = col 3
         tabela.getColumnModel().getColumn(3).setCellRenderer(moeda);
-        // R$ Venda  = col 4
+        // R$ Venda = col 4
         tabela.getColumnModel().getColumn(4).setCellRenderer(moeda);
 
         // Duplo-clique = editar
@@ -225,10 +226,11 @@ public class PainelEstoque extends JPanel {
 
         // painel de resumo abaixo da tabela
         JPanel painelResumo = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
-        painelResumo.add(lblTotalEstoque);
+        painelResumo.add(lblTotalEstoqueCusto);
+        painelResumo.add(lblTotalEstoqueVenda);
         painelResumo.add(lblPmz);
-        painelResumo.add(lblTicketCount);
-        painelResumo.add(lblTicketMedio);
+        painelResumo.add(lblItensEstoque);
+        painelResumo.add(lblPrecoMedioVenda);
 
         JPanel wrapperSouth = new JPanel(new BorderLayout());
         wrapperSouth.add(painelResumo, BorderLayout.NORTH);
@@ -423,29 +425,53 @@ public class PainelEstoque extends JPanel {
             }
 
             modeloTabela.addRow(new Object[] {
-                produto.getNome(),
-                tipoExibido,
-                produto.getQuantidade(),
-                produto.getPrecoCompra(),
-                produto.getPrecoVenda(),
-                produto.getFornecedorNome()
+                    produto.getNome(),
+                    tipoExibido,
+                    produto.getQuantidade(),
+                    produto.getPrecoCompra(),
+                    produto.getPrecoVenda(),
+                    produto.getFornecedorNome()
             });
         }
 
-        // Summary calculation
-        int totalQtd = filtradosPorJogo.stream().mapToInt(ProdutoModel::getQuantidade).sum();
-        double totalCompra = filtradosPorJogo.stream()
-                .mapToDouble(p -> p.getQuantidade() * p.getPrecoCompra()).sum();
-        double totalVenda  = filtradosPorJogo.stream()
-                .mapToDouble(p -> p.getQuantidade() * p.getPrecoVenda()).sum();
+        // ======================= RESUMO (CONSISTENTE COM RELATÓRIOS)
+        // =======================
+        // Regras:
+        // - Estoque (Custo): soma(qtd * precoCompra)
+        // - Estoque (Venda): soma(qtd * precoVenda)
+        // - Itens em Estoque: soma(qtd)
+        // - PMZ: (Estoque Custo) / (Itens) [se itens > 0]
+        // - Preço Médio Venda (ponderado): (Estoque Venda) / (Itens) [se itens > 0]
 
-        double pmz = totalQtd > 0 ? totalCompra / totalQtd : 0;
-        double ticketMedio = totalQtd > 0 ? totalVenda / totalQtd : 0;
+        int itensEstoque = 0;
+        double estoqueCusto = 0.0;
+        double estoqueVenda = 0.0;
 
-        lblTotalEstoque.setText("Total Estoque: " + brl.format(totalCompra));
+        for (ProdutoModel p : filtradosPorJogo) {
+            int qtd = Math.max(0, p.getQuantidade());
+
+            double compra = p.getPrecoCompra();
+            double venda = p.getPrecoVenda();
+
+            // evita ruído: se vier null/NaN/negativo, zera (melhor do que quebrar KPI)
+            if (Double.isNaN(compra) || Double.isInfinite(compra) || compra < 0)
+                compra = 0.0;
+            if (Double.isNaN(venda) || Double.isInfinite(venda) || venda < 0)
+                venda = 0.0;
+
+            itensEstoque += qtd;
+            estoqueCusto += (qtd * compra);
+            estoqueVenda += (qtd * venda);
+        }
+
+        double pmz = itensEstoque > 0 ? (estoqueCusto / itensEstoque) : 0.0;
+        double precoMedioVenda = itensEstoque > 0 ? (estoqueVenda / itensEstoque) : 0.0;
+
+        lblTotalEstoqueCusto.setText("Estoque (Custo): " + brl.format(estoqueCusto));
+        lblTotalEstoqueVenda.setText("Estoque (Venda): " + brl.format(estoqueVenda));
         lblPmz.setText("PMZ: " + brl.format(pmz));
-        lblTicketCount.setText("Ticket Count: " + totalQtd);
-        lblTicketMedio.setText("Ticket Médio: " + brl.format(ticketMedio));
+        lblItensEstoque.setText("Itens em Estoque: " + itensEstoque);
+        lblPrecoMedioVenda.setText("Preço Médio Venda: " + brl.format(precoMedioVenda));
     }
 
     /* ------------------------------ AÇÕES CRUD ------------------------------ */

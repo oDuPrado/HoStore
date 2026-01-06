@@ -1,0 +1,507 @@
+package dao;
+
+import model.*;
+import util.DB;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Fonte única da verdade.
+ * Dashboard e Relatórios usam esse DAO pra não virar dois sistemas com números divergentes.
+ */
+public class RelatoriosDAO {
+
+    public DashboardKpisModel carregarKpisPeriodo(PeriodoFiltro periodo) {
+        DashboardKpisModel k = new DashboardKpisModel();
+        k.periodo = periodo;
+
+        try (Connection c = DB.get()) {
+
+            // Faturamento, qtd vendas, ticket, descontos, acréscimos, cancelamentos
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN total_liquido ELSE 0 END), 0) AS faturamento,
+                  COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN total_bruto ELSE 0 END), 0) AS bruto,
+                  COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN desconto ELSE 0 END), 0) AS desconto_total,
+                  COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN acrescimo ELSE 0 END), 0) AS acrescimo_total,
+                  SUM(CASE WHEN status='cancelada' THEN 1 ELSE 0 END) AS cancelamentos_qtd,
+                  SUM(CASE WHEN status <> 'cancelada' THEN 1 ELSE 0 END) AS vendas_qtd,
+                  COALESCE(AVG(CASE WHEN status <> 'cancelada' THEN total_liquido END), 0) AS ticket_medio
+                FROM vendas
+                WHERE date(data_venda) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        k.faturamento = rs.getDouble("faturamento");
+                        k.qtdVendas = rs.getInt("vendas_qtd");
+                        k.ticketMedio = rs.getDouble("ticket_medio");
+                        k.descontoTotal = rs.getDouble("desconto_total");
+                        k.acrescimoTotal = rs.getDouble("acrescimo_total");
+                        k.cancelamentosQtd = rs.getInt("cancelamentos_qtd");
+                    }
+                }
+            }
+
+            // Itens vendidos (apenas vendas não canceladas)
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT COALESCE(SUM(vi.qtd), 0) AS itens
+                FROM vendas_itens vi
+                JOIN vendas v ON v.id = vi.venda_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) k.itensVendidos = rs.getInt("itens");
+                }
+            }
+
+            // Lucro estimado (preço real do item - custo do produto)
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT COALESCE(SUM((vi.preco - COALESCE(p.preco_compra,0)) * vi.qtd), 0) AS lucro
+                FROM vendas_itens vi
+                JOIN vendas v ON v.id = vi.venda_id
+                JOIN produtos p ON p.id = vi.produto_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) k.lucroEstimado = rs.getDouble("lucro");
+                }
+            }
+
+            k.margemPct = (Math.abs(k.faturamento) < 0.0000001) ? 0 : (k.lucroEstimado / k.faturamento);
+
+            // Devoluções (qtd e valor)
+            // OBS: vendas_devolucoes tem valor_unit. Se estiver 0, você já sabe que ainda tem bug em algum fluxo.
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  COALESCE(SUM(d.qtd), 0) AS qtd,
+                  COALESCE(SUM(d.qtd * COALESCE(d.valor_unit, 0)), 0) AS valor
+                FROM vendas_devolucoes d
+                JOIN vendas v ON v.id = d.venda_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        k.devolucoesQtd = rs.getInt("qtd");
+                        k.devolucoesValor = rs.getDouble("valor");
+                    }
+                }
+            }
+
+            // Estornos (valor)
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT COALESCE(SUM(e.valor_estornado), 0) AS valor
+                FROM vendas_estornos_pagamentos e
+                JOIN vendas v ON v.id = e.venda_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) k.estornosValor = rs.getDouble("valor");
+                }
+            }
+
+            // Mix de pagamentos (vendas_pagamentos)
+            double totalPag = queryDouble(c, """
+                SELECT COALESCE(SUM(vp.valor),0)
+                FROM vendas_pagamentos vp
+                JOIN vendas v ON v.id = vp.venda_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """, periodo.getInicioIso(), periodo.getFimIso());
+
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT vp.tipo AS tipo, COALESCE(SUM(vp.valor),0) AS total
+                FROM vendas_pagamentos vp
+                JOIN vendas v ON v.id = vp.venda_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                GROUP BY vp.tipo
+                ORDER BY total DESC
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        String tipo = rs.getString("tipo");
+                        double valor = rs.getDouble("total");
+                        double pct = (Math.abs(totalPag) < 0.0000001) ? 0 : (valor / totalPag);
+                        k.mixPagamentos.add(new PagamentoMixItemModel(tipo, valor, pct));
+                    }
+                }
+            }
+
+            // Taxa de cartão estimada (simplificada):
+            // - Se tiver tabela taxas_cartao, isso depende de bandeira/tipo/parcelas/mes.
+            // - Como vendas_pagamentos não guarda bandeira/parcelas por pagamento, estimamos pela coluna forma_pagamento + parcelas na venda.
+            // - Se você quiser precisão, precisa modelar pagamento com metadados (bandeira, tipo, parcelas).
+            k.taxaCartaoEstimada = estimarTaxaCartaoSimplificada(c, periodo);
+
+            // Alertas gerais (fiscal + vencidos)
+            k.docsFiscaisPendentes = (int) queryDouble(c, """
+                SELECT COUNT(*)
+                FROM documentos_fiscais
+                WHERE status NOT IN ('AUTORIZADO','CANCELADO')
+            """);
+
+            k.receberVencido = queryDouble(c, """
+                SELECT COALESCE(SUM(valor_nominal - valor_pago),0)
+                FROM parcelas_contas_receber
+                WHERE status='aberto' AND date(vencimento) < date('now')
+            """);
+
+            k.pagarVencido = queryDouble(c, """
+                SELECT COALESCE(SUM(valor_nominal - valor_pago),0)
+                FROM parcelas_contas_pagar
+                WHERE status='aberto' AND date(vencimento) < date('now')
+            """);
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao carregar KPIs: " + e.getMessage(), e);
+        }
+
+        return k;
+    }
+
+    public List<EstoqueBaixoItemModel> listarEstoqueBaixo(int threshold, int limit) {
+        List<EstoqueBaixoItemModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT id, nome, quantidade
+                FROM produtos
+                WHERE quantidade <= ?
+                ORDER BY quantidade ASC, nome ASC
+                LIMIT ?
+             """)) {
+            ps.setInt(1, threshold);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new EstoqueBaixoItemModel(rs.getString("id"), rs.getString("nome"), rs.getInt("quantidade")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar estoque baixo: " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<EstoqueBaixoItemModel> listarEncalhados(PeriodoFiltro periodo, int limit) {
+        // Produtos com estoque > 0 e ZERO vendas no período
+        List<EstoqueBaixoItemModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT p.id, p.nome, p.quantidade
+                FROM produtos p
+                WHERE p.quantidade > 0
+                  AND p.id NOT IN (
+                    SELECT DISTINCT vi.produto_id
+                    FROM vendas_itens vi
+                    JOIN vendas v ON v.id = vi.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                  )
+                ORDER BY p.quantidade DESC, p.nome ASC
+                LIMIT ?
+             """)) {
+            ps.setString(1, periodo.getInicioIso());
+            ps.setString(2, periodo.getFimIso());
+            ps.setInt(3, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new EstoqueBaixoItemModel(rs.getString("id"), rs.getString("nome"), rs.getInt("quantidade")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar encalhados: " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<ProdutoVendaResumoModel> listarTopProdutosPorQtd(PeriodoFiltro periodo, int limit) {
+        List<ProdutoVendaResumoModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  vi.produto_id AS produto_id,
+                  COALESCE(p.nome, '[Produto removido]') AS nome,
+                  COALESCE(SUM(vi.qtd),0) AS qtd,
+                  COALESCE(SUM(vi.total_item),0) AS total
+                FROM vendas_itens vi
+                JOIN vendas v ON v.id = vi.venda_id
+                LEFT JOIN produtos p ON p.id = vi.produto_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                GROUP BY vi.produto_id
+                ORDER BY qtd DESC, total DESC
+                LIMIT ?
+             """)) {
+            ps.setString(1, periodo.getInicioIso());
+            ps.setString(2, periodo.getFimIso());
+            ps.setInt(3, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ProdutoVendaResumoModel(
+                            rs.getString("produto_id"),
+                            rs.getString("nome"),
+                            rs.getInt("qtd"),
+                            rs.getDouble("total")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar top produtos (qtd): " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<ProdutoVendaResumoModel> listarTopProdutosPorTotal(PeriodoFiltro periodo, int limit) {
+        List<ProdutoVendaResumoModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  vi.produto_id AS produto_id,
+                  COALESCE(p.nome, '[Produto removido]') AS nome,
+                  COALESCE(SUM(vi.qtd),0) AS qtd,
+                  COALESCE(SUM(vi.total_item),0) AS total
+                FROM vendas_itens vi
+                JOIN vendas v ON v.id = vi.venda_id
+                LEFT JOIN produtos p ON p.id = vi.produto_id
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                GROUP BY vi.produto_id
+                ORDER BY total DESC, qtd DESC
+                LIMIT ?
+             """)) {
+            ps.setString(1, periodo.getInicioIso());
+            ps.setString(2, periodo.getFimIso());
+            ps.setInt(3, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ProdutoVendaResumoModel(
+                            rs.getString("produto_id"),
+                            rs.getString("nome"),
+                            rs.getInt("qtd"),
+                            rs.getDouble("total")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar top produtos (total): " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<SerieDiariaModel> listarVendasPorDia(PeriodoFiltro periodo) {
+        List<SerieDiariaModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT date(v.data_venda) AS dia,
+                       COUNT(*) AS qtd_vendas,
+                       COALESCE(SUM(v.total_liquido),0) AS total
+                FROM vendas v
+                WHERE v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                GROUP BY date(v.data_venda)
+                ORDER BY date(v.data_venda) ASC
+             """)) {
+            ps.setString(1, periodo.getInicioIso());
+            ps.setString(2, periodo.getFimIso());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new SerieDiariaModel(rs.getString("dia"), rs.getInt("qtd_vendas"), rs.getDouble("total")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar série diária: " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<ParcelaVencidaModel> listarVencidosReceber(int limit) {
+        List<ParcelaVencidaModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  COALESCE(cli.nome, '[Sem cliente]') AS nome,
+                  date(p.vencimento) AS venc,
+                  (p.valor_nominal - p.valor_pago) AS aberto,
+                  CAST((julianday('now') - julianday(date(p.vencimento))) AS INTEGER) AS dias
+                FROM parcelas_contas_receber p
+                LEFT JOIN titulos_contas_receber t ON t.id = p.titulo_id
+                LEFT JOIN clientes cli ON cli.id = t.cliente_id
+                WHERE p.status='aberto'
+                  AND date(p.vencimento) < date('now')
+                  AND (p.valor_nominal - p.valor_pago) > 0
+                ORDER BY date(p.vencimento) ASC
+                LIMIT ?
+             """)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ParcelaVencidaModel("RECEBER", rs.getString("nome"),
+                            rs.getString("venc"), rs.getDouble("aberto"), rs.getInt("dias")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar vencidos (receber): " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<ParcelaVencidaModel> listarVencidosPagar(int limit) {
+        List<ParcelaVencidaModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  COALESCE(f.nome, '[Sem fornecedor]') AS nome,
+                  date(p.vencimento) AS venc,
+                  (p.valor_nominal - p.valor_pago) AS aberto,
+                  CAST((julianday('now') - julianday(date(p.vencimento))) AS INTEGER) AS dias
+                FROM parcelas_contas_pagar p
+                LEFT JOIN titulos_contas_pagar t ON t.id = p.titulo_id
+                LEFT JOIN fornecedores f ON f.id = t.fornecedor_id
+                WHERE p.status='aberto'
+                  AND date(p.vencimento) < date('now')
+                  AND (p.valor_nominal - p.valor_pago) > 0
+                ORDER BY date(p.vencimento) ASC
+                LIMIT ?
+             """)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ParcelaVencidaModel("PAGAR", rs.getString("nome"),
+                            rs.getString("venc"), rs.getDouble("aberto"), rs.getInt("dias")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar vencidos (pagar): " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<DocFiscalPendenteModel> listarDocsFiscaisPendentes(int limit) {
+        List<DocFiscalPendenteModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT id, venda_id, modelo, serie, numero, ambiente, status, erro
+                FROM documentos_fiscais
+                WHERE status NOT IN ('AUTORIZADO','CANCELADO')
+                ORDER BY criado_em DESC
+                LIMIT ?
+             """)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DocFiscalPendenteModel d = new DocFiscalPendenteModel();
+                    d.id = rs.getString("id");
+                    d.vendaId = rs.getInt("venda_id");
+                    d.modelo = rs.getString("modelo");
+                    d.serie = rs.getInt("serie");
+                    d.numero = rs.getInt("numero");
+                    d.ambiente = rs.getString("ambiente");
+                    d.status = rs.getString("status");
+                    d.erro = rs.getString("erro");
+                    list.add(d);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar docs fiscais pendentes: " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    public List<MovEstoqueModel> listarUltimasMovimentacoesEstoque(int limit) {
+        List<MovEstoqueModel> list = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement("""
+                SELECT
+                  em.id,
+                  em.produto_id,
+                  COALESCE(p.nome, '[Produto removido]') AS produto_nome,
+                  em.tipo_mov,
+                  COALESCE(em.quantidade, 0) AS quantidade,
+                  em.motivo,
+                  em.data,
+                  em.usuario
+                FROM estoque_movimentacoes em
+                LEFT JOIN produtos p ON p.id = em.produto_id
+                ORDER BY em.id DESC
+                LIMIT ?
+             """)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MovEstoqueModel m = new MovEstoqueModel();
+                    m.id = rs.getInt("id");
+                    m.produtoId = rs.getString("produto_id");
+                    m.produtoNome = rs.getString("produto_nome");
+                    m.tipoMov = rs.getString("tipo_mov");
+                    m.quantidade = rs.getInt("quantidade");
+                    m.motivo = rs.getString("motivo");
+                    m.dataIso = rs.getString("data");
+                    m.usuario = rs.getString("usuario");
+                    list.add(m);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Falha ao listar movimentações estoque: " + e.getMessage(), e);
+        }
+        return list;
+    }
+
+    // -------------------- Helpers --------------------
+
+    private double queryDouble(Connection c, String sql, String... params) throws SQLException {
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) ps.setString(i + 1, params[i]);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getDouble(1) : 0.0;
+            }
+        }
+    }
+
+    private double queryDouble(Connection c, String sql) throws SQLException {
+        try (PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getDouble(1) : 0.0;
+        }
+    }
+
+    private double estimarTaxaCartaoSimplificada(Connection c, PeriodoFiltro periodo) throws SQLException {
+        // Estratégia simples:
+        // Se a venda forma_pagamento contém "CARTAO" então aplica taxa média ponderada do mês vigente (taxas_cartao),
+        // senão zero. (É estimativa, mas já dá sinal de “taxa comendo margem”.)
+        //
+        // Se quiser 100% real: tem que guardar bandeira/tipo no pagamento, e aí calcular corretamente.
+        double taxaMediaMes = queryDouble(c, """
+            SELECT COALESCE(AVG(taxa_pct),0) / 100.0
+            FROM taxas_cartao
+            WHERE mes_vigencia = strftime('%Y-%m','now')
+        """);
+
+        double totalCartao = queryDouble(c, """
+            SELECT COALESCE(SUM(total_liquido),0)
+            FROM vendas
+            WHERE status <> 'cancelada'
+              AND UPPER(forma_pagamento) LIKE '%CARTAO%'
+              AND date(data_venda) BETWEEN date(?) AND date(?)
+        """, periodo.getInicioIso(), periodo.getFimIso());
+
+        return totalCartao * taxaMediaMes;
+    }
+}
