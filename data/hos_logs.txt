@@ -1046,3 +1046,7 @@ jun. 11, 2025 11:56:27 AM util.LogService info
 INFORMAÇÕES: Venda 7 finalizada com sucesso
 jun. 11, 2025 11:56:27 AM util.LogService info
 INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jan. 06, 2026 2:02:34 PM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso
+jan. 06, 2026 3:00:51 PM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso

@@ -215,6 +215,314 @@ public class DB {
                             ")",
                     "logs_acessos");
 
+            // ========== FISCAL ==========
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS ncm (" +
+                            "codigo TEXT PRIMARY KEY, " +
+                            "descricao TEXT NOT NULL" +
+                            ");",
+                    "ncm");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS cfop (" +
+                            "codigo TEXT PRIMARY KEY, " +
+                            "descricao TEXT NOT NULL" +
+                            ");",
+                    "cfop");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS csosn (" +
+                            "codigo TEXT PRIMARY KEY, " +
+                            "descricao TEXT NOT NULL" +
+                            ");",
+                    "csosn");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS origem (" +
+                            "codigo TEXT PRIMARY KEY, " +
+                            "descricao TEXT NOT NULL" +
+                            ");",
+                    "origem");
+
+            // unidades
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS unidades (" +
+                            "codigo TEXT PRIMARY KEY, " +
+                            "descricao TEXT NOT NULL" +
+                            ")",
+                    "unidades");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS config_fiscal (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "cliente_id TEXT UNIQUE, " +
+                            "regime_tributario TEXT, " +
+                            "cfop_padrao TEXT, " +
+                            "csosn_padrao TEXT, " +
+                            "origem_padrao TEXT, " +
+                            "ncm_padrao TEXT, " +
+                            "unidade_padrao TEXT, " +
+                            "FOREIGN KEY(cliente_id) REFERENCES clientes(id), " +
+                            "FOREIGN KEY(cfop_padrao) REFERENCES cfop(codigo), " +
+                            "FOREIGN KEY(csosn_padrao) REFERENCES csosn(codigo), " +
+                            "FOREIGN KEY(origem_padrao) REFERENCES origem(codigo), " +
+                            "FOREIGN KEY(ncm_padrao) REFERENCES ncm(codigo), " +
+                            "FOREIGN KEY(unidade_padrao) REFERENCES unidades(codigo) " +
+                            ");",
+                    "config_fiscal");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS config_fiscal_default (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "regime_tributario TEXT, " +
+                            "cfop_padrao TEXT, " +
+                            "csosn_padrao TEXT, " +
+                            "origem_padrao TEXT, " +
+                            "ncm_padrao TEXT, " +
+                            "unidade_padrao TEXT, " +
+                            "FOREIGN KEY(cfop_padrao) REFERENCES cfop(codigo), " +
+                            "FOREIGN KEY(csosn_padrao) REFERENCES csosn(codigo), " +
+                            "FOREIGN KEY(origem_padrao) REFERENCES origem(codigo), " +
+                            "FOREIGN KEY(ncm_padrao) REFERENCES ncm(codigo), " +
+                            "FOREIGN KEY(unidade_padrao) REFERENCES unidades(codigo) " +
+                            ");",
+                    "config_fiscal_default");
+
+            // ========== TRILHO FISCAL (DOCUMENTOS) ==========
+            executeComLog(st, """
+                        CREATE TABLE IF NOT EXISTS sequencias_fiscais (
+                          id TEXT PRIMARY KEY,
+                          modelo TEXT NOT NULL,
+                          codigo_modelo INTEGER NOT NULL,
+                          serie INTEGER NOT NULL,
+                          ambiente TEXT NOT NULL,
+                          ultimo_numero INTEGER NOT NULL DEFAULT 0,
+                          criado_em TEXT NOT NULL,
+                          alterado_em TEXT
+                        )
+                    """, "sequencias_fiscais");
+
+            executeComLog(st, """
+                        CREATE UNIQUE INDEX IF NOT EXISTS ux_seq_fiscal
+                        ON sequencias_fiscais (modelo, codigo_modelo, serie, ambiente)
+                    """, "ux_seq_fiscal");
+
+            executeComLog(st, """
+                        CREATE TABLE IF NOT EXISTS documentos_fiscais (
+                          id TEXT PRIMARY KEY,
+                          venda_id INTEGER NOT NULL,
+                          modelo TEXT NOT NULL,
+                          codigo_modelo INTEGER NOT NULL,
+                          serie INTEGER NOT NULL,
+                          numero INTEGER NOT NULL,
+                          ambiente TEXT NOT NULL,
+                          status TEXT NOT NULL,
+
+                          chave_acesso TEXT,
+                          protocolo TEXT,
+                          recibo TEXT,
+                          xml TEXT,
+                          erro TEXT,
+
+                          total_produtos REAL,
+                          total_desconto REAL,
+                          total_acrescimo REAL,
+                          total_final REAL,
+
+                          criado_em TEXT NOT NULL,
+                          criado_por TEXT,
+                          atualizado_em TEXT,
+                          cancelado_em TEXT,
+                          cancelado_por TEXT,
+
+                          FOREIGN KEY (venda_id) REFERENCES vendas(id)
+                        )
+                    """, "documentos_fiscais");
+
+            executeComLog(st, """
+                        CREATE UNIQUE INDEX IF NOT EXISTS ux_doc_fiscal_unico
+                        ON documentos_fiscais (modelo, codigo_modelo, serie, numero, ambiente)
+                    """, "ux_doc_fiscal_unico");
+
+            executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_doc_fiscal_venda ON documentos_fiscais(venda_id)",
+                    "idx_doc_fiscal_venda");
+
+            executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_doc_fiscal_status ON documentos_fiscais(status)",
+                    "idx_doc_fiscal_status");
+
+            executeComLog(st, """
+                        CREATE TABLE IF NOT EXISTS documentos_fiscais_itens (
+                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          documento_id TEXT NOT NULL,
+                          venda_item_id INTEGER,
+                          produto_id TEXT,
+                          descricao TEXT NOT NULL,
+
+                          ncm TEXT NOT NULL,
+                          cfop TEXT NOT NULL,
+                          csosn TEXT NOT NULL,
+                          origem TEXT NOT NULL,
+                          unidade TEXT NOT NULL,
+
+                          quantidade INTEGER NOT NULL,
+                          valor_unit REAL NOT NULL,
+                          desconto REAL NOT NULL DEFAULT 0,
+                          acrescimo REAL NOT NULL DEFAULT 0,
+                          total_item REAL NOT NULL,
+                          observacoes TEXT,
+
+                          FOREIGN KEY (documento_id) REFERENCES documentos_fiscais(id) ON DELETE CASCADE
+                        )
+                    """, "documentos_fiscais_itens");
+
+            executeComLog(st,
+                    "CREATE INDEX IF NOT EXISTS idx_doc_fiscal_itens_doc ON documentos_fiscais_itens(documento_id)",
+                    "idx_doc_fiscal_itens_doc");
+
+            executeComLog(st, """
+                        CREATE TABLE IF NOT EXISTS documentos_fiscais_pagamentos (
+                          id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          documento_id TEXT NOT NULL,
+                          tipo TEXT NOT NULL,
+                          valor REAL NOT NULL,
+                          FOREIGN KEY (documento_id) REFERENCES documentos_fiscais(id) ON DELETE CASCADE
+                        )
+                    """, "documentos_fiscais_pagamentos");
+
+            executeComLog(st,
+                    "CREATE INDEX IF NOT EXISTS idx_doc_fiscal_pag_doc ON documentos_fiscais_pagamentos(documento_id)",
+                    "idx_doc_fiscal_pag_doc");
+
+            // ========== PRODUTOS / ESTOQUE ==========
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS produtos (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "nome TEXT NOT NULL, " +
+                            "jogo_id TEXT, " +
+                            "tipo TEXT NOT NULL, " +
+                            "quantidade INTEGER NOT NULL DEFAULT 0, " +
+                            "preco_compra REAL, " +
+                            "preco_venda REAL, " +
+                            "codigo_barras TEXT, " +
+
+                            // ===== FISCAL (mínimo para NFC-e) =====
+                            "ncm TEXT, " + // ex: 95049090 etc
+                            "cfop TEXT, " + // ex: 5102 etc
+                            "csosn TEXT, " + // ex: 102, 500 etc (Simples Nacional)
+                            "origem TEXT, " + // ex: 0,1,2...
+                            "unidade TEXT, " + // ex: UN, KG, CX...
+
+                            "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, " +
+                            "criado_em TEXT, " +
+                            "alterado_em TEXT, " +
+                            "fornecedor_id TEXT, " +
+                            "FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id), " +
+                            "FOREIGN KEY (ncm) REFERENCES ncm(codigo), " +
+                            "FOREIGN KEY (cfop) REFERENCES cfop(codigo), " +
+                            "FOREIGN KEY (csosn) REFERENCES csosn(codigo), " +
+                            "FOREIGN KEY (unidade) REFERENCES unidades(codigo), " +
+                            "FOREIGN KEY (origem) REFERENCES origem(codigo) " +
+                            ")",
+                    "produtos");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS boosters (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "nome TEXT, " +
+                            "jogo_id TEXT," +
+                            "serie TEXT, " +
+                            "colecao TEXT, " +
+                            "tipo TEXT, " +
+                            "idioma TEXT, " +
+                            "codigo_barras TEXT, " +
+                            "quantidade INTEGER, " +
+                            "custo REAL, " +
+                            "preco_venda REAL, " +
+                            "fornecedor_id TEXT, " +
+                            "data_lancamento TEXT, " +
+                            "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id), " +
+                            "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
+                            ")",
+                    "boosters");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS decks (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "fornecedor TEXT, " +
+                            "colecao TEXT, " +
+                            "jogo_id TEXT, " +
+                            "tipo_deck TEXT, " +
+                            "categoria TEXT, " +
+                            "codigo_barras TEXT, " +
+                            "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
+                            "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
+                            ")",
+                    "decks");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS etbs (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "fornecedor TEXT, " +
+                            "jogo_id TEXT, " +
+                            "serie TEXT, " +
+                            "colecao TEXT, " +
+                            "tipo TEXT, " +
+                            "versao TEXT, " +
+                            "codigo_barras TEXT, " +
+                            "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
+                            "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
+                            ")",
+                    "etbs");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS acessorios (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "nome TEXT NOT NULL, " +
+                            "tipo TEXT NOT NULL, " +
+                            "arte TEXT, " +
+                            "cor TEXT, " +
+                            "quantidade INTEGER NOT NULL, " +
+                            "custo REAL, " +
+                            "preco_venda REAL, " +
+                            "fornecedor_id TEXT, " +
+                            "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                            ")",
+                    "acessorios");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS produtos_alimenticios (" +
+                            "id TEXT PRIMARY KEY, " +
+                            "nome TEXT NOT NULL, " +
+                            "categoria TEXT, " +
+                            "subtipo TEXT, " +
+                            "marca TEXT, " +
+                            "sabor TEXT, " +
+                            "lote TEXT, " +
+                            "peso REAL, " +
+                            "unidade_peso TEXT, " +
+                            "codigo_barras TEXT, " +
+                            "data_validade TEXT, " +
+                            "quantidade INTEGER, " +
+                            "preco_compra REAL, " +
+                            "preco_venda REAL, " +
+                            "fornecedor_id TEXT, " +
+                            "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                            ")",
+                    "produtos_alimenticios");
+
+            executeComLog(st,
+                    "CREATE TABLE IF NOT EXISTS estoque_movimentacoes(" +
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "produto_id TEXT, " +
+                            "tipo_mov TEXT," +
+                            "quantidade INTEGER, " +
+                            "motivo TEXT, " +
+                            "data TEXT, " +
+                            "usuario TEXT," +
+                            "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
+                            ")",
+                    "estoque_movimentacoes");
+
             // ========== VENDAS ==========
             executeComLog(st,
                     "CREATE TABLE IF NOT EXISTS vendas (" +
@@ -367,124 +675,6 @@ public class DB {
                             "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                             ")",
                     "cartas");
-
-            // ========== PRODUTOS / ESTOQUE ==========
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS produtos (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "nome TEXT NOT NULL, " +
-                            "jogo_id TEXT, " +
-                            "tipo TEXT NOT NULL, " +
-                            "quantidade INTEGER NOT NULL, " +
-                            "preco_compra REAL, " +
-                            "preco_venda REAL, " +
-                            "codigo_barras TEXT, " +
-                            "ncm TEXT, " +
-                            "lucro REAL GENERATED ALWAYS AS (preco_venda - preco_compra) VIRTUAL, " +
-                            "criado_em TEXT, " +
-                            "alterado_em TEXT, " +
-                            "fornecedor_id TEXT, " +
-                            "FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id)" +
-                            ")",
-                    "produtos");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS boosters (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "nome TEXT, " +
-                            "jogo_id TEXT," +
-                            "serie TEXT, " +
-                            "colecao TEXT, " +
-                            "tipo TEXT, " +
-                            "idioma TEXT, " +
-                            "codigo_barras TEXT, " +
-                            "quantidade INTEGER, " +
-                            "custo REAL, " +
-                            "preco_venda REAL, " +
-                            "fornecedor_id TEXT, " +
-                            "data_lancamento TEXT, " +
-                            "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id), " +
-                            "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
-                            ")",
-                    "boosters");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS decks (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "fornecedor TEXT, " +
-                            "colecao TEXT, " +
-                            "jogo_id TEXT, " +
-                            "tipo_deck TEXT, " +
-                            "categoria TEXT, " +
-                            "codigo_barras TEXT, " +
-                            "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
-                            "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
-                            ")",
-                    "decks");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS etbs (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "fornecedor TEXT, " +
-                            "jogo_id TEXT, " +
-                            "serie TEXT, " +
-                            "colecao TEXT, " +
-                            "tipo TEXT, " +
-                            "versao TEXT, " +
-                            "codigo_barras TEXT, " +
-                            "FOREIGN KEY(id) REFERENCES produtos(id) ON DELETE CASCADE, " +
-                            "FOREIGN KEY(jogo_id) REFERENCES jogos(id)" +
-                            ")",
-                    "etbs");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS acessorios (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "nome TEXT NOT NULL, " +
-                            "tipo TEXT NOT NULL, " +
-                            "arte TEXT, " +
-                            "cor TEXT, " +
-                            "quantidade INTEGER NOT NULL, " +
-                            "custo REAL, " +
-                            "preco_venda REAL, " +
-                            "fornecedor_id TEXT, " +
-                            "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
-                            ")",
-                    "acessorios");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS produtos_alimenticios (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "nome TEXT NOT NULL, " +
-                            "categoria TEXT, " +
-                            "subtipo TEXT, " +
-                            "marca TEXT, " +
-                            "sabor TEXT, " +
-                            "lote TEXT, " +
-                            "peso REAL, " +
-                            "unidade_peso TEXT, " +
-                            "codigo_barras TEXT, " +
-                            "data_validade TEXT, " +
-                            "quantidade INTEGER, " +
-                            "preco_compra REAL, " +
-                            "preco_venda REAL, " +
-                            "fornecedor_id TEXT, " +
-                            "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
-                            ")",
-                    "produtos_alimenticios");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS estoque_movimentacoes(" +
-                            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                            "produto_id TEXT, " +
-                            "tipo_mov TEXT," +
-                            "quantidade INTEGER, " +
-                            "motivo TEXT, " +
-                            "data TEXT, " +
-                            "usuario TEXT," +
-                            "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
-                            ")",
-                    "estoque_movimentacoes");
 
             // ========== FINANCEIRO ==========
             executeComLog(st,
@@ -808,49 +998,6 @@ public class DB {
                         )
                     """, "sets_jogos");
 
-            // ========== FISCAL ==========
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS ncm (" +
-                            "codigo TEXT PRIMARY KEY, " +
-                            "descricao TEXT NOT NULL" +
-                            ");",
-                    "ncm");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS cfop (" +
-                            "codigo TEXT PRIMARY KEY, " +
-                            "descricao TEXT NOT NULL" +
-                            ");",
-                    "cfop");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS csosn (" +
-                            "codigo TEXT PRIMARY KEY, " +
-                            "descricao TEXT NOT NULL" +
-                            ");",
-                    "csosn");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS origem (" +
-                            "codigo TEXT PRIMARY KEY, " +
-                            "descricao TEXT NOT NULL" +
-                            ");",
-                    "origem");
-
-            executeComLog(st,
-                    "CREATE TABLE IF NOT EXISTS config_fiscal (" +
-                            "id TEXT PRIMARY KEY, " +
-                            "cliente_id TEXT UNIQUE, " +
-                            "regime_tributario TEXT, " +
-                            "cfop_padrao TEXT, " +
-                            "csosn_padrao TEXT, " +
-                            "origem_padrao TEXT, " +
-                            "ncm_padrao TEXT, " +
-                            "unidade_padrao TEXT, " +
-                            "FOREIGN KEY(cliente_id) REFERENCES clientes(id) " +
-                            ");",
-                    "config_fiscal");
-
             // Índices simples úteis (não quebram nada)
             executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_vendas_cliente ON vendas(cliente_id)",
                     "idx_vendas_cliente");
@@ -864,19 +1011,88 @@ public class DB {
     private static void seedBaseData(Connection c) throws SQLException {
         try (Statement st = c.createStatement()) {
             // fallback fiscal
-            executeComLog(st, "INSERT OR IGNORE INTO cfop (codigo, descricao) VALUES " +
-                    "('5101','Venda de produção do estabelecimento')," +
-                    "('5102','Venda de mercadoria adquirida ou recebida de terceiros');", "fallback_cfop");
+            executeComLog(st,
+                    "INSERT OR IGNORE INTO ncm (codigo, descricao) VALUES " +
+                            "('00000000','NCM não informado')," +
 
-            executeComLog(st, "INSERT OR IGNORE INTO csosn (codigo, descricao) VALUES " +
-                    "('102','Tributada pelo Simples Nacional sem permissão de crédito')," +
-                    "('500','ICMS cobrado anteriormente por substituição tributária');", "fallback_csosn");
+                            // TCG / jogos / hobby (fallbacks comuns)
+                            "('95049090','Jogos e artigos para diversão (outros)')," +
 
-            executeComLog(st, "INSERT OR IGNORE INTO origem (codigo, descricao) VALUES " +
-                    "('0','Nacional, exceto as indicadas nos códigos 3 a 5')," +
-                    "('1','Estrangeira – Importação direta, exceto a indicada no código 6')," +
-                    "('2','Estrangeira – Adquirida no mercado interno, exceto a indicada no código 7');",
-                    "fallback_origem");
+                            // Acessórios típicos (sleeves, deck box, dados, playmat etc.)
+                            "('39269090','Artefatos de plástico (outros)')," +
+                            "('42029200','Bolsas/estojos/caixas (outros)')," +
+
+                            // Papelaria/impresso (às vezes útil para itens com papel/cartão)
+                            "('49119900','Impressos (outros)')," +
+
+                            // Alimentos e bebidas (fallbacks genéricos para não travar)
+                            "('19059090','Produtos de padaria e confeitaria (outros)')," +
+                            "('20089900','Frutas e outras partes comestíveis preparadas ou conservadas (outros)')," +
+                            "('22021000','Águas, incluindo águas minerais e gaseificadas, com adição de açúcar ou aromatizadas'),"
+                            +
+                            "('21069090','Preparações alimentícias (outros)');",
+                    "fallback_ncm_robusto");
+
+            executeComLog(st,
+                    "INSERT OR IGNORE INTO cfop (codigo, descricao) VALUES " +
+                            "('5101','Venda de produção do estabelecimento')," +
+                            "('5102','Venda de mercadoria adquirida ou recebida de terceiros')," +
+                            "('5405','Venda de mercadoria adquirida ou recebida de terceiros em operação com ST')," +
+                            "('5929','Lançamento efetuado a título de baixa de estoque decorrente de perda, roubo ou deterioração'),"
+                            +
+                            "('5202','Devolução de compra para comercialização')," +
+                            "('1202','Devolução de venda de mercadoria adquirida ou recebida de terceiros')," +
+                            "('5949','Outra saída de mercadoria ou prestação de serviço não especificada');",
+                    "fallback_cfop_robusto");
+
+            executeComLog(st,
+                    "INSERT OR IGNORE INTO csosn (codigo, descricao) VALUES " +
+                            "('101','Tributada pelo Simples Nacional com permissão de crédito')," +
+                            "('102','Tributada pelo Simples Nacional sem permissão de crédito')," +
+                            "('103','Isenção do ICMS no Simples Nacional para faixa de receita bruta')," +
+                            "('201','Tributada pelo Simples Nacional com permissão de crédito e com cobrança de ST')," +
+                            "('202','Tributada pelo Simples Nacional sem permissão de crédito e com cobrança de ST')," +
+                            "('400','Não tributada pelo Simples Nacional')," +
+                            "('500','ICMS cobrado anteriormente por substituição tributária')," +
+                            "('900','Outros');",
+                    "fallback_csosn_robusto");
+
+            executeComLog(st,
+                    "INSERT OR IGNORE INTO origem (codigo, descricao) VALUES " +
+                            "('0','Nacional, exceto as indicadas nos códigos 3 a 5')," +
+                            "('1','Estrangeira – Importação direta, exceto a indicada no código 6')," +
+                            "('2','Estrangeira – Adquirida no mercado interno, exceto a indicada no código 7')," +
+                            "('3','Nacional, mercadoria ou bem com Conteúdo de Importação superior a 40%')," +
+                            "('8','Nacional, mercadoria ou bem com Conteúdo de Importação superior a 70%');",
+                    "fallback_origem_robusto");
+            executeComLog(st,
+                    "INSERT OR IGNORE INTO unidades (codigo, descricao) VALUES " +
+                            "('UN','Unidade')," +
+                            "('CX','Caixa')," +
+                            "('PC','Peça')," +
+                            "('PCT','Pacote')," +
+                            "('FD','Fardo')," +
+                            "('KG','Quilograma')," +
+                            "('G','Grama')," +
+                            "('L','Litro')," +
+                            "('ML','Mililitro');",
+                    "fallback_unidades");
+
+            executeComLog(st,
+                    "INSERT OR IGNORE INTO config_fiscal_default " +
+                            "(id, regime_tributario, cfop_padrao, csosn_padrao, origem_padrao, ncm_padrao, unidade_padrao) VALUES "
+                            +
+                            "('DEFAULT','SIMPLES','5102','102','0','00000000','UN');",
+                    "fallback_config_fiscal_default");
+
+            executeComLog(st, """
+                        INSERT OR IGNORE INTO sequencias_fiscais
+                        (id, modelo, codigo_modelo, serie, ambiente, ultimo_numero, criado_em)
+                        VALUES
+                        ('NFCe-65-SERIE-1-OFF',     'NFCe', 65, 1, 'OFF',      0, datetime('now')),
+                        ('NFCe-65-SERIE-1-HOMOLOG', 'NFCe', 65, 1, 'HOMOLOG',  0, datetime('now')),
+                        ('NFCe-65-SERIE-1-PRODUCAO','NFCe', 65, 1, 'PRODUCAO', 0, datetime('now'));
+                    """, "seed_sequencias_fiscais");
 
             // cartas - base
             executeComLog(st, "INSERT OR IGNORE INTO tipo_cartas (id,nome) VALUES " +

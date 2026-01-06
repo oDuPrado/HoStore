@@ -181,4 +181,15 @@ public class ProdutoModel {
     public void setFornecedorNome(String fornecedorNome) {
         this.fornecedorNome = fornecedorNome;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "%s [%s] | Estoque: %d | R$ %.2f",
+                nome,
+                tipo,
+                quantidade,
+                precoVenda);
+    }
+
 }

@@ -6,7 +6,7 @@ public class ConsultaSQLiteSimples {
     // 🔥 Caminho dinâmico igual ao DB.java
     private static final String DATABASE_URL = buildDatabaseUrl();
 
-    private static final String QUERY = "SELECT * FROM sets_jogos limit 1";
+    private static final String QUERY = "SELECT * FROM produtos limit 1";
 
     public static void main(String[] args) {
         System.out.println("Usando banco em: " + DATABASE_URL);

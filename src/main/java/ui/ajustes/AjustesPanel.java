@@ -55,7 +55,7 @@ public class AjustesPanel extends JPanel {
             new ui.ajustes.painel.FornecedorPainel().abrir();
         }));
         container.add(criarBotao("📦 Temas de interface", () -> new CategoriaProdutoPainel().abrir()));
-        container.add(criarBotao("📑 Configuracao de NCM", () -> new NcmPainel().abrir()));
+        container.add(criarBotao("📑 Configuracao Fiscal", () -> new NcmPainel().abrir()));
         container.add(criarBotao("💳 Taxas do Cartão", () -> new TaxaCartaoDialog(null).setVisible(true)));
         container.add(criarBotao("🃏 Atributos da Carta", () -> new CartaAtributosDialog(null).setVisible(true)));
         container.add(criarBotao("🏷 Promoções e Descontos", () -> new PromocaoPainel().abrir()));
