@@ -9,6 +9,9 @@ import java.util.*;
 /**
  * Serviço responsável por converter dados de APIs externas
  * em SetJogoModel para jogos diferentes de Pokémon.
+ *
+ * Regra: se API falhar, a camada DAO/DB deve aplicar cache/fallback.
+ * Aqui a gente só garante que parsing não explode.
  */
 public class SetJogoService {
 
@@ -16,20 +19,26 @@ public class SetJogoService {
     public static List<SetJogoModel> listarSetsYugioh() throws Exception {
         String json = CardGamesApi.listarSetsYgo();
         JsonArray array = JsonParser.parseString(json).getAsJsonArray();
-        List<SetJogoModel> lista = new ArrayList<>();
 
+        List<SetJogoModel> lista = new ArrayList<>();
         for (JsonElement el : array) {
+            if (!el.isJsonObject()) continue;
             JsonObject o = el.getAsJsonObject();
+
+            String setId = safeStr(o, "set_code");
+            String nome = safeStr(o, "set_name");
+            if (setId == null || nome == null) continue;
+
             SetJogoModel set = new SetJogoModel();
-            set.setSetId(o.get("set_code").getAsString());
-            set.setNome(o.get("set_name").getAsString());
+            set.setSetId(setId);
+            set.setNome(nome);
             set.setJogoId("YUGIOH");
-            set.setDataLancamento(o.has("tcg_date") ? o.get("tcg_date").getAsString() : null);
-            set.setQtdCartas(o.has("num_of_cards") ? o.get("num_of_cards").getAsInt() : null);
+            set.setDataLancamento(safeStr(o, "tcg_date"));
+            set.setQtdCartas(safeInt(o, "num_of_cards"));
             set.setCodigoExterno(null);
+
             lista.add(set);
         }
-
         return lista;
     }
 
@@ -38,20 +47,26 @@ public class SetJogoService {
         String json = CardGamesApi.listarSetsMagic();
         JsonObject root = JsonParser.parseString(json).getAsJsonObject();
         JsonArray array = root.getAsJsonArray("data");
-        List<SetJogoModel> lista = new ArrayList<>();
 
+        List<SetJogoModel> lista = new ArrayList<>();
         for (JsonElement el : array) {
+            if (!el.isJsonObject()) continue;
             JsonObject o = el.getAsJsonObject();
+
+            String code = safeStr(o, "code");
+            String name = safeStr(o, "name");
+            if (code == null || name == null) continue;
+
             SetJogoModel set = new SetJogoModel();
-            set.setSetId(o.get("code").getAsString());
-            set.setNome(o.get("name").getAsString());
+            set.setSetId(code);
+            set.setNome(name);
             set.setJogoId("MAGIC");
-            set.setDataLancamento(o.has("released_at") ? o.get("released_at").getAsString() : null);
-            set.setQtdCartas(o.has("card_count") ? o.get("card_count").getAsInt() : null);
-            set.setCodigoExterno(o.has("id") ? o.get("id").getAsString() : null); // ID da Scryfall
+            set.setDataLancamento(safeStr(o, "released_at"));
+            set.setQtdCartas(safeInt(o, "card_count"));
+            set.setCodigoExterno(safeStr(o, "id")); // Scryfall id
+
             lista.add(set);
         }
-
         return lista;
     }
 
@@ -59,51 +74,79 @@ public class SetJogoService {
     public static List<SetJogoModel> listarSetsDigimon() throws Exception {
         String json = CardGamesApi.listarCardsDigimon();
         JsonArray array = JsonParser.parseString(json).getAsJsonArray();
-        List<SetJogoModel> lista = new ArrayList<>();
-        Set<String> codigosUnicos = new HashSet<>();
+
+        // Preferir "packName" se existir. Se não, extrair prefixo do cardnumber.
+        Map<String, SetJogoModel> map = new LinkedHashMap<>();
 
         for (JsonElement el : array) {
+            if (!el.isJsonObject()) continue;
             JsonObject card = el.getAsJsonObject();
-            if (!card.has("cardnumber"))
-                continue;
 
-            String cardNumber = card.get("cardnumber").getAsString();
-            String prefixo = cardNumber.contains("-") ? cardNumber.split("-")[0] : cardNumber;
+            String packName = safeStr(card, "packName");
+            String cardNumber = safeStr(card, "cardnumber");
 
-            if (codigosUnicos.contains(prefixo))
+            String setId;
+            String nome;
+
+            if (packName != null && !packName.isBlank()) {
+                setId = normalize(packName);
+                nome = packName;
+            } else if (cardNumber != null && !cardNumber.isBlank()) {
+                String prefixo = cardNumber.contains("-") ? cardNumber.split("-")[0] : cardNumber;
+                setId = prefixo;
+                nome = "Pack " + prefixo;
+            } else {
                 continue;
-            codigosUnicos.add(prefixo);
+            }
+
+            String key = "DIGIMON:" + setId;
+            if (map.containsKey(key)) continue;
 
             SetJogoModel set = new SetJogoModel();
-            set.setSetId(prefixo); // Ex: "BT", "EX", "BO"
-            set.setNome("Pack " + prefixo);
+            set.setSetId(setId);
+            set.setNome(nome);
             set.setJogoId("DIGIMON");
             set.setDataLancamento(null);
             set.setQtdCartas(null);
             set.setCodigoExterno(null);
-            lista.add(set);
+
+            map.put(key, set);
         }
 
-        return lista;
+        return new ArrayList<>(map.values());
     }
 
     /** 🔷 One Piece Card Game */
     public static List<SetJogoModel> listarSetsOnePiece() throws Exception {
         String json = CardGamesApi.listarSetsOnePiece();
         JsonArray array = JsonParser.parseString(json).getAsJsonArray();
-        List<SetJogoModel> lista = new ArrayList<>();
 
+        List<SetJogoModel> lista = new ArrayList<>();
         for (JsonElement el : array) {
+            if (!el.isJsonObject()) continue;
             JsonObject o = el.getAsJsonObject();
 
-            SetJogoModel set = new SetJogoModel();
+            String name = safeStr(o, "name");
+            String code = safeStr(o, "code");
+            String id = safeStr(o, "id");
 
-            set.setSetId(o.has("id") ? o.get("id").getAsString() : UUID.randomUUID().toString());
-            set.setNome(o.has("name") ? o.get("name").getAsString() : "Set Desconhecido");
+            // setId estável pra deduplicar:
+            // 1) code, 2) id, 3) nome normalizado
+            String setId = (code != null && !code.isBlank())
+                    ? code
+                    : (id != null && !id.isBlank())
+                        ? id
+                        : (name != null ? normalize(name) : null);
+
+            if (setId == null) continue;
+
+            SetJogoModel set = new SetJogoModel();
+            set.setSetId(setId);
+            set.setNome(name != null ? name : "Set Desconhecido");
             set.setJogoId("ONEPIECE");
-            set.setDataLancamento(o.has("releaseDate") ? o.get("releaseDate").getAsString() : null);
-            set.setQtdCartas(o.has("cardCount") ? o.get("cardCount").getAsInt() : null);
-            set.setCodigoExterno(o.has("code") ? o.get("code").getAsString() : null);
+            set.setDataLancamento(safeStr(o, "releaseDate"));
+            set.setQtdCartas(safeInt(o, "cardCount"));
+            set.setCodigoExterno(code);
 
             lista.add(set);
         }
@@ -114,5 +157,34 @@ public class SetJogoService {
     /** 🔷 Dragon Ball Super – sem API pública, lista vazia */
     public static List<SetJogoModel> listarSetsDbz() {
         return new ArrayList<>();
+    }
+
+    // ---------------- helpers ----------------
+
+    private static String safeStr(JsonObject o, String key) {
+        try {
+            if (o == null || !o.has(key) || o.get(key).isJsonNull()) return null;
+            String v = o.get(key).getAsString();
+            return (v != null && v.isBlank()) ? null : v;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Integer safeInt(JsonObject o, String key) {
+        try {
+            if (o == null || !o.has(key) || o.get(key).isJsonNull()) return null;
+            return o.get(key).getAsInt();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String normalize(String s) {
+        if (s == null) return null;
+        return s.trim()
+                .replaceAll("\\s+", "_")
+                .replaceAll("[^A-Za-z0-9_]", "")
+                .toUpperCase();
     }
 }
