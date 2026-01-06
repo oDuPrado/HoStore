@@ -20,6 +20,9 @@ import ui.ajustes.AjustesPanel;
 import ui.financeiro.painel.PainelFinanceiro;
 import ui.ajustes.dialog.LoginDialog;
 
+// ✅ NOVO
+import ui.comandas.painel.PainelComandas;
+
 public class TelaPrincipal extends JFrame {
 
     private static final String VERSION = "1.0.0";
@@ -70,8 +73,7 @@ public class TelaPrincipal extends JFrame {
 
         // Home real
         painelConteudo.add(new ui.dash.painel.DashboardPanel(this, destino -> {
-            // placeholder: no futuro, navega pra painéis específicos
-            // por enquanto, não faz nada.
+            // placeholder
         }), BorderLayout.CENTER);
 
         painelFooter = createFooterPanel();
@@ -85,7 +87,6 @@ public class TelaPrincipal extends JFrame {
         getContentPane().add(center, BorderLayout.CENTER);
         getContentPane().add(painelFooter, BorderLayout.SOUTH);
 
-        // Atualizações periódicas sem travar
         startFooterTimers();
 
         setVisible(true);
@@ -116,7 +117,6 @@ public class TelaPrincipal extends JFrame {
         JLabel lblUser = new JLabel("Usuário: " + usuario.getNome());
         lblUser.setForeground(UIManager.getColor("Label.foreground"));
 
-        // Status honesto: "Banco OK/Erro" (não "Online", porque isso é SQLite local)
         boolean ok = DB.isConnected();
         JLabel lblStatus = new JLabel(ok ? "Banco: OK" : "Banco: ERRO");
         lblStatus.setForeground(ok ? new Color(0, 200, 0) : new Color(200, 70, 70));
@@ -135,7 +135,11 @@ public class TelaPrincipal extends JFrame {
         JButton tabEstoque = criarTab("📦 Estoque", new PainelEstoque());
         JButton tabClientes = criarTab("🧍 Clientes", new PainelClientes());
         JButton tabVendas = criarTab("💰 Vendas", new PainelVendas(this));
-        JButton tabRelatorios = criarTab("📊 Relatórios", new DashboardPanel()); // já reaproveita (por enquanto)
+
+        // ✅ NOVO
+        JButton tabComandas = criarTab("🧾 Comandas", new PainelComandas());
+
+        JButton tabRelatorios = criarTab("📊 Relatórios", new DashboardPanel());
         JButton tabAjustes = criarTab("⚙️ Ajustes", new AjustesPanel());
         JButton tabBuscar = criarTab("🤖 HoRadars", null);
         JButton tabFinanceiro = criarTab("🧾 Financeiro", new PainelFinanceiro());
@@ -145,6 +149,7 @@ public class TelaPrincipal extends JFrame {
         tabBar.add(tabEstoque);
         tabBar.add(tabClientes);
         tabBar.add(tabVendas);
+        tabBar.add(tabComandas); // ✅ aqui
         tabBar.add(tabRelatorios);
         tabBar.add(tabAjustes);
         tabBar.add(tabBuscar);
@@ -202,14 +207,12 @@ public class TelaPrincipal extends JFrame {
     }
 
     private void startFooterTimers() {
-        // Atualiza clock a cada 1s
         Timer clockTimer = new Timer(1000, e -> {
             String agora = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
             lblClock.setText("Agora: " + agora);
         });
         clockTimer.start();
 
-        // Atualiza status do banco e sync a cada 15s
         Timer statusTimer = new Timer(15000, e -> {
             boolean ok = DB.isConnected();
             lblDbStatus.setText(ok ? "Banco: OK" : "Banco: ERRO");
@@ -217,7 +220,6 @@ public class TelaPrincipal extends JFrame {
         });
         statusTimer.start();
 
-        // Primeira carga imediata
         lblDbStatus.setText(DB.isConnected() ? "Banco: OK" : "Banco: ERRO");
         lblSync.setText("Última sincronização: " + SyncStatusUtil.getUltimaSincronizacaoFormatada());
         lblClock.setText("Agora: " + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
