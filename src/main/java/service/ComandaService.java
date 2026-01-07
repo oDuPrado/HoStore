@@ -10,6 +10,7 @@ import model.ComandaResumoModel;
 import util.DB;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,10 +20,8 @@ public class ComandaService {
     private final ComandaItemDAO itemDAO = new ComandaItemDAO();
     private final ComandaPagamentoDAO pagamentoDAO = new ComandaPagamentoDAO();
 
-    // Estoque
-    private final ProdutoEstoqueService estoqueService = new ProdutoEstoqueService();
-
-    public int abrirComanda(String clienteId, String nomeCliente, String mesa, String obs, String usuario) throws Exception {
+    public int abrirComanda(String clienteId, String nomeCliente, String mesa, String obs, String usuario)
+            throws Exception {
         try (Connection conn = DB.get()) {
             conn.setAutoCommit(false);
 
@@ -54,24 +53,37 @@ public class ComandaService {
         return itemDAO.listarPorComanda(comandaId, conn);
     }
 
+    // Atalho pra UI
+    public List<ComandaItemModel> listarItens(int comandaId) throws Exception {
+        try (Connection conn = DB.get()) {
+            return itemDAO.listarPorComanda(comandaId, conn);
+        }
+    }
+
     public List<ComandaPagamentoModel> listarPagamentos(int comandaId, Connection conn) throws Exception {
         return pagamentoDAO.listarPorComanda(comandaId, conn);
     }
 
     public void adicionarItem(int comandaId, String produtoId, int qtd, double preco, double desconto, double acrescimo,
-                              String obs, String usuario) throws Exception {
+            String obs, String usuario) throws Exception {
 
-        if (qtd <= 0) throw new Exception("Quantidade inválida.");
-        if (preco < 0) throw new Exception("Preço inválido.");
-        if (desconto < 0) desconto = 0;
-        if (acrescimo < 0) acrescimo = 0;
+        if (qtd <= 0)
+            throw new Exception("Quantidade inválida.");
+        if (preco < 0)
+            throw new Exception("Preço inválido.");
+        if (desconto < 0)
+            desconto = 0;
+        if (acrescimo < 0)
+            acrescimo = 0;
 
         try (Connection conn = DB.get()) {
             conn.setAutoCommit(false);
 
             ComandaModel c = comandaDAO.buscarPorId(comandaId, conn);
-            if (c == null) throw new Exception("Comanda não encontrada.");
-            if (c.getStatus() == null) c.setStatus("aberta");
+            if (c == null)
+                throw new Exception("Comanda não encontrada.");
+            if (c.getStatus() == null)
+                c.setStatus("aberta");
 
             if (c.getStatus().equalsIgnoreCase("fechada") || c.getStatus().equalsIgnoreCase("cancelada")) {
                 throw new Exception("Comanda não permite alterações (status: " + c.getStatus() + ").");
@@ -91,10 +103,9 @@ public class ComandaService {
 
             itemDAO.inserir(it, conn);
 
-            // Estoque: baixa imediatamente
-            estoqueService.registrarSaida(produtoId, qtd, "Comanda #" + comandaId, usuario, conn);
+            // ✅ Opção A: Comanda NÃO mexe em estoque
+            // Estoque será baixado SOMENTE ao virar venda (VendaService.finalizarVenda)
 
-            // Recalcula e persiste totais
             recomputarTotaisEAtualizar(comandaId, conn);
 
             conn.commit();
@@ -106,10 +117,12 @@ public class ComandaService {
             conn.setAutoCommit(false);
 
             ComandaItemModel it = itemDAO.buscarPorId(itemId, conn);
-            if (it == null) throw new Exception("Item não encontrado.");
+            if (it == null)
+                throw new Exception("Item não encontrado.");
 
             ComandaModel c = comandaDAO.buscarPorId(it.getComandaId(), conn);
-            if (c == null) throw new Exception("Comanda não encontrada.");
+            if (c == null)
+                throw new Exception("Comanda não encontrada.");
 
             if (c.getStatus().equalsIgnoreCase("fechada") || c.getStatus().equalsIgnoreCase("cancelada")) {
                 throw new Exception("Comanda não permite alterações (status: " + c.getStatus() + ").");
@@ -117,8 +130,7 @@ public class ComandaService {
 
             itemDAO.deletar(itemId, conn);
 
-            // Estoque: devolve imediatamente
-            estoqueService.registrarEntrada(it.getProdutoId(), it.getQtd(), "Remoção item Comanda #" + it.getComandaId(), usuario, conn);
+            // ✅ Opção A: nada de devolver estoque aqui, porque comanda não baixou estoque
 
             recomputarTotaisEAtualizar(it.getComandaId(), conn);
 
@@ -127,17 +139,21 @@ public class ComandaService {
     }
 
     public void registrarPagamento(int comandaId, String tipo, double valor, String usuario) throws Exception {
-        if (valor <= 0) throw new Exception("Valor inválido.");
+        if (valor <= 0)
+            throw new Exception("Valor inválido.");
 
-        if (tipo == null || tipo.isBlank()) tipo = "OUTRO";
+        if (tipo == null || tipo.isBlank())
+            tipo = "OUTRO";
         tipo = tipo.trim().toUpperCase();
 
         try (Connection conn = DB.get()) {
             conn.setAutoCommit(false);
 
             ComandaModel c = comandaDAO.buscarPorId(comandaId, conn);
-            if (c == null) throw new Exception("Comanda não encontrada.");
-            if (c.getStatus().equalsIgnoreCase("cancelada")) throw new Exception("Comanda cancelada não recebe pagamento.");
+            if (c == null)
+                throw new Exception("Comanda não encontrada.");
+            if (c.getStatus().equalsIgnoreCase("cancelada"))
+                throw new Exception("Comanda cancelada não recebe pagamento.");
 
             ComandaPagamentoModel pg = new ComandaPagamentoModel();
             pg.setComandaId(comandaId);
@@ -148,7 +164,7 @@ public class ComandaService {
 
             pagamentoDAO.inserir(pg, conn);
 
-            // Atualiza total_pago (sem depender de somas pesadas na tela)
+            // Atualiza total_pago
             c.setTotalPago(c.getTotalPago() + valor);
 
             // Ajusta status automaticamente
@@ -157,8 +173,8 @@ public class ComandaService {
                 c.setFechadoEm(LocalDateTime.now());
                 c.setFechadoPor(usuario);
             } else {
-                // se já estava pendente, continua; senão mantém aberta
-                if (!"pendente".equalsIgnoreCase(c.getStatus())) c.setStatus("aberta");
+                if (!"pendente".equalsIgnoreCase(c.getStatus()))
+                    c.setStatus("aberta");
             }
 
             comandaDAO.atualizarTotaisEStatus(c, conn);
@@ -172,8 +188,10 @@ public class ComandaService {
             conn.setAutoCommit(false);
 
             ComandaModel c = comandaDAO.buscarPorId(comandaId, conn);
-            if (c == null) throw new Exception("Comanda não encontrada.");
-            if (c.getStatus().equalsIgnoreCase("cancelada")) throw new Exception("Comanda cancelada não pode ser fechada.");
+            if (c == null)
+                throw new Exception("Comanda não encontrada.");
+            if (c.getStatus().equalsIgnoreCase("cancelada"))
+                throw new Exception("Comanda cancelada não pode ser fechada.");
 
             // sempre recalcula antes de fechar
             recomputarTotaisEAtualizar(comandaId, conn);
@@ -190,10 +208,10 @@ public class ComandaService {
             }
 
             if (!permitirPendente) {
-                throw new Exception("Saldo em aberto: R$ " + String.format("%.2f", saldo) + ". Registre pagamento ou feche como pendente.");
+                throw new Exception("Saldo em aberto: R$ " + String.format("%.2f", saldo)
+                        + ". Registre pagamento ou feche como pendente.");
             }
 
-            // Pendente: trava itens, mas permite pagar depois
             c.setStatus("pendente");
             c.setFechadoEm(LocalDateTime.now());
             c.setFechadoPor(usuario);
@@ -208,21 +226,17 @@ public class ComandaService {
             conn.setAutoCommit(false);
 
             ComandaModel c = comandaDAO.buscarPorId(comandaId, conn);
-            if (c == null) throw new Exception("Comanda não encontrada.");
-            if (c.getStatus().equalsIgnoreCase("cancelada")) return;
+            if (c == null)
+                throw new Exception("Comanda não encontrada.");
+            if (c.getStatus().equalsIgnoreCase("cancelada"))
+                return;
 
-            // Reverte estoque de todos os itens
-            List<ComandaItemModel> itens = itemDAO.listarPorComanda(comandaId, conn);
-            for (ComandaItemModel it : itens) {
-                estoqueService.registrarEntrada(it.getProdutoId(), it.getQtd(), "Cancelamento Comanda #" + comandaId, usuario, conn);
-            }
+            // ✅ Opção A: nada de devolver estoque, porque comanda não baixou estoque
 
-            // Marca cancelada (não deleta, porque histórico importa)
             c.setStatus("cancelada");
             c.setCanceladoEm(LocalDateTime.now());
             c.setCanceladoPor(usuario);
 
-            // Zera valores (opcional, mas deixa a leitura óbvia)
             c.setTotalBruto(0);
             c.setDesconto(0);
             c.setAcrescimo(0);
@@ -234,9 +248,44 @@ public class ComandaService {
         }
     }
 
+    // Fecha comanda vinculando venda
+    public void fecharComandaComVenda(int comandaId, int vendaId, String usuario) throws Exception {
+        try (Connection conn = DB.get()) {
+            conn.setAutoCommit(false);
+
+            ComandaModel c = comandaDAO.buscarPorId(comandaId, conn);
+            if (c == null)
+                throw new Exception("Comanda não encontrada.");
+            if ("cancelada".equalsIgnoreCase(c.getStatus()))
+                throw new Exception("Comanda cancelada não pode virar venda.");
+
+            recomputarTotaisEAtualizar(comandaId, conn);
+
+            String sql = """
+                        UPDATE comandas
+                           SET status = 'fechada',
+                               fechado_em = ?,
+                               fechado_por = ?,
+                               venda_id = ?,
+                               total_pago = total_liquido
+                         WHERE id = ?
+                    """;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, LocalDateTime.now().toString());
+                ps.setString(2, usuario);
+                ps.setInt(3, vendaId);
+                ps.setInt(4, comandaId);
+                ps.executeUpdate();
+            }
+
+            conn.commit();
+        }
+    }
+
     private void recomputarTotaisEAtualizar(int comandaId, Connection conn) throws Exception {
         ComandaModel c = comandaDAO.buscarPorId(comandaId, conn);
-        if (c == null) throw new Exception("Comanda não encontrada.");
+        if (c == null)
+            throw new Exception("Comanda não encontrada.");
 
         List<ComandaItemModel> itens = itemDAO.listarPorComanda(comandaId, conn);
 
@@ -254,13 +303,12 @@ public class ComandaService {
         c.setAcrescimo(acre);
         c.setTotalLiquido(liquido);
 
-        // Status automático baseado em pagamento (sem ser “burro”)
         if (!"cancelada".equalsIgnoreCase(c.getStatus())) {
             if (c.getTotalLiquido() > 0 && c.getTotalPago() >= c.getTotalLiquido()) {
                 c.setStatus("fechada");
             } else {
-                // se foi fechado pendente, mantém pendente; senão, aberta
-                if (!"pendente".equalsIgnoreCase(c.getStatus())) c.setStatus("aberta");
+                if (!"pendente".equalsIgnoreCase(c.getStatus()))
+                    c.setStatus("aberta");
             }
         }
 

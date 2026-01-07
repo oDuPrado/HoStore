@@ -1175,6 +1175,9 @@ public class DB {
                                                                 mesa TEXT,
                                                                 status TEXT NOT NULL DEFAULT 'aberta', -- aberta | pendente | fechada | cancelada
 
+                                                                -- ✅ vínculo com venda gerada ao fechar comanda
+                                                                venda_id INTEGER,
+
                                                                 total_bruto REAL NOT NULL DEFAULT 0,
                                                                 desconto REAL NOT NULL DEFAULT 0,
                                                                 acrescimo REAL NOT NULL DEFAULT 0,
@@ -1190,7 +1193,8 @@ public class DB {
                                                                 cancelado_em TEXT,
                                                                 cancelado_por TEXT,
 
-                                                                FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+                                                                FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+                                                                FOREIGN KEY (venda_id) REFERENCES vendas(id)
                                                             );
                                                         """,
                                         "comandas");
@@ -1232,6 +1236,9 @@ public class DB {
                         // Índices (pra lista ficar rápida)
                         executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_comandas_status ON comandas(status)",
                                         "idx_comandas_status");
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_comandas_venda_id ON comandas(venda_id)",
+                                        "idx_comandas_venda_id");
                         executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_comandas_criado_em ON comandas(criado_em)",
                                         "idx_comandas_criado_em");
                         executeComLog(st,
@@ -1245,7 +1252,9 @@ public class DB {
                                         "INSERT OR IGNORE INTO clientes " +
                                                         "(id, nome, telefone, cpf, data_nasc, tipo, endereco, cidade, estado, observacoes, criado_em, criado_por, alterado_em, alterado_por) VALUES "
                                                         +
-                                                        "('AVULSO', 'Consumidor (Sem Cadastro)', '0000000000', '00000000000', '1900-01-01', 'AVULSO', 'Endereço não informado', 'Campo Grande', 'MS', 'Cliente padrão do sistema para vendas/comandas rápidas', datetime('now'), 'SYSTEM', datetime('now'), 'SYSTEM');",
+                                                        "('AVULSO', 'Consumidor (Sem Cadastro)', '', '00000000000', '', 'AVULSO', '', 'Campo Grande', 'MS', "
+                                                        +
+                                                        "'Cliente padrão do sistema para vendas/comandas rápidas', datetime('now'), 'SYSTEM', datetime('now'), 'SYSTEM');",
                                         "seed_cliente_avulso");
 
                 }

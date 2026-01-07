@@ -70,6 +70,11 @@ public class VendaFinalizarDialog extends JDialog {
     /* ---- Rodapé ---- */
     private final JLabel lblPago = new JLabel();
     private final JLabel lblTroco = new JLabel();
+    private Integer vendaIdGerada = null;
+
+    public Integer getVendaIdGerada() {
+        return vendaIdGerada;
+    }
 
     public VendaFinalizarDialog(Dialog owner,
             VendaController controller,
@@ -454,13 +459,15 @@ public class VendaFinalizarDialog extends JDialog {
                 formaFinal = "MULTI";
             }
 
-            /* 1) Grava venda */
-            int vendaId = controller.finalizar(
+                /* 1) Grava venda */
+                int vendaId = controller.finalizar(
                     clienteId,
                     formaFinal,
                     parcelas,
                     parcelamentoConfig.intervaloDias,
                     calcularDataPrimeiroVencimentoISO());
+
+                this.vendaIdGerada = vendaId;
 
             /* 2) Grava pagamentos */
             try (Connection c = DB.get()) {
@@ -486,7 +493,9 @@ public class VendaFinalizarDialog extends JDialog {
             }
 
             /* 3) Atualiza UI principal */
-            painelPai.carregarVendas(null, null, "Todos", "Todos");
+            if (painelPai != null) {
+                painelPai.carregarVendas(null, null, "Todos", "Todos");
+            }
             dispose();
 
             // Atualiza painel de clientes (se for CREDITO-LOJA)
@@ -495,10 +504,12 @@ public class VendaFinalizarDialog extends JDialog {
                 if ("CREDITO-LOJA".equalsIgnoreCase(forma)) {
                     // Verifica se existe um painel de clientes aberto na UI
                     // Isso assume que PainelClientes é acessível. Ajuste conforme necessário.
-                    for (Component comp : painelPai.getParent().getComponents()) {
-                        if (comp instanceof ui.clientes.painel.PainelClientes painelClientes) {
-                            painelClientes.atualizarCliente(clienteId);
-                            break;
+                    if (painelPai != null && painelPai.getParent() != null) {
+                        for (Component comp : painelPai.getParent().getComponents()) {
+                            if (comp instanceof ui.clientes.painel.PainelClientes painelClientes) {
+                                painelClientes.atualizarCliente(clienteId);
+                                break;
+                            }
                         }
                     }
                     break;

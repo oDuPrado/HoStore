@@ -1050,3 +1050,11 @@ jan. 06, 2026 2:02:34 PM util.LogService info
 INFORMAÇÕES: Venda 1 finalizada com sucesso
 jan. 06, 2026 3:00:51 PM util.LogService info
 INFORMAÇÕES: Venda 1 finalizada com sucesso
+jan. 07, 2026 10:01:31 AM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso
+jan. 07, 2026 10:01:31 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jan. 07, 2026 10:04:11 AM util.LogService info
+INFORMAÇÕES: Venda 2 finalizada com sucesso
+jan. 07, 2026 10:04:11 AM util.LogService info
+INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
