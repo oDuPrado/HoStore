@@ -1,41 +1,36 @@
-// src/service/VendaService.java
 package service;
 
 import dao.VendaDAO;
 import dao.VendaItemDAO;
+import dao.VendaDevolucaoDAO;
+
 import model.VendaItemModel;
 import model.VendaModel;
+import model.VendaDevolucaoModel;
+
 import util.DB;
 import util.LogService;
 import util.PDFGenerator;
 
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.util.List;
 
-import dao.VendaDevolucaoDAO;
-import model.VendaDevolucaoModel;
-
-import service.ContaReceberService;
-
 /**
- * Serviço que garante transação única na finalização da venda.
- * Suporta produtos genéricos (não apenas cartas).
+ * Serviço transacional:
+ * - Finaliza venda (itens + movimentação de saída)
+ * - Registra devolução (devolução + movimentação de entrada)
+ *
+ * Regra: Estoque/movimentação tem UM dono: ProdutoEstoqueService.
  */
 public class VendaService {
 
-    private final EstoqueService estoqueService = new EstoqueService();
+    private final EstoqueService estoqueService = new EstoqueService(); // usado para validar estoque antes
     private final VendaDAO vendaDAO = new VendaDAO();
     private final VendaItemDAO itemDAO = new VendaItemDAO();
-    private final ContaReceberService contaReceberService = new ContaReceberService(); // <— ADICIONADO
+    private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
+    private final ContaReceberService contaReceberService = new ContaReceberService();
 
-    /**
-     * Finaliza a venda:
-     * - valida estoque
-     * - grava cabeçalho, itens e baixa estoque
-     * - gera PDF
-     * - cria título e parcelas em contas a receber
-     * Retorna o ID da venda.
-     */
     public int finalizarVenda(VendaModel venda, List<VendaItemModel> itens) throws Exception {
 
         if (itens == null || itens.isEmpty()) {
@@ -45,120 +40,154 @@ public class VendaService {
         try (Connection c = DB.get()) {
             c.setAutoCommit(false);
 
-            // 1) valida estoque
-            for (VendaItemModel it : itens) {
-                String produtoId = it.getProdutoId(); // <--- AGORA genérico
-                if (!estoqueService.possuiEstoque(c, produtoId, it.getQtd())) {
-                    throw new Exception("Estoque insuficiente para o produto " + produtoId);
-                }
-            }
+            int vendaId;
 
-            // 2) grava venda
-            int vendaId = vendaDAO.insert(venda, c);
-
-            // 3) grava itens, baixa estoque e registra movimentação
-            ProdutoEstoqueService produtoEstoqueService = new ProdutoEstoqueService();
-
-            for (VendaItemModel it : itens) {
-                itemDAO.insert(it, vendaId, c);
-
-
-                // registra a movimentação no histórico
-                produtoEstoqueService.registrarSaida(
-                        it.getProdutoId(),
-                        it.getQtd(),
-                        "Venda #" + vendaId,
-                        venda.getUsuario() != null ? venda.getUsuario() : "sistema",
-                        c);
-            }
-
-            // 4) commit
-            c.commit();
-            LogService.info("Venda " + vendaId + " finalizada com sucesso");
-
-            // =============================
-            // @INTEGRACAO: Contas a Receber
-            // =============================
             try {
-                String tituloId = null;
+                String fpRaw = venda.getFormaPagamento();
+                String fp = (fpRaw == null) ? "" : fpRaw.trim().toUpperCase();
 
-                // Se for DINHEIRO, cria título à vista e já registra pagamento
-                if ("DINHEIRO".equalsIgnoreCase(venda.getFormaPagamento())) {
-                    String hoje = java.time.LocalDate.now().toString();
-                    tituloId = contaReceberService.criarTituloParcelado(
-                            venda.getClienteId(),
-                            venda.getTotalLiquido(),
-                            1, // parcela única
-                            hoje,
-                            30, // intervalo irrelevante aqui
-                            "venda-" + vendaId); // <- ESSA É A MUDANÇA
+                LogService.info("FinalizarVenda: formaPagamento(raw)='" + fpRaw + "' norm='" + fp + "'");
+                LogService.info("FinalizarVenda: clienteId=" + venda.getClienteId()
+                        + " totalLiquido=" + venda.getTotalLiquido()
+                        + " parcelas=" + venda.getParcelas()
+                        + " venc=" + venda.getDataPrimeiroVencimento()
+                        + " intervaloDias=" + venda.getIntervaloDias());
 
-                    int parcelaId = contaReceberService.getPrimeiraParcelaId(tituloId);
-                    contaReceberService.registrarPagamento(parcelaId, venda.getTotalLiquido(), "DINHEIRO");
-
-                    // Para outras formas de pagamento: gera se dados estiverem preenchidos
-                } else if (venda.getDataPrimeiroVencimento() != null &&
-                        venda.getParcelas() > 0 &&
-                        venda.getIntervaloDias() > 0) {
-                    tituloId = contaReceberService.criarTituloParcelado(
-                            venda.getClienteId(),
-                            venda.getTotalLiquido(),
-                            venda.getParcelas(),
-                            venda.getDataPrimeiroVencimento(),
-                            venda.getIntervaloDias(),
-                            "venda-" + vendaId); // <- ESSA É A MUDANÇA
-                } else {
-                    LogService.info("Forma de pagamento parcelada mas dados incompletos — título não criado.");
+                // 1) valida estoque
+                for (VendaItemModel it : itens) {
+                    String produtoId = it.getProdutoId();
+                    if (!estoqueService.possuiEstoque(c, produtoId, it.getQtd())) {
+                        throw new Exception("Estoque insuficiente para o produto " + produtoId);
+                    }
                 }
 
-            } catch (Exception ex) {
-                LogService.error("Venda " + vendaId + " finalizada, mas erro ao gerar contas a receber", ex);
+                // 2) grava venda
+                vendaId = vendaDAO.insert(venda, c);
+
+                // 3) grava itens + registra saída (estoque + histórico)
+                ProdutoEstoqueService produtoEstoqueService = new ProdutoEstoqueService();
+
+                for (VendaItemModel it : itens) {
+                    itemDAO.insert(it, vendaId, c);
+
+                    produtoEstoqueService.registrarSaida(
+                            it.getProdutoId(),
+                            it.getQtd(),
+                            "Venda #" + vendaId,
+                            (venda.getUsuario() != null && !venda.getUsuario().isBlank()) ? venda.getUsuario()
+                                    : "sistema",
+                            c);
+                }
+
+                c.commit();
+                LogService.info("Venda " + vendaId + " finalizada com sucesso");
+
+                // Fora da transação: contas a receber
+                gerarContasReceberSafe(venda, vendaId);
+
+                // Fora da transação: PDF
+                try {
+                    venda.setItens(itens);
+                    PDFGenerator.gerarComprovanteVenda(venda, itens);
+                } catch (Exception pdfEx) {
+                    LogService.error("Venda " + vendaId + " finalizada, mas erro ao gerar PDF", pdfEx);
+                }
+
+                return vendaId;
+
+            } catch (Exception e) {
+                try {
+                    c.rollback();
+                } catch (Exception rbEx) {
+                    LogService.error("Falha ao dar rollback na venda", rbEx);
+                }
+                LogService.error("Erro ao finalizar venda", e);
+                throw e;
             }
-
-            // =============================
-
-            // 5) PDF
-            venda.setItens(itens); // para o gerador ter acesso
-            PDFGenerator.gerarComprovanteVenda(venda, itens);
-
-            return vendaId;
-
-        } catch (Exception ex) {
-            LogService.error("Erro ao finalizar venda", ex);
-            throw ex;
         }
     }
 
-    private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
+    private void gerarContasReceberSafe(VendaModel venda, int vendaId) {
+        try {
+            String fpRaw = venda.getFormaPagamento();
+            String fp = (fpRaw == null) ? "" : fpRaw.trim().toUpperCase();
+
+            if ("DINHEIRO".equals(fp)) {
+                String hoje = LocalDate.now().toString();
+
+                String tituloId = contaReceberService.criarTituloParcelado(
+                        venda.getClienteId(),
+                        venda.getTotalLiquido(),
+                        1,
+                        hoje,
+                        0,
+                        "venda-" + vendaId);
+
+                int parcelaId = contaReceberService.getPrimeiraParcelaId(tituloId);
+                contaReceberService.registrarPagamento(parcelaId, venda.getTotalLiquido(), "DINHEIRO");
+
+            } else if (venda.getDataPrimeiroVencimento() != null &&
+                    venda.getParcelas() > 0 &&
+                    venda.getIntervaloDias() > 0) {
+
+                contaReceberService.criarTituloParcelado(
+                        venda.getClienteId(),
+                        venda.getTotalLiquido(),
+                        venda.getParcelas(),
+                        venda.getDataPrimeiroVencimento(),
+                        venda.getIntervaloDias(),
+                        "venda-" + vendaId);
+
+            } else {
+                LogService.info("Contas a receber não gerado: formaPagamento='" + fpRaw
+                        + "' (norm='" + fp + "') e dados de parcelamento incompletos.");
+            }
+
+        } catch (Exception ex) {
+            LogService.error("Venda " + vendaId + " finalizada, mas erro ao gerar contas a receber", ex);
+        }
+    }
 
     /**
-     * Registra uma devolução:
-     * - grava na tabela de devoluções
-     * - devolve ao estoque
+     * Registra devolução de forma transacional:
+     * 1) grava devolução
+     * 2) registra entrada (estoque + histórico) via ProdutoEstoqueService
      */
     public void registrarDevolucao(VendaDevolucaoModel devolucao) throws Exception {
+        if (devolucao == null)
+            throw new Exception("Devolução nula");
+
         try (Connection c = DB.get()) {
             c.setAutoCommit(false);
 
-            // 1) grava devolução no banco
-            devolucaoDAO.inserir(devolucao);
+            try {
+                // 1) grava devolução (TRANSACIONAL)
+                devolucaoDAO.inserir(devolucao, c);
 
-            // 2) devolve ao estoque
-            estoqueService.entrarEstoque(c, devolucao.getProdutoId(), devolucao.getQuantidade());
+                // 2) registra entrada (dono do estoque + histórico)
+                String usuario = (devolucao.getUsuario() != null && !devolucao.getUsuario().isBlank())
+                        ? devolucao.getUsuario()
+                        : "sistema";
 
-            // 3) registra movimentação de entrada
-            new ProdutoEstoqueService().registrarEntrada(
-                    devolucao.getProdutoId(),
-                    devolucao.getQuantidade(),
-                    "Devolução da venda #" + devolucao.getVendaId(),
-                    "sistema", // ou devolucao.getUsuario() se implementar
-                    c);
+                new ProdutoEstoqueService().registrarEntrada(
+                        devolucao.getProdutoId(),
+                        devolucao.getQuantidade(),
+                        "Devolução da venda #" + devolucao.getVendaId(),
+                        usuario,
+                        c);
 
-            // 4) commit
-            c.commit();
-            LogService.info("Devolução registrada para venda " + devolucao.getVendaId());
+                c.commit();
+                LogService.info("Devolução registrada para venda " + devolucao.getVendaId());
+
+            } catch (Exception e) {
+                try {
+                    c.rollback();
+                } catch (Exception rbEx) {
+                    LogService.error("Falha ao dar rollback na devolução", rbEx);
+                }
+                LogService.error("Erro ao registrar devolução", e);
+                throw e;
+            }
         }
-
     }
-
 }

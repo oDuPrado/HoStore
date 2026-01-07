@@ -1058,3 +1058,15 @@ jan. 07, 2026 10:04:11 AM util.LogService info
 INFORMAÇÕES: Venda 2 finalizada com sucesso
 jan. 07, 2026 10:04:11 AM util.LogService info
 INFORMAÇÕES: Forma de pagamento parcelada mas dados incompletos — título não criado.
+jan. 07, 2026 10:19:34 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+jan. 07, 2026 10:19:34 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=20.0 parcelas=0 venc=2026-01-07 intervaloDias=0
+jan. 07, 2026 10:19:34 AM util.LogService info
+INFORMAÇÕES: Venda 3 finalizada com sucesso
+jan. 07, 2026 10:20:12 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+jan. 07, 2026 10:20:12 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=C-7646d totalLiquido=20.0 parcelas=0 venc=2026-01-07 intervaloDias=0
+jan. 07, 2026 10:20:12 AM util.LogService info
+INFORMAÇÕES: Venda 4 finalizada com sucesso
