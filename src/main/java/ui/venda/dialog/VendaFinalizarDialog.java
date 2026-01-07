@@ -70,6 +70,7 @@ public class VendaFinalizarDialog extends JDialog {
     /* ---- Rodapé ---- */
     private final JLabel lblPago = new JLabel();
     private final JLabel lblTroco = new JLabel();
+    private final JLabel lblRestante = new JLabel();
     private Integer vendaIdGerada = null;
 
     public Integer getVendaIdGerada() {
@@ -111,8 +112,13 @@ public class VendaFinalizarDialog extends JDialog {
 
     /* ======= Painel Resumo ======= */
     private JPanel createResumoPanel() {
-        JPanel p = new JPanel(new GridLayout(0, 2, 4, 4));
-        p.setBorder(BorderFactory.createTitledBorder("Resumo da Venda"));
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBorder(BorderFactory.createTitledBorder("Resumo da Venda"));
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(4, 6, 4, 6);
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.gridy = 0;
 
         double bruto = 0, descV = 0;
         for (VendaItemModel it : itens) {
@@ -121,21 +127,47 @@ public class VendaFinalizarDialog extends JDialog {
             descV += b * it.getDesconto() / 100.0;
         }
         double liquido = bruto - descV;
-        NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
-        p.add(new JLabel("Itens:"));
-        p.add(new JLabel(String.valueOf(itens.size())));
-        p.add(new JLabel("Valor Bruto:"));
-        p.add(lblBruto);
-        p.add(new JLabel("Desconto:"));
-        p.add(lblDesc);
-        p.add(new JLabel("Total Líquido:"));
-        p.add(lblLiquido);
+        NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
-        lblBruto.setText(nf.format(bruto));
-        lblDesc.setText(String.format("%,.2f%%  (%s)", descV / bruto * 100, nf.format(descV)));
-        lblLiquido.setText(nf.format(liquido));
-        return p;
+        JLabel lbItens = new JLabel("Itens:");
+        JLabel vItens = new JLabel(String.valueOf(itens.size()));
+        vItens.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JLabel lbBruto = new JLabel("Valor Bruto:");
+        lblBruto.setText(moeda.format(bruto));
+        lblBruto.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JLabel lbDesc = new JLabel("Desconto:");
+        double pct = (bruto > 0) ? (descV / bruto * 100.0) : 0.0;
+        lblDesc.setText(String.format(new Locale("pt","BR"), "%.2f%%  (%s)", pct, moeda.format(descV)));
+        lblDesc.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JLabel lbTotal = new JLabel("Total Líquido:");
+        lblLiquido.setText(moeda.format(liquido));
+        lblLiquido.setHorizontalAlignment(SwingConstants.RIGHT);
+        lblLiquido.setFont(lblLiquido.getFont().deriveFont(Font.BOLD, 20f));
+
+        // linha 1
+        gc.gridx = 0; gc.weightx = 0; card.add(lbItens, gc);
+        gc.gridx = 1; gc.weightx = 1; card.add(vItens, gc);
+
+        // linha 2
+        gc.gridy++;
+        gc.gridx = 0; gc.weightx = 0; card.add(lbBruto, gc);
+        gc.gridx = 1; gc.weightx = 1; card.add(lblBruto, gc);
+
+        // linha 3
+        gc.gridy++;
+        gc.gridx = 0; gc.weightx = 0; card.add(lbDesc, gc);
+        gc.gridx = 1; gc.weightx = 1; card.add(lblDesc, gc);
+
+        // linha 4 (destaque)
+        gc.gridy++;
+        gc.gridx = 0; gc.weightx = 0; card.add(lbTotal, gc);
+        gc.gridx = 1; gc.weightx = 1; card.add(lblLiquido, gc);
+
+        return card;
     }
 
     /* ======= Painel Pagamentos ======= */
@@ -144,19 +176,20 @@ public class VendaFinalizarDialog extends JDialog {
         JPanel painel = new JPanel(new BorderLayout(8, 8));
         painel.setBorder(BorderFactory.createTitledBorder("Pagamentos"));
 
-        /* -------- Layout vertical: duas linhas -------- */
-        JPanel entrada = new JPanel();
-        entrada.setLayout(new BoxLayout(entrada, BoxLayout.Y_AXIS));
-
-        /* ---- Linha 1: forma + valor ---- */
+        /* -------- Layout entrada (Forma + Valor na mesma linha) -------- */
         JPanel linha1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        linha1.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+
+        /* ---- Forma ---- */
         cboForma = new JComboBox<>(new String[] {
                 "DINHEIRO", "PIX", "CARTAO", "VALE-PRESENTE", "CREDITO-LOJA", "OUTROS"
         });
-
         linha1.add(new JLabel("Forma:"));
         linha1.add(cboForma);
 
+        /* ---- Painel Valor (será escondido quando CARTAO) ---- */
+        JPanel painelValor = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        
         NumberFormat moneyFmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
         moneyFmt.setMinimumFractionDigits(2);
         moneyFmt.setMaximumFractionDigits(2);
@@ -167,56 +200,74 @@ public class VendaFinalizarDialog extends JDialog {
         moneyFormatter.setOverwriteMode(false);
         txtValor = new JFormattedTextField(moneyFormatter);
         txtValor.setColumns(8);
-        linha1.add(new JLabel("Valor:"));
-        linha1.add(txtValor);
-        entrada.add(linha1);
+        txtValor.setHorizontalAlignment(SwingConstants.RIGHT);
+        txtValor.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                SwingUtilities.invokeLater(() -> txtValor.selectAll());
+            }
+            @Override public void focusLost(FocusEvent e) {
+                try { txtValor.commitEdit(); } catch (Exception ignored) {}
+            }
+        });
+        painelValor.add(new JLabel("Valor:"));
+        painelValor.add(txtValor);
+        linha1.add(painelValor);
 
-        /*
-         * / ==== Botão "Editar Preço Base" ====
-         * JButton btnEditarPreco = new JButton("Editar Preço Base");
-         * btnEditarPreco.addActionListener(e -> {
-         * EditarPrecoDialog dlg = new
-         * EditarPrecoDialog(SwingUtilities.getWindowAncestor(this), itens);
-         * dlg.setVisible(true);
-         * if (dlg.isOk()) {
-         * atualizarValores(); // recalcula bruto, líquido, troco etc.
-         * repaint(); // garante que os labels atualizem
-         * }
-         * });
-         * linha1.add(btnEditarPreco);
-         */
+        /* ---- Botão adicionar (SEMPRE VISÍVEL) ---- */
+        JButton btnAdd = criarBotao("Adicionar");
+        btnAdd.addActionListener(e -> onAddPagamento());
+        linha1.add(btnAdd);
 
-        /* ---- Linha 2: detalhes cartão + botão ---- */
-        JPanel linha2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
-        linha2.add(new JLabel("Parcelas:"));
-        linha2.add(txtParcelas);
-        linha2.add(new JLabel("Juros%:"));
-        linha2.add(txtJuros);
-        linha2.add(new JLabel("Período:"));
-        linha2.add(cboPeriodo);
+        /* -------- Linha 2: Restante + Card Parcelamento -------- */
+        JPanel linha2 = new JPanel(new BorderLayout(6, 4));
+        linha2.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
+
+        /* Restante à esquerda (sempre visível) */
+        JPanel paneRestante = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        paneRestante.add(new JLabel("Restante:"));
+        lblRestante.setHorizontalAlignment(SwingConstants.RIGHT);
+        lblRestante.setFont(lblRestante.getFont().deriveFont(Font.BOLD));
+        lblRestante.setPreferredSize(new Dimension(100, 20));
+        paneRestante.add(lblRestante);
+        linha2.add(paneRestante, BorderLayout.WEST);
+
+        /* ---- Mini-card de parcelamento (cartão) COMPACTO à direita ---- */
+        JPanel cardCartao = new JPanel(new GridBagLayout());
+        cardCartao.setBorder(BorderFactory.createTitledBorder("Parcelamento"));
+        GridBagConstraints gcCard = new GridBagConstraints();
+        gcCard.insets = new Insets(2, 3, 2, 3);
+        gcCard.fill = GridBagConstraints.HORIZONTAL;
+        gcCard.gridy = 0;
+
         txtParcelas.setEditable(false);
         txtJuros.setEditable(false);
         cboPeriodo.setEnabled(false);
 
-        JButton btnParcelamento = new JButton("Configurar Parcelamento");
-        linha2.add(btnParcelamento);
-        entrada.add(linha2);
+        gcCard.gridx = 0; gcCard.weightx = 0; cardCartao.add(new JLabel("Parc.:"), gcCard);
+        gcCard.gridx = 1; gcCard.weightx = 0.12; cardCartao.add(txtParcelas, gcCard);
+        gcCard.gridx = 2; gcCard.weightx = 0; cardCartao.add(new JLabel("Jur%:"), gcCard);
+        gcCard.gridx = 3; gcCard.weightx = 0.12; cardCartao.add(txtJuros, gcCard);
+        gcCard.gridx = 4; gcCard.weightx = 0; cardCartao.add(new JLabel("Período:"), gcCard);
+        gcCard.gridx = 5; gcCard.weightx = 0.25; cardCartao.add(cboPeriodo, gcCard);
 
-        // escondidos até escolher CARTAO
-        txtParcelas.setVisible(false);
-        txtJuros.setVisible(false);
-        cboPeriodo.setVisible(false);
-        btnParcelamento.setVisible(false);
+        JButton btnParcelamento = new JButton("Config");
+        btnParcelamento.setFont(btnParcelamento.getFont().deriveFont(9f));
+        gcCard.gridx = 6; gcCard.weightx = 0; cardCartao.add(btnParcelamento, gcCard);
+
+        linha2.add(cardCartao, BorderLayout.CENTER);
+
+        // escondido até escolher CARTAO
+        cardCartao.setVisible(false);
 
         /* ---- alterna visibilidade quando muda a forma ----- */
         cboForma.addActionListener(e -> {
             boolean card = "CARTAO".equalsIgnoreCase((String) cboForma.getSelectedItem());
-            txtParcelas.setVisible(card);
-            txtJuros.setVisible(card);
-            cboPeriodo.setVisible(card);
-            btnParcelamento.setVisible(card);
-            entrada.revalidate();
-            entrada.repaint();
+            painelValor.setVisible(!card);    // esconde só o Valor quando CARTAO
+            cardCartao.setVisible(card);      // mostra Card Parcelamento quando CARTAO
+            linha1.revalidate();
+            linha1.repaint();
+            linha2.revalidate();
+            linha2.repaint();
         });
 
         btnParcelamento.addActionListener(e -> {
@@ -257,12 +308,8 @@ public class VendaFinalizarDialog extends JDialog {
             }
         });
 
-        /* ---- Botão adicionar pagamento ---- */
-        JButton btnAdd = criarBotao("Adicionar");
-        btnAdd.addActionListener(e -> onAddPagamento());
-        linha2.add(btnAdd);
-
-        painel.add(entrada, BorderLayout.NORTH);
+        painel.add(linha1, BorderLayout.NORTH);
+        painel.add(linha2, BorderLayout.AFTER_LINE_ENDS);
 
         /* ---- tabela pagamentos ---- */
         pagamentosModel = new DefaultTableModel(new String[] { "Forma", "Valor", "" }, 0) {
@@ -277,10 +324,21 @@ public class VendaFinalizarDialog extends JDialog {
             }
         };
         pagamentosTable = new JTable(pagamentosModel);
-        pagamentosTable.getColumnModel().getColumn(2)
-                .setCellRenderer(new ButtonRenderer("🗑"));
-        pagamentosTable.getColumnModel().getColumn(2)
-                .setCellEditor(new ButtonEditor(evt -> {
+        pagamentosTable.getColumnModel().getColumn(1).setCellRenderer(new MoneyRenderer());
+        ((DefaultTableCellRenderer) pagamentosTable.getTableHeader().getDefaultRenderer())
+                .setHorizontalAlignment(SwingConstants.LEFT);
+        pagamentosTable.setRowHeight(24);
+        pagamentosTable.setShowHorizontalLines(true);
+        pagamentosTable.setShowVerticalLines(false);
+        pagamentosTable.setFillsViewportHeight(false);
+        pagamentosTable.setPreferredScrollableViewportSize(new Dimension(400, 100));
+
+        TableColumn colTrash = pagamentosTable.getColumnModel().getColumn(2);
+        colTrash.setMaxWidth(40);
+        colTrash.setMinWidth(40);
+        colTrash.setPreferredWidth(40);
+        colTrash.setCellRenderer(new ButtonRenderer("🗑"));
+        colTrash.setCellEditor(new ButtonEditor(evt -> {
                     int r = pagamentosTable.getSelectedRow();
                     if (r >= 0)
                         pagamentosModel.removeRow(r);
@@ -304,7 +362,7 @@ public class VendaFinalizarDialog extends JDialog {
         });
         am.put("abrirParcelamento", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                if (btnParcelamento.isVisible())
+                if ("CARTAO".equalsIgnoreCase((String) cboForma.getSelectedItem()))
                     btnParcelamento.doClick();
             }
         });
@@ -331,15 +389,16 @@ public class VendaFinalizarDialog extends JDialog {
 
     /* ======= Rodapé ======= */
     private JPanel createFooterPanel() {
-        JPanel rod = new JPanel(new BorderLayout());
-        lblPago.setFont(lblPago.getFont().deriveFont(Font.BOLD, 14f));
-        lblTroco.setFont(lblTroco.getFont().deriveFont(Font.BOLD, 14f));
-        JPanel val = new JPanel(new GridLayout(1, 2, 4, 4));
+        JPanel rod = new JPanel(new BorderLayout(8, 8));
+        rod.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        lblPago.setFont(lblPago.getFont().deriveFont(Font.BOLD, 16f));
+        lblTroco.setFont(lblTroco.getFont().deriveFont(Font.BOLD, 16f));
+        JPanel val = new JPanel(new GridLayout(1, 2, 8, 4));
         val.add(lblPago);
         val.add(lblTroco);
         rod.add(val, BorderLayout.WEST);
 
-        JButton btnConf = criarBotao("Confirmar");
+        JButton btnConf = criarBotao("Confirmar (F5)");
         btnConf.addActionListener(e -> onConfirm());
         JButton btnCan = criarBotao("Cancelar");
         btnCan.addActionListener(e -> dispose());
@@ -347,6 +406,7 @@ public class VendaFinalizarDialog extends JDialog {
         bts.add(btnCan);
         bts.add(btnConf);
         rod.add(bts, BorderLayout.EAST);
+        getRootPane().setDefaultButton(btnConf);
         return rod;
     }
 
@@ -443,8 +503,18 @@ public class VendaFinalizarDialog extends JDialog {
         for (int i = 0; i < pagamentosModel.getRowCount(); i++)
             pago += (Double) pagamentosModel.getValueAt(i, 1);
         NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        
         lblPago.setText("Pago:  " + nf.format(pago));
-        lblTroco.setText("Troco: " + nf.format(pago - liquido));
+        
+        double restante = liquido - pago;
+        lblRestante.setText(nf.format(restante));
+        
+        double diff = pago - liquido;
+        if (diff >= 0) {
+            lblTroco.setText("Troco: " + nf.format(diff));
+        } else {
+            lblTroco.setText("Falta: " + nf.format(Math.abs(diff)));
+        }
     }
 
     private void onConfirm() {
@@ -887,12 +957,28 @@ public class VendaFinalizarDialog extends JDialog {
         }
     }
 
+    /* ─────────── Money Renderer (formatação de moeda) ─────────── */
+    private static class MoneyRenderer extends DefaultTableCellRenderer {
+        private final NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt","BR"));
+        @Override
+        public void setValue(Object value) {
+            if (value instanceof Number n) {
+                setHorizontalAlignment(SwingConstants.RIGHT);
+                setText(moeda.format(n.doubleValue()));
+            } else {
+                super.setValue(value);
+            }
+        }
+    }
+
     /* ─────────── Button Renderer/Editor (remover linha) ─────────── */
     class ButtonRenderer extends JButton implements TableCellRenderer {
         ButtonRenderer(String txt) {
             setText(txt);
             setOpaque(true);
             setFocusPainted(false);
+            setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
+            setHorizontalAlignment(SwingConstants.CENTER);
         }
 
         public Component getTableCellRendererComponent(JTable t, Object v,
@@ -905,6 +991,7 @@ public class VendaFinalizarDialog extends JDialog {
         private final JButton btn = new JButton("🗑");
         private final java.util.function.Consumer<Void> action;
         private boolean clicked;
+        private int editingRow;
 
         ButtonEditor(java.util.function.Consumer<Void> action) {
             super(new JCheckBox());
@@ -912,18 +999,28 @@ public class VendaFinalizarDialog extends JDialog {
             btn.setFocusPainted(false);
             btn.addActionListener(e -> {
                 clicked = true;
-                fireEditingStopped();
+                editingRow = pagamentosTable.getEditingRow();
+                // Não chama fireEditingStopped() diretamente
+                // Ao invés, faz a ação e depois tira o foco
+                if (clicked && action != null) {
+                    action.accept(null);
+                }
+                // Cancela a edição sem tentar fazer setValueAt
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        pagamentosTable.getCellEditor().cancelCellEditing();
+                    } catch (Exception ignored) {}
+                });
             });
         }
 
         public Component getTableCellEditorComponent(JTable tbl, Object v, boolean s, int r, int c) {
             clicked = false;
+            editingRow = r;
             return btn;
         }
 
         public Object getCellEditorValue() {
-            if (clicked && action != null)
-                action.accept(null);
             return "";
         }
     }
