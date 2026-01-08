@@ -2,25 +2,17 @@ package ui.ajustes.dialog;
 
 import dao.ConfigLojaDAO;
 import model.ConfigLojaModel;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.sql.SQLException;
 
 /**
- * Diálogo para configuração completa dos dados da loja, incluindo:
- * - Dados cadastrais (Razão Social, Nome Fantasia, CNPJ, IE, Regime, CNAE)
- * - Endereço completo (Logradouro, Número, Complemento, Bairro, Município, UF,
- * CEP)
- * - Contato (Telefone, E-mail)
- * - Parâmetros para NFC-e (Modelo, Série, Número Inicial, Ambiente, CSC, Token
- * CSC, Certificado Digital)
- * - Impressão (Nome da impressora térmica, Texto de rodapé)
- * - URL do WebService NFC-e e configurações de proxy
+ * ConfigLojaDialog - visual remodelado com UiKit (sem mudar lógica).
  */
 public class ConfigLojaDialog extends JDialog {
 
@@ -32,7 +24,6 @@ public class ConfigLojaDialog extends JDialog {
     private final JComboBox<String> cbRegimeTrib = new JComboBox<>(
             new String[] { "Simples Nacional", "Lucro Presumido", "Lucro Real" });
     private final JTextField tfCnae = new JTextField(10);
-    // Botão para abrir configurações fiscais
     private final JButton btnFiscal = new JButton("Configuração Fiscal");
 
     // ===== Endereço =====
@@ -80,418 +71,25 @@ public class ConfigLojaDialog extends JDialog {
     public ConfigLojaDialog(Frame owner) {
         super(owner, "Configuração Completa - Dados da Loja", true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        UiKit.applyDialogBase(this);
+
         initComponents();
-        pack();
+        setSize(980, 720);
         setLocationRelativeTo(owner);
+
         carregarDadosExistentes();
     }
 
     private void initComponents() {
-        JPanel painelPrincipal = new JPanel(new BorderLayout());
-        painelPrincipal.setBorder(new EmptyBorder(12, 12, 12, 12));
-        getContentPane().add(painelPrincipal);
+        setLayout(new BorderLayout(10, 10));
 
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(BorderFactory.createTitledBorder("Dados da Loja e NFC-e"));
-        JScrollPane scroll = new JScrollPane(formPanel);
-        scroll.setBorder(null); // aparência limpa
-        scroll.getVerticalScrollBar().setUnitIncrement(16); // rolagem suave
-        painelPrincipal.add(scroll, BorderLayout.CENTER);
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildBody(), BorderLayout.CENTER);
+        add(buildFooter(), BorderLayout.SOUTH);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 6, 6, 6);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        int y = 0;
-
-        // --- Linha 1: Razão Social ---
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Razão Social (Nome):"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfNome, gbc);
-
-        // --- Nome Fantasia ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Nome Fantasia:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfNomeFantasia, gbc);
-
-        // --- CNPJ ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("CNPJ:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfCnpj, gbc);
-
-        // --- Inscrição Estadual ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Inscrição Estadual:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfInscricaoEstadual, gbc);
-
-        // --- Regime Tributário ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Regime Tributário:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(cbRegimeTrib, gbc);
-
-        // --- CNAE ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("CNAE Principal:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfCnae, gbc);
-
-        // --- Linha em branco separando seções ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        formPanel.add(new JSeparator(), gbc);
-        gbc.gridwidth = 1;
-
-        // ===== ENDEREÇO =====
-        // --- Logradouro ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Logradouro:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfLogradouro, gbc);
-
-        // --- Número ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Número:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfNumero, gbc);
-
-        // --- Complemento ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Complemento:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfComplemento, gbc);
-
-        // --- Bairro ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Bairro:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfBairro, gbc);
-
-        // --- Município ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Município:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfMunicipio, gbc);
-
-        // --- UF ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("UF:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(cbUf, gbc);
-
-        // --- CEP ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("CEP:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfCep, gbc);
-
-        // --- Linha em branco separando seções ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        formPanel.add(new JSeparator(), gbc);
-        gbc.gridwidth = 1;
-
-        // ===== CONTATO =====
-        // --- Telefone ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Telefone:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfTelefone, gbc);
-
-        // --- E-mail ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("E-mail:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfEmail, gbc);
-
-        // --- Sócios / Observações ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        formPanel.add(new JLabel("Sócios / Observações:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        JScrollPane spSocios = new JScrollPane(taSocios);
-        spSocios.setPreferredSize(new Dimension(0, 60));
-        formPanel.add(spSocios, gbc);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        // --- Linha em branco separando seções ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        formPanel.add(new JSeparator(), gbc);
-        gbc.gridwidth = 1;
-
-        // ===== NFC-e / DOCUMENTO FISCAL =====
-        // --- Modelo da Nota ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Modelo da Nota (ex: 65):"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfModeloNota, gbc);
-
-        // --- Série da Nota ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Série da Nota:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfSerieNota, gbc);
-
-        // --- Número Inicial da Nota ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Número Inicial da Nota:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfNumeroInicialNota, gbc);
-
-        // --- Ambiente NFC-e ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Ambiente NFC-e:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(cbAmbienteNfce, gbc);
-
-        // --- CSC ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("CSC (Código de Segurança):"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfCsc, gbc);
-
-        // --- Token CSC ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Token CSC:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfTokenCsc, gbc);
-
-        // --- Caminho do Certificado Digital (.pfx) ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Certificado Digital (PFX) - Caminho:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfCertificadoPath, gbc);
-
-        // --- Senha do Certificado ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Senha do Certificado Digital:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfCertificadoSenha, gbc);
-
-        // --- Linha em branco separando seções ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        formPanel.add(new JSeparator(), gbc);
-        gbc.gridwidth = 1;
-
-        // ===== IMPRESSÃO =====
-        // --- Nome da Impressora ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Nome da Impressora Térmica:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfNomeImpressora, gbc);
-
-        // --- Texto de Rodapé do Cupom ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Texto de Rodapé do Cupom:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfTextoRodapeNota, gbc);
-
-        // --- Linha em branco separando seções ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.gridwidth = 2;
-        formPanel.add(new JSeparator(), gbc);
-        gbc.gridwidth = 1;
-
-        // ===== WEBSERVICE NFC-e E PROXY =====
-        // --- URL WebService NFC-e ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("URL WebService NFC-e:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfUrlWebServiceNfce, gbc);
-
-        // --- Proxy Host ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Proxy Host:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfProxyHost, gbc);
-
-        // --- Proxy Port ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Proxy Port:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfProxyPort, gbc);
-
-        // --- Proxy Usuário ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Proxy Usuário:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfProxyUsuario, gbc);
-
-        // --- Proxy Senha ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        formPanel.add(new JLabel("Proxy Senha:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfProxySenha, gbc);
-
-        // ===== RODAPÉ COM BOTÕES =====
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
-        painelPrincipal.add(rodape, BorderLayout.SOUTH);
-
-        btnFiscal.setPreferredSize(new Dimension(160, 30));
-        btnFiscal.setToolTipText("Abrir configurações fiscais (CFOP, CSOSN, NCM, etc.)");
-        btnFiscal.addActionListener(e -> {
-            // Passa o "this" como Frame e null como clienteId (ou um ID padrão)
-            ConfigFiscalDialog fiscalDialog = new ConfigFiscalDialog((Frame) SwingUtilities.getWindowAncestor(this),
-                    "LOJA");
-            fiscalDialog.setVisible(true);
-        });
-
-        JButton btnSalvar = new JButton("Salvar");
-        btnSalvar.setPreferredSize(new Dimension(100, 30));
-        btnSalvar.addActionListener(e -> onSalvar());
-        rodape.add(btnFiscal);
-
-        rodape.add(btnSalvar);
-
-        JButton btnCancelar = new JButton("Cancelar");
-        btnCancelar.setPreferredSize(new Dimension(100, 30));
-        btnCancelar.addActionListener(e -> dispose());
-        rodape.add(btnCancelar);
-
-        // Ajusta Enter para acionar "Salvar"
-        getRootPane().setDefaultButton(btnSalvar);
-
-        // Fecha como cancelado se usuário fechar a janela
+        // Enter = salvar
+        // (default button é setado no footer)
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -500,9 +98,349 @@ public class ConfigLojaDialog extends JDialog {
         });
     }
 
-    /**
-     * Cria um JFormattedTextField com máscara para CNPJ: ##.###.###/####-##
-     */
+    private JComponent buildHeader() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        left.setOpaque(false);
+        left.add(UiKit.title("🏪 Configurações da Loja"));
+        left.add(UiKit.hint("Dados cadastrais, NFC-e, impressão e proxy. Sem drama."));
+        card.add(left, BorderLayout.WEST);
+
+        JLabel hint = UiKit.hint("Enter salva | Esc fecha");
+        card.add(hint, BorderLayout.EAST);
+
+        return card;
+    }
+
+    private JComponent buildBody() {
+        JPanel content = new JPanel();
+        content.setOpaque(false);
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+
+        // placeholders úteis
+        tfCnae.putClientProperty("JTextField.placeholderText", "ex: 4763-6/02");
+        tfModeloNota.putClientProperty("JTextField.placeholderText", "65");
+        tfSerieNota.putClientProperty("JTextField.placeholderText", "1");
+        tfNumeroInicialNota.putClientProperty("JTextField.placeholderText", "1");
+        tfCsc.putClientProperty("JTextField.placeholderText", "CSC (SEFAZ)");
+        tfTokenCsc.putClientProperty("JTextField.placeholderText", "Token CSC (SEFAZ)");
+        tfCertificadoPath.putClientProperty("JTextField.placeholderText", "Caminho do .pfx");
+        tfNomeImpressora.putClientProperty("JTextField.placeholderText", "Nome do Windows/driver");
+        tfUrlWebServiceNfce.putClientProperty("JTextField.placeholderText", "URL do WS (se customizar)");
+        tfProxyPort.putClientProperty("JTextField.placeholderText", "8080");
+
+        taSocios.setLineWrap(true);
+        taSocios.setWrapStyleWord(true);
+
+        content.add(sectionCadastral());
+        content.add(Box.createVerticalStrut(10));
+        content.add(sectionEndereco());
+        content.add(Box.createVerticalStrut(10));
+        content.add(sectionContato());
+        content.add(Box.createVerticalStrut(10));
+        content.add(sectionNfce());
+        content.add(Box.createVerticalStrut(10));
+        content.add(sectionImpressao());
+        content.add(Box.createVerticalStrut(10));
+        content.add(sectionWebServiceProxy());
+        content.add(Box.createVerticalStrut(6));
+
+        JScrollPane sp = UiKit.scroll(content);
+        sp.setBorder(new EmptyBorder(0, 0, 0, 0));
+        sp.getVerticalScrollBar().setUnitIncrement(16);
+
+        return sp;
+    }
+
+    private JComponent buildFooter() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JLabel hint = UiKit.hint("Atenção: CNPJ precisa ter 14 dígitos e NFC-e exige modelo/série.");
+        card.add(hint, BorderLayout.WEST);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        actions.setOpaque(false);
+
+        JButton bFiscal = UiKit.ghost("Configuração Fiscal");
+        bFiscal.setToolTipText("Abrir configurações fiscais (CFOP, CSOSN, NCM, etc.)");
+        bFiscal.addActionListener(e -> {
+            ConfigFiscalDialog fiscalDialog = new ConfigFiscalDialog(
+                    (Frame) SwingUtilities.getWindowAncestor(this),
+                    "LOJA");
+            fiscalDialog.setVisible(true);
+        });
+
+        JButton bCancelar = UiKit.ghost("Cancelar (ESC)");
+        bCancelar.addActionListener(e -> dispose());
+
+        JButton bSalvar = UiKit.primary("Salvar (ENTER)");
+        bSalvar.addActionListener(e -> onSalvar());
+
+        actions.add(bFiscal);
+        actions.add(bCancelar);
+        actions.add(bSalvar);
+
+        card.add(actions, BorderLayout.EAST);
+
+        getRootPane().setDefaultButton(bSalvar);
+
+        // ESC fecha
+        InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getRootPane().getActionMap();
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+        am.put("close", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+
+        return card;
+    }
+
+    // ===================== SEÇÕES =====================
+
+    private JComponent sectionCadastral() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel head = new JPanel(new BorderLayout());
+        head.setOpaque(false);
+        head.add(UiKit.title("Dados Cadastrais"), BorderLayout.WEST);
+        head.add(UiKit.hint("Razão social, CNPJ, IE, regime, CNAE"), BorderLayout.EAST);
+        card.add(head, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = baseGbc();
+
+        int y = 0;
+        addRow(form, g, y++, "Razão Social (Nome):", tfNome);
+        addRow(form, g, y++, "Nome Fantasia:", tfNomeFantasia);
+        addRow(form, g, y++, "CNPJ:", tfCnpj);
+        addRow(form, g, y++, "Inscrição Estadual:", tfInscricaoEstadual);
+        addRow(form, g, y++, "Regime Tributário:", cbRegimeTrib);
+        addRow(form, g, y++, "CNAE Principal:", tfCnae);
+
+        card.add(form, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JComponent sectionEndereco() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel head = new JPanel(new BorderLayout());
+        head.setOpaque(false);
+        head.add(UiKit.title("Endereço"), BorderLayout.WEST);
+        head.add(UiKit.hint("Endereço completo para emissão"), BorderLayout.EAST);
+        card.add(head, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = baseGbc();
+        int y = 0;
+
+        addRow(form, g, y++, "Logradouro:", tfLogradouro);
+
+        // Número + Complemento na mesma linha
+        addRow2(form, g, y++, "Número:", tfNumero, "Complemento:", tfComplemento);
+
+        addRow(form, g, y++, "Bairro:", tfBairro);
+
+        // Município + UF
+        addRow2(form, g, y++, "Município:", tfMunicipio, "UF:", cbUf);
+
+        addRow(form, g, y++, "CEP:", tfCep);
+
+        card.add(form, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JComponent sectionContato() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel head = new JPanel(new BorderLayout());
+        head.setOpaque(false);
+        head.add(UiKit.title("Contato"), BorderLayout.WEST);
+        head.add(UiKit.hint("Telefone, e-mail e observações"), BorderLayout.EAST);
+        card.add(head, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = baseGbc();
+        int y = 0;
+
+        addRow(form, g, y++, "Telefone:", tfTelefone);
+        addRow(form, g, y++, "E-mail:", tfEmail);
+
+        // Sócios/Obs
+        g.gridy = y;
+        g.gridx = 0;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        g.anchor = GridBagConstraints.NORTHWEST;
+        form.add(new JLabel("Sócios / Observações:"), g);
+
+        JScrollPane sp = UiKit.scroll(taSocios);
+        sp.setPreferredSize(new Dimension(0, 80));
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.fill = GridBagConstraints.BOTH;
+        g.weighty = 1;
+        form.add(sp, g);
+
+        card.add(form, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JComponent sectionNfce() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel head = new JPanel(new BorderLayout());
+        head.setOpaque(false);
+        head.add(UiKit.title("NFC-e / Fiscal"), BorderLayout.WEST);
+        head.add(UiKit.hint("Modelo, série, numeração, CSC e certificado"), BorderLayout.EAST);
+        card.add(head, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = baseGbc();
+        int y = 0;
+
+        addRow2(form, g, y++, "Modelo (ex: 65):", tfModeloNota, "Série:", tfSerieNota);
+        addRow(form, g, y++, "Número Inicial:", tfNumeroInicialNota);
+        addRow(form, g, y++, "Ambiente:", cbAmbienteNfce);
+
+        addRow(form, g, y++, "CSC:", tfCsc);
+        addRow(form, g, y++, "Token CSC:", tfTokenCsc);
+
+        addRow(form, g, y++, "Certificado (PFX) - Caminho:", tfCertificadoPath);
+
+        // Senha certificado
+        addRow(form, g, y++, "Senha do Certificado:", tfCertificadoSenha);
+
+        card.add(form, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JComponent sectionImpressao() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel head = new JPanel(new BorderLayout());
+        head.setOpaque(false);
+        head.add(UiKit.title("Impressão"), BorderLayout.WEST);
+        head.add(UiKit.hint("Impressora térmica e rodapé"), BorderLayout.EAST);
+        card.add(head, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = baseGbc();
+        int y = 0;
+
+        addRow(form, g, y++, "Nome da Impressora Térmica:", tfNomeImpressora);
+        addRow(form, g, y++, "Texto de Rodapé do Cupom:", tfTextoRodapeNota);
+
+        card.add(form, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JComponent sectionWebServiceProxy() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel head = new JPanel(new BorderLayout());
+        head.setOpaque(false);
+        head.add(UiKit.title("WebService e Proxy"), BorderLayout.WEST);
+        head.add(UiKit.hint("Só preencha se você usa proxy/URL custom"), BorderLayout.EAST);
+        card.add(head, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = baseGbc();
+        int y = 0;
+
+        addRow(form, g, y++, "URL WebService NFC-e:", tfUrlWebServiceNfce);
+        addRow(form, g, y++, "Proxy Host:", tfProxyHost);
+        addRow2(form, g, y++, "Proxy Port:", tfProxyPort, "Proxy Usuário:", tfProxyUsuario);
+        addRow(form, g, y++, "Proxy Senha:", tfProxySenha);
+
+        card.add(form, BorderLayout.CENTER);
+        return card;
+    }
+
+    // ===================== HELPERS DE LAYOUT =====================
+
+    private GridBagConstraints baseGbc() {
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 6, 6, 6);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.weighty = 0;
+        return g;
+    }
+
+    private void addRow(JPanel p, GridBagConstraints g, int row, String label, JComponent field) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        p.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        p.add(field, g);
+    }
+
+    private void addRow2(JPanel p, GridBagConstraints g, int row,
+            String l1, JComponent f1,
+            String l2, JComponent f2) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        p.add(new JLabel(l1), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        p.add(f1, g);
+
+        g.gridx = 2;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        p.add(new JLabel(l2), g);
+
+        g.gridx = 3;
+        g.weightx = 1;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        p.add(f2, g);
+    }
+
+    // ===================== CAMPOS COM MÁSCARA =====================
+
     private JFormattedTextField criarCampoCnpj() {
         try {
             MaskFormatter mask = new MaskFormatter("##.###.###/####-##");
@@ -513,9 +451,6 @@ public class ConfigLojaDialog extends JDialog {
         }
     }
 
-    /**
-     * Cria JFormattedTextField com máscara para CEP: #####-###
-     */
     private JFormattedTextField criarCampoCep() {
         try {
             MaskFormatter mask = new MaskFormatter("#####-###");
@@ -526,9 +461,6 @@ public class ConfigLojaDialog extends JDialog {
         }
     }
 
-    /**
-     * Cria JFormattedTextField com máscara para Telefone: (##) #####-####
-     */
     private JFormattedTextField criarCampoTelefone() {
         try {
             MaskFormatter mask = new MaskFormatter("(##) #####-####");
@@ -539,10 +471,8 @@ public class ConfigLojaDialog extends JDialog {
         }
     }
 
-    /**
-     * Carrega valores existentes do banco via ConfigLojaDAO e preenche todos os
-     * campos.
-     */
+    // ===================== LÓGICA EXISTENTE (INTACTA) =====================
+
     private void carregarDadosExistentes() {
         try {
             ConfigLojaDAO dao = new ConfigLojaDAO();
@@ -592,10 +522,9 @@ public class ConfigLojaDialog extends JDialog {
         }
     }
 
-    /**
-     * Valida campos obrigatórios e persiste a configuração via DAO.
-     */
     private void onSalvar() {
+        // === seu método original aqui, intacto ===
+        // (não alterei nada, só mantive o corpo como estava no seu código)
         String nome = tfNome.getText().trim();
         String nomeFantasia = tfNomeFantasia.getText().trim();
         String cnpj = tfCnpj.getText().trim();
@@ -613,7 +542,7 @@ public class ConfigLojaDialog extends JDialog {
 
         String telefone = tfTelefone.getText().trim();
         String email = tfEmail.getText().trim();
-        String socios = taSocios.getText().trim();
+        String socios = taSocios.getText().trim(); // (mantido, mesmo que não salve no model atual)
 
         String modeloNota = tfModeloNota.getText().trim();
         String serieNota = tfSerieNota.getText().trim();
@@ -651,7 +580,6 @@ public class ConfigLojaDialog extends JDialog {
         String proxyUsuario = tfProxyUsuario.getText().trim();
         String proxySenha = new String(tfProxySenha.getPassword()).trim();
 
-        // Validações básicas
         if (nome.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "O campo 'Razão Social (Nome)' é obrigatório.",
@@ -678,7 +606,6 @@ public class ConfigLojaDialog extends JDialog {
         try {
             ConfigLojaDAO dao = new ConfigLojaDAO();
             if (currentConfig == null) {
-                // Cria novo model com todos os valores
                 ConfigLojaModel cfg = new ConfigLojaModel(
                         nome,
                         nomeFantasia,
@@ -712,7 +639,6 @@ public class ConfigLojaDialog extends JDialog {
                         proxySenha);
                 dao.inserir(cfg);
             } else {
-                // Atualiza o objeto existente e persiste
                 currentConfig.setNome(nome);
                 currentConfig.setNomeFantasia(nomeFantasia);
                 currentConfig.setCnpj(cnpjSomenteDigitos);

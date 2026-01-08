@@ -4,9 +4,10 @@ package ui.ajustes.dialog;
 import model.CodigoDescricaoModel;
 import service.FiscalCatalogService;
 import service.FiscalCatalogService.CatalogType;
+import util.UiKit;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.MaskFormatter;
@@ -24,7 +25,10 @@ public class FiscalCadastrosDialog extends JDialog {
     public FiscalCadastrosDialog(Window owner) {
         super(owner, "Configuração - Cadastros Fiscais", ModalityType.APPLICATION_MODAL);
 
+        UiKit.applyDialogBase(this);
+
         JTabbedPane tabs = new JTabbedPane();
+        tabs.putClientProperty("JTabbedPane.tabHeight", 34);
 
         tabs.addTab("NCM", new CatalogTab(CatalogType.NCM));
         tabs.addTab("CFOP", new CatalogTab(CatalogType.CFOP));
@@ -33,15 +37,47 @@ public class FiscalCadastrosDialog extends JDialog {
         tabs.addTab("Unidades", new CatalogTab(CatalogType.UNIDADES));
 
         JPanel root = new JPanel(new BorderLayout(10, 10));
-        root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        root.add(tabs, BorderLayout.CENTER);
+        root.setOpaque(false);
+        root.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-        JButton btnClose = new JButton("Fechar");
+        // Header (card)
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(10, 10));
+
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 2));
+        left.setOpaque(false);
+        left.add(UiKit.title("📚 Cadastros Fiscais"));
+        left.add(UiKit.hint("NCM, CFOP, CSOSN, Origem e Unidades. Duplo clique na tabela para editar."));
+        header.add(left, BorderLayout.WEST);
+
+        header.add(UiKit.hint("Enter adiciona | Duplo clique edita"), BorderLayout.EAST);
+
+        root.add(header, BorderLayout.NORTH);
+
+        // Tabs dentro de um card pra manter padrão visual
+        JPanel tabsCard = UiKit.card();
+        tabsCard.setLayout(new BorderLayout());
+        tabsCard.add(tabs, BorderLayout.CENTER);
+
+        root.add(tabsCard, BorderLayout.CENTER);
+
+        // Footer (card)
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout(10, 10));
+
+        footer.add(UiKit.hint("Dica: mantenha descrições curtas e consistentes. Isso aparece em cadastro e nota."),
+                BorderLayout.WEST);
+
+        JPanel bottomRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        bottomRight.setOpaque(false);
+
+        JButton btnClose = UiKit.ghost("Fechar");
         btnClose.addActionListener(e -> dispose());
-        bottom.add(btnClose);
+        bottomRight.add(btnClose);
 
-        root.add(bottom, BorderLayout.SOUTH);
+        footer.add(bottomRight, BorderLayout.EAST);
+
+        root.add(footer, BorderLayout.SOUTH);
 
         setContentPane(root);
         setPreferredSize(new Dimension(980, 620));
@@ -56,31 +92,35 @@ public class FiscalCadastrosDialog extends JDialog {
 
         private final CatalogType type;
 
-        private final DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Código", "Descrição"}, 0) {
-            @Override public boolean isCellEditable(int row, int col) { return false; }
+        private final DefaultTableModel tableModel = new DefaultTableModel(new Object[] { "Código", "Descrição" }, 0) {
+            @Override
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
         };
+
         private final JTable table = new JTable(tableModel);
 
-        // AGORA é criado no construtor (porque depende do type)
+        // Criado no construtor (depende do type)
         private final JFormattedTextField txtCodigo;
         private final JTextField txtDescricao = new JTextField(40);
 
         CatalogTab(CatalogType type) {
             super(new BorderLayout(10, 10));
             this.type = type;
+            setOpaque(false);
+            setBorder(new EmptyBorder(8, 8, 8, 8));
 
-            // cria o campo depois que o type existe
             this.txtCodigo = buildCodigoField();
 
             // fonte e altura decentes
             txtCodigo.setFont(txtCodigo.getFont().deriveFont(15f));
             txtDescricao.setFont(txtDescricao.getFont().deriveFont(14f));
-
             txtDescricao.setPreferredSize(new Dimension(520, 30));
 
-            JPanel input = buildInputPanel();
-            JScrollPane scroll = buildTablePanel();
-            JPanel buttons = buildButtonsPanel();
+            JPanel input = buildInputCard();
+            JScrollPane scroll = buildTableCard();
+            JPanel buttons = buildButtonsCard();
 
             add(input, BorderLayout.NORTH);
             add(scroll, BorderLayout.CENTER);
@@ -91,9 +131,10 @@ public class FiscalCadastrosDialog extends JDialog {
                 table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
                     @Override
                     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                                   boolean hasFocus, int row, int column) {
+                            boolean hasFocus, int row, int column) {
                         Object v = value;
-                        if (v != null) v = formatNcm(v.toString());
+                        if (v != null)
+                            v = formatNcm(v.toString());
                         return super.getTableCellRendererComponent(table, v, isSelected, hasFocus, row, column);
                     }
                 });
@@ -142,23 +183,27 @@ public class FiscalCadastrosDialog extends JDialog {
                 f = new JFormattedTextField();
             }
 
-            // tamanho e legibilidade
             f.setColumns(type == CatalogType.UNIDADES ? 10 : 12);
             f.setPreferredSize(new Dimension(220, 32));
             f.setMinimumSize(new Dimension(220, 32));
-
             return f;
         }
 
-        private JPanel buildInputPanel() {
-            JPanel inputPanel = new JPanel(new GridBagLayout());
-            inputPanel.setBorder(BorderFactory.createTitledBorder(
-                    BorderFactory.createEtchedBorder(),
-                    type.getTitle(),
-                    TitledBorder.LEFT, TitledBorder.TOP
-            ));
+        private JPanel buildInputCard() {
+            JPanel card = UiKit.card();
+            card.setLayout(new BorderLayout(10, 10));
 
-            JButton btnAdd = new JButton("Adicionar / Atualizar");
+            JPanel header = new JPanel(new BorderLayout());
+            header.setOpaque(false);
+            header.add(UiKit.title(type.getTitle()), BorderLayout.WEST);
+            header.add(UiKit.hint(type.getHint()), BorderLayout.EAST);
+
+            card.add(header, BorderLayout.NORTH);
+
+            JPanel inputPanel = new JPanel(new GridBagLayout());
+            inputPanel.setOpaque(false);
+
+            JButton btnAdd = UiKit.primary("Adicionar / Atualizar");
             btnAdd.addActionListener(e -> addOrUpdate());
 
             GridBagConstraints gbc = new GridBagConstraints();
@@ -177,7 +222,7 @@ public class FiscalCadastrosDialog extends JDialog {
             // Campo Código (não esmagar)
             gbc.gridx = 1;
             gbc.weightx = 0.25;
-            gbc.fill = GridBagConstraints.NONE; // respeita preferred size
+            gbc.fill = GridBagConstraints.NONE;
             inputPanel.add(txtCodigo, gbc);
 
             // Label Descrição
@@ -198,25 +243,26 @@ public class FiscalCadastrosDialog extends JDialog {
             gbc.fill = GridBagConstraints.NONE;
             inputPanel.add(btnAdd, gbc);
 
-            // Linha 1: hint
-            JLabel hint = new JLabel(type.getHint());
-            hint.setForeground(new Color(120, 120, 120));
-            gbc.gridx = 0;
-            gbc.gridy = 1;
-            gbc.gridwidth = 5;
-            gbc.weightx = 1.0;
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-            inputPanel.add(hint, gbc);
+            card.add(inputPanel, BorderLayout.CENTER);
 
-            return inputPanel;
+            return card;
         }
 
-        private JScrollPane buildTablePanel() {
-            table.setRowHeight(24);
+        private JScrollPane buildTableCard() {
+            // Defaults do teu projeto
+            UiKit.tableDefaults(table);
+
+            // Zebra (sem quebrar seleção)
+            DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+            for (int i = 0; i < table.getColumnCount(); i++) {
+                table.getColumnModel().getColumn(i).setCellRenderer(zebra);
+            }
+
             table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
             table.addMouseListener(new MouseAdapter() {
-                @Override public void mouseClicked(MouseEvent e) {
+                @Override
+                public void mouseClicked(MouseEvent e) {
                     if (e.getClickCount() == 2 && table.getSelectedRow() >= 0) {
                         int row = table.getSelectedRow();
                         txtCodigo.setText(String.valueOf(tableModel.getValueAt(row, 0)));
@@ -226,28 +272,55 @@ public class FiscalCadastrosDialog extends JDialog {
                 }
             });
 
-            JScrollPane scroll = new JScrollPane(table);
-            scroll.setBorder(BorderFactory.createTitledBorder("Lista"));
-            return scroll;
+            // Coloca a tabela dentro de um card pra ficar igual resto do sistema
+            JPanel card = UiKit.card();
+            card.setLayout(new BorderLayout(8, 8));
+
+            JPanel top = new JPanel(new BorderLayout());
+            top.setOpaque(false);
+            top.add(UiKit.title("Lista"), BorderLayout.WEST);
+            top.add(UiKit.hint("Duplo clique para carregar nos campos"), BorderLayout.EAST);
+
+            card.add(top, BorderLayout.NORTH);
+            card.add(UiKit.scroll(table), BorderLayout.CENTER);
+
+            // JScrollPane “dummy” só pra respeitar assinatura do teu layout original
+            // (CENTER já é scroll)
+            // Mas aqui o retorno precisa ser um JScrollPane. Então envolvo o card num
+            // scroll “neutro”.
+            JScrollPane outer = new JScrollPane(card);
+            outer.setBorder(null);
+            outer.getViewport().setOpaque(false);
+            outer.setOpaque(false);
+            outer.getVerticalScrollBar().setUnitIncrement(16);
+            return outer;
         }
 
-        private JPanel buildButtonsPanel() {
-            JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
+        private JPanel buildButtonsCard() {
+            JPanel card = UiKit.card();
+            card.setLayout(new BorderLayout(10, 10));
 
-            JButton btnRemove = new JButton("Remover");
+            card.add(UiKit.hint("Remover tira da lista local. Salvar aplica no banco."), BorderLayout.WEST);
+
+            JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+            buttons.setOpaque(false);
+
+            JButton btnRemove = UiKit.ghost("Remover");
             btnRemove.addActionListener(e -> removeSelected());
 
-            JButton btnSave = new JButton("Salvar");
-            btnSave.addActionListener(e -> saveAll());
-
-            JButton btnReload = new JButton("Recarregar");
+            JButton btnReload = UiKit.ghost("Recarregar");
             btnReload.addActionListener(e -> load());
 
-            buttons.add(btnRemove);
-            buttons.add(btnSave);
-            buttons.add(btnReload);
+            JButton btnSave = UiKit.primary("Salvar");
+            btnSave.addActionListener(e -> saveAll());
 
-            return buttons;
+            buttons.add(btnRemove);
+            buttons.add(btnReload);
+            buttons.add(btnSave);
+
+            card.add(buttons, BorderLayout.EAST);
+
+            return card;
         }
 
         private void load() {
@@ -255,7 +328,7 @@ public class FiscalCadastrosDialog extends JDialog {
             try {
                 List<CodigoDescricaoModel> list = service.findAll(type);
                 for (CodigoDescricaoModel it : list) {
-                    tableModel.addRow(new Object[]{ it.getCodigo(), it.getDescricao() });
+                    tableModel.addRow(new Object[] { it.getCodigo(), it.getDescricao() });
                 }
             } catch (RuntimeException ex) {
                 JOptionPane.showMessageDialog(this,
@@ -283,7 +356,7 @@ public class FiscalCadastrosDialog extends JDialog {
                 }
             }
 
-            tableModel.addRow(new Object[]{ codigo, desc });
+            tableModel.addRow(new Object[] { codigo, desc });
             clearInputs();
         }
 
@@ -340,7 +413,8 @@ public class FiscalCadastrosDialog extends JDialog {
         }
 
         private String sanitizeCode(String input, CatalogType type) {
-            if (input == null) return "";
+            if (input == null)
+                return "";
             String s = input.trim();
 
             if (type == CatalogType.UNIDADES) {
@@ -351,7 +425,8 @@ public class FiscalCadastrosDialog extends JDialog {
 
         private String formatNcm(String code) {
             String raw = code == null ? "" : code.replaceAll("\\D", "");
-            if (raw.length() != 8) return code;
+            if (raw.length() != 8)
+                return code;
             return raw.substring(0, 4) + "." + raw.substring(4, 6) + "." + raw.substring(6);
         }
     }

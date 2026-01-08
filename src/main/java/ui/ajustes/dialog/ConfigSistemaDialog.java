@@ -2,17 +2,20 @@ package ui.ajustes.dialog;
 
 import util.BackupUtils;
 import util.BackupUtils.BackupConfig;
+import util.UiKit;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.io.File;
-import java.util.concurrent.TimeUnit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 /**
  * Diálogo de configuração de backup/sistema.
- * Permite escolher pasta, ativar auto-backup, intervalo e executar backup agora.
+ * (Visual atualizado com UiKit, lógica intacta.)
  */
 public class ConfigSistemaDialog extends JDialog {
+
     private JCheckBox chkEnable;
     private JTextField txtFolder;
     private JButton btnBrowse;
@@ -22,30 +25,99 @@ public class ConfigSistemaDialog extends JDialog {
 
     public ConfigSistemaDialog(JFrame owner) {
         super(owner, "Backup / Sistema", true);
-        setLayout(new BorderLayout());
 
-        // --- Centro: controles de configuração ---
-        JPanel center = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(4,4,4,4);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = 0; gbc.gridy = 0;
+        UiKit.applyDialogBase(this);
+        setLayout(new BorderLayout(10, 10));
 
         BackupConfig cfg = BackupUtils.loadConfig();
 
-        // 1) Checkbox ativar/desativar
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildCenter(cfg), BorderLayout.CENTER);
+        add(buildFooter(), BorderLayout.SOUTH);
+
+        // Atalhos: ESC fecha, ENTER salva
+        getRootPane().setDefaultButton(btnSave);
+
+        InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getRootPane().getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+        am.put("close", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+
+        setMinimumSize(new Dimension(720, 260));
+        pack();
+        setLocationRelativeTo(owner);
+    }
+
+    private JComponent buildHeader() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 2));
+        left.setOpaque(false);
+
+        left.add(UiKit.title("🗄️ Backup / Sistema"));
+        left.add(UiKit.hint("Escolha a pasta, configure intervalo e rode backup manual quando precisar."));
+
+        card.add(left, BorderLayout.WEST);
+        card.add(UiKit.hint("Enter salva | Esc fecha"), BorderLayout.EAST);
+
+        return card;
+    }
+
+    private JComponent buildCenter(BackupConfig cfg) {
+        JPanel wrap = new JPanel();
+        wrap.setOpaque(false);
+        wrap.setLayout(new BorderLayout(10, 10));
+
+        // Card principal: configurações
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 6, 6, 6);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        int y = 0;
+
+        // 1) Checkbox
         chkEnable = new JCheckBox("Ativar backup automático");
         chkEnable.setSelected(cfg.enabled);
-        center.add(chkEnable, gbc);
 
-        // 2) Pasta de destino
-        gbc.gridy++;
-        center.add(new JLabel("Pasta de backup:"), gbc);
-        gbc.gridx = 1;
-        txtFolder = new JTextField(cfg.folderPath, 20);
-        center.add(txtFolder, gbc);
-        gbc.gridx = 2;
-        btnBrowse = new JButton("…");
+        g.gridx = 0;
+        g.gridy = y;
+        g.gridwidth = 3;
+        g.weightx = 1;
+        form.add(chkEnable, g);
+        y++;
+
+        // 2) Pasta
+        g.gridwidth = 1;
+
+        g.gridx = 0;
+        g.gridy = y;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        form.add(new JLabel("Pasta de backup:"), g);
+
+        txtFolder = new JTextField(cfg.folderPath, 28);
+        txtFolder.putClientProperty("JTextField.placeholderText", "Selecione uma pasta para salvar os backups...");
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        form.add(txtFolder, g);
+
+        btnBrowse = UiKit.ghost("Procurar…");
         btnBrowse.addActionListener(e -> {
             JFileChooser fc = new JFileChooser(txtFolder.getText());
             fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -53,42 +125,98 @@ public class ConfigSistemaDialog extends JDialog {
                 txtFolder.setText(fc.getSelectedFile().getAbsolutePath());
             }
         });
-        center.add(btnBrowse, gbc);
 
-        // 3) Intervalo numérico
-        gbc.gridx = 0; gbc.gridy++;
-        center.add(new JLabel("Intervalo:"), gbc);
-        gbc.gridx = 1;
+        g.gridx = 2;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        form.add(btnBrowse, g);
+
+        y++;
+
+        // 3) Intervalo + unidade
+        g.gridx = 0;
+        g.gridy = y;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        form.add(new JLabel("Intervalo:"), g);
+
         spnInterval = new JSpinner(new SpinnerNumberModel(cfg.interval, 1, 365, 1));
-        center.add(spnInterval, gbc);
-        gbc.gridx = 2;
-        cbUnit = new JComboBox<>(new String[]{"MINUTES","HOURS","DAYS"});
+        ((JSpinner.DefaultEditor) spnInterval.getEditor()).getTextField().setColumns(6);
+
+        g.gridx = 1;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        form.add(spnInterval, g);
+
+        cbUnit = new JComboBox<>(new String[] { "MINUTES", "HOURS", "DAYS" });
         cbUnit.setSelectedItem(cfg.unit);
-        center.add(cbUnit, gbc);
 
-        add(center, BorderLayout.CENTER);
+        g.gridx = 2;
+        g.weightx = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        form.add(cbUnit, g);
 
-        // --- Sul: botões ---
-        JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        btnBackupNow = new JButton("Backup agora");
+        // Hint
+        y++;
+        g.gridx = 0;
+        g.gridy = y;
+        g.gridwidth = 3;
+        g.weightx = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        JLabel hint = UiKit.hint("Sugestão: use HOURS para lojas, DAYS para backup de segurança extra.");
+        hint.setBorder(new EmptyBorder(4, 0, 0, 0));
+        form.add(hint, g);
+
+        card.add(form, BorderLayout.CENTER);
+
+        // Card secundário: ações rápidas
+        JPanel actions = UiKit.card();
+        actions.setLayout(new BorderLayout(10, 10));
+
+        JPanel actionsLeft = new JPanel(new GridLayout(2, 1, 0, 2));
+        actionsLeft.setOpaque(false);
+        actionsLeft.add(UiKit.title("Ações"));
+        actionsLeft.add(UiKit.hint("Executa um backup manual agora usando a pasta informada."));
+        actions.add(actionsLeft, BorderLayout.WEST);
+
+        btnBackupNow = UiKit.ghost("Backup agora");
         btnBackupNow.addActionListener(e -> {
             BackupUtils.doBackup(txtFolder.getText());
             JOptionPane.showMessageDialog(this, "Backup realizado.");
         });
-        south.add(btnBackupNow);
 
-        btnSave = new JButton("Salvar");
-        btnSave.addActionListener(e -> onSave());
-        south.add(btnSave);
+        JPanel actionsRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        actionsRight.setOpaque(false);
+        actionsRight.add(btnBackupNow);
+        actions.add(actionsRight, BorderLayout.EAST);
 
-        btnCancel = new JButton("Cancelar");
+        wrap.add(card, BorderLayout.NORTH);
+        wrap.add(actions, BorderLayout.SOUTH);
+
+        return wrap;
+    }
+
+    private JComponent buildFooter() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        card.add(UiKit.hint("Essas configurações afetam o agendador de backup do sistema."), BorderLayout.WEST);
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        right.setOpaque(false);
+
+        btnCancel = UiKit.ghost("Cancelar");
         btnCancel.addActionListener(e -> dispose());
-        south.add(btnCancel);
 
-        add(south, BorderLayout.SOUTH);
+        btnSave = UiKit.primary("Salvar");
+        btnSave.addActionListener(e -> onSave());
 
-        pack();
-        setLocationRelativeTo(owner);
+        right.add(btnCancel);
+        right.add(btnSave);
+
+        card.add(right, BorderLayout.EAST);
+
+        return card;
     }
 
     /** Ao clicar em Salvar: persiste config e agenda backup se necessário */
@@ -96,8 +224,8 @@ public class ConfigSistemaDialog extends JDialog {
         BackupConfig cfg = new BackupConfig();
         cfg.enabled = chkEnable.isSelected();
         cfg.folderPath = txtFolder.getText();
-        cfg.interval = ((Number)spnInterval.getValue()).longValue();
-        cfg.unit = (String)cbUnit.getSelectedItem();
+        cfg.interval = ((Number) spnInterval.getValue()).longValue();
+        cfg.unit = (String) cbUnit.getSelectedItem();
 
         BackupUtils.saveConfig(cfg);
         BackupUtils.applyConfig(cfg);

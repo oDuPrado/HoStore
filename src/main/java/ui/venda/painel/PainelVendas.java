@@ -102,13 +102,12 @@ public class PainelVendas extends JPanel {
     }
 
     // =========================
-    // Header + Filtros (bonito e consistente)
+    // Header + Filtros
     // =========================
     private JComponent criarHeaderEFiltros() {
         JPanel wrap = new JPanel(new BorderLayout(10, 10));
         wrap.setOpaque(false);
 
-        // Header (título + dica)
         JPanel header = UiKit.card();
         header.setLayout(new BorderLayout(12, 6));
 
@@ -119,12 +118,15 @@ public class PainelVendas extends JPanel {
         header.add(left, BorderLayout.WEST);
 
         JButton btnNova = UiKit.primary("➕ Nova Venda");
-        btnNova.addActionListener(e -> new VendaNovaDialog(owner, this).setVisible(true));
+        btnNova.addActionListener(e -> {
+            new VendaNovaDialog(owner, this).setVisible(true);
+            // ✅ se abriu venda nova e voltou, recarrega
+            recarregarComFiltrosAtuais();
+        });
         header.add(btnNova, BorderLayout.EAST);
 
         wrap.add(header, BorderLayout.NORTH);
 
-        // Card de filtros
         JPanel filtros = UiKit.card();
         filtros.setLayout(new GridBagLayout());
 
@@ -169,14 +171,9 @@ public class PainelVendas extends JPanel {
         filtros.add(clienteCombo, g);
 
         g.gridwidth = 1;
+
         JButton filtrar = UiKit.ghost("🔍 Filtrar");
-        filtrar.addActionListener(e -> {
-            String d1 = formatarDataParaSQL(inicioChooser);
-            String d2 = formatarDataParaSQL(fimChooser);
-            String cli = (String) clienteCombo.getSelectedItem();
-            String stat = (String) statusCombo.getSelectedItem();
-            carregarVendas(d1, d2, cli, stat);
-        });
+        filtrar.addActionListener(e -> recarregarComFiltrosAtuais());
 
         JButton limpar = UiKit.ghost("🧹 Limpar");
         limpar.addActionListener(e -> {
@@ -204,7 +201,7 @@ public class PainelVendas extends JPanel {
     }
 
     // =========================
-    // Rodapé consistente (resumo + ações)
+    // Rodapé
     // =========================
     private JComponent criarRodape() {
         JPanel rodape = UiKit.card();
@@ -229,6 +226,17 @@ public class PainelVendas extends JPanel {
         return rodape;
     }
 
+    // =========================
+    // ✅ Recarregar com filtros atuais (centralizado)
+    // =========================
+    private void recarregarComFiltrosAtuais() {
+        String d1 = formatarDataParaSQL(inicioChooser);
+        String d2 = formatarDataParaSQL(fimChooser);
+        String cli = (String) clienteCombo.getSelectedItem();
+        String stat = (String) statusCombo.getSelectedItem();
+        carregarVendas(d1, d2, cli, stat);
+    }
+
     private void abrirDetalhesSelecionado() {
         int row = tabela.getSelectedRow();
         if (row < 0) {
@@ -237,7 +245,10 @@ public class PainelVendas extends JPanel {
         }
         int modelRow = tabela.convertRowIndexToModel(row);
         int id = (int) modelo.getValueAt(modelRow, 0);
+
+        // ✅ abre e, ao fechar, recarrega para refletir devolução/status
         new VendaDetalhesDialog(owner, id).setVisible(true);
+        recarregarComFiltrosAtuais();
     }
 
     private void excluirSelecionado() {
@@ -256,16 +267,12 @@ public class PainelVendas extends JPanel {
 
         if (op == JOptionPane.YES_OPTION) {
             excluirVenda(id);
-            String d1 = formatarDataParaSQL(inicioChooser);
-            String d2 = formatarDataParaSQL(fimChooser);
-            carregarVendas(d1, d2,
-                    (String) clienteCombo.getSelectedItem(),
-                    (String) statusCombo.getSelectedItem());
+            recarregarComFiltrosAtuais();
         }
     }
 
     // =========================
-    // Eventos (duplo clique + enter)
+    // Eventos
     // =========================
     private void configurarEventos() {
         tabela.addMouseListener(new MouseAdapter() {
@@ -288,7 +295,7 @@ public class PainelVendas extends JPanel {
     }
 
     // =========================
-    // Estilo tabela (alinhamento, moeda, badge status, coluna ações)
+    // Estilo tabela
     // =========================
     private void personalizarTabela() {
         tabela.setAutoCreateRowSorter(true);
@@ -305,14 +312,12 @@ public class PainelVendas extends JPanel {
         tcm.getColumn(6).setPreferredWidth(160); // Status
         tcm.getColumn(7).setPreferredWidth(60); // botão
 
-        // ID/parcelas central
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         tcm.getColumn(0).setCellRenderer(center);
         tcm.getColumn(1).setCellRenderer(center);
         tcm.getColumn(5).setCellRenderer(center);
 
-        // moeda alinhada direita
         NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         DefaultTableCellRenderer money = new DefaultTableCellRenderer() {
             @Override
@@ -326,10 +331,9 @@ public class PainelVendas extends JPanel {
         };
         tcm.getColumn(3).setCellRenderer(money);
 
-        // status como “badge”
         tcm.getColumn(6).setCellRenderer(new StatusBadgeRenderer());
 
-        // botão ação (coluna vazia "")
+        // botão ação
         tcm.getColumn(7).setCellRenderer(new ButtonRenderer());
         tcm.getColumn(7).setCellEditor(new ButtonEditor());
     }
@@ -339,6 +343,7 @@ public class PainelVendas extends JPanel {
         public Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus,
                 int row, int column) {
+
             JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             String s = value == null ? "" : value.toString().toLowerCase();
 
@@ -346,14 +351,12 @@ public class PainelVendas extends JPanel {
             l.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
             l.setOpaque(true);
 
-            // mantém seleção do tema
             if (isSelected) {
                 l.setBackground(table.getSelectionBackground());
                 l.setForeground(table.getSelectionForeground());
                 return l;
             }
 
-            // cores (sim, badges precisam de cor)
             l.setForeground(Color.WHITE);
 
             switch (s) {
@@ -390,12 +393,12 @@ public class PainelVendas extends JPanel {
     }
 
     // =========================
-    // Query (mantida) + resumo (corrigido)
+    // Query (mantida)
     // =========================
     public void carregarVendas(String dataIni, String dataFim, String cliente, String status) {
         modelo.setRowCount(0);
 
-        double total = 0; // ✅ agora soma de verdade
+        double total = 0;
 
         try (Statement st = DB.get().createStatement()) {
 
@@ -482,7 +485,7 @@ public class PainelVendas extends JPanel {
                         continue;
 
                     modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "↗" });
-                    total += val; // ✅ soma real
+                    total += val;
                 }
             }
 
@@ -545,15 +548,25 @@ public class PainelVendas extends JPanel {
             btn.addActionListener(e -> {
                 int modelRow = tabela.convertRowIndexToModel(row);
                 int id = (int) modelo.getValueAt(modelRow, 0);
+
+                // ✅ abre e recarrega após fechar (status atualiza)
                 new VendaDetalhesDialog(owner, id).setVisible(true);
+                recarregarComFiltrosAtuais();
+
                 fireEditingStopped();
             });
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return "↗"; // ✅ impede o JTable de gravar boolean (false) na célula
         }
 
         @Override
         public Component getTableCellEditorComponent(JTable tbl, Object val,
                 boolean sel, int row, int col) {
             this.row = row;
+            btn.setText("↗");
             return btn;
         }
     }
