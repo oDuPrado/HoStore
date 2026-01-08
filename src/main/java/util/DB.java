@@ -774,9 +774,13 @@ public class DB {
                                         "CREATE TABLE IF NOT EXISTS pedidos_compras (" +
                                                         "id TEXT PRIMARY KEY, " +
                                                         "nome TEXT, " +
-                                                        "data TEXT, " +
-                                                        "status TEXT, " +
-                                                        "fornecedor_id TEXT, " +
+                                                        "data TEXT, " + // yyyy-MM-dd
+                                                        "status TEXT, " + // rascunho|enviado|parcialmente
+                                                                          // recebido|recebido|cancelado
+                                                        "fornecedor_id TEXT, " + // opcional (pode ser null)
+                                                        "data_prevista TEXT, " + // opcional (yyyy-MM-dd) - nível pedido
+                                                                                 // (resumo)
+                                                        "prazo_dias INTEGER, " + // opcional - nível pedido (resumo)
                                                         "observacoes TEXT, " +
                                                         "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")",
@@ -787,13 +791,28 @@ public class DB {
                                                         "id TEXT PRIMARY KEY, " +
                                                         "pedido_id TEXT NOT NULL, " +
                                                         "produto_id TEXT NOT NULL, " +
+                                                        "fornecedor_id TEXT, " + // fornecedor por item
                                                         "quantidade_pedida INTEGER NOT NULL, " +
                                                         "quantidade_recebida INTEGER DEFAULT 0, " +
-                                                        "status TEXT DEFAULT 'pendente', " +
-                                                        "FOREIGN KEY(pedido_id) REFERENCES pedidos_compras(id), " +
-                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
+                                                        "data_prevista TEXT, " + // yyyy-MM-dd
+                                                        "prazo_dias INTEGER, " + // dias
+                                                        "status TEXT DEFAULT 'pendente', " + // pendente|parcial|completo
+                                                        "FOREIGN KEY(pedido_id) REFERENCES pedidos_compras(id) ON DELETE CASCADE, "
+                                                        +
+                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id), " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")",
                                         "pedido_produtos");
+
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_pedido_produtos_pedido ON pedido_produtos(pedido_id)",
+                                        "idx_pedido_produtos_pedido");
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_pedido_produtos_produto ON pedido_produtos(produto_id)",
+                                        "idx_pedido_produtos_produto");
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_pedido_produtos_fornecedor ON pedido_produtos(fornecedor_id)",
+                                        "idx_pedido_produtos_fornecedor");
 
                         executeComLog(st,
                                         "CREATE TABLE IF NOT EXISTS planos_contas (" +

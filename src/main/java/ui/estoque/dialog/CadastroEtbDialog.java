@@ -1,76 +1,74 @@
-// Caminho no projeto: src/ui/estoque/dialog/CadastroEtbDialog.java
+// src/ui/estoque/dialog/CadastroEtbDialog.java
 package ui.estoque.dialog;
 
 import dao.ColecaoDAO;
-import dao.EtbDAO;
 import dao.JogoDAO;
 import dao.SetDAO;
-import ui.estoque.dialog.CadastroEtbDialog;
 import model.ColecaoModel;
 import model.EtbModel;
 import model.FornecedorModel;
 import model.JogoModel;
-import service.ProdutoEstoqueService;
-import util.MaskUtils;
-import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
-
 import model.NcmModel;
 import service.NcmService;
+import service.ProdutoEstoqueService;
+import util.MaskUtils;
+import util.ScannerUtils;
+import util.UiKit;
 
-import java.util.List;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-
 import java.awt.*;
-import java.util.UUID;
+import java.util.*;
+import java.util.List;
 import java.util.Comparator;
 import java.util.ArrayList;
 
-/**
- * Dialog para cadastro/edição de ETBs, agora com seleção de Jogo (TCG),
- * campo de “set” que muda dinamicamente conforme o jogo escolhido,
- * e leitor de código de barras.
- */
 public class CadastroEtbDialog extends JDialog {
 
     private final boolean isEdicao;
     private final EtbModel etbOrig;
 
-    private final JTextField tfNome = new JTextField(20);
+    private final JTextField tfNome = new JTextField(24);
+
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
+
+    // Pokémon
     private final JComboBox<String> cbSerie = new JComboBox<>();
     private final JComboBox<ColecaoModel> cbColecao = new JComboBox<>();
-    // → NOVO: combo de Set para jogos não-Pokémon
+
+    // Não-Pokémon
     private final JComboBox<String> cbSetJogo = new JComboBox<>();
-    // → NOVO: campo de texto para One Piece / Dragon Ball
-    private final JTextField tfSetManual = new JTextField(20);
-    // → NOVO: painel com CardLayout para alternar combo ↔ textfield
+    private final JTextField tfSetManual = new JTextField(24);
+
     private final JPanel panelSetSwitcher = new JPanel(new CardLayout());
     private static final String CARD_COMBO = "combo";
     private static final String CARD_MANUAL = "manual";
-    // → NOVO: lista de nomes de set (filtrados/ordenados) para dropdown
+
     private List<String> setsFiltrados = new ArrayList<>();
 
     private final JComboBox<String> cbTipo = new JComboBox<>(new String[] {
             "Booster Box", "Pokémon Center", "ETB", "Mini ETB", "Collection Box",
             "Special Collection", "Latas", "Box colecionáveis", "Trainer Kit", "Mini Booster Box"
     });
-    // NCM combo
+
+    private final JComboBox<String> cbVersao = new JComboBox<>(new String[] { "Nacional", "Americana" });
     private final JComboBox<String> cbNcm = new JComboBox<>();
-    private final JComboBox<String> cbVersao = new JComboBox<>(new String[] {
-            "Nacional", "Americana"
-    });
+
     private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
     private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
 
-    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
-    // ***
-    private final JLabel lblCodigoLido = new JLabel(" ");
+    private final JLabel lblCodigoLido = new JLabel("—");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
-    private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
     private FornecedorModel fornecedorSel;
+
+    // ===== Linhas para esconder label+campo juntos =====
+    private JPanel rowSerie;
+    private JPanel rowColecao;
+    private JPanel rowSet;
+    private JPanel rowColecaoPokemon; // só pra ficar explícito
+    private JPanel rowTipo;
+    private JPanel rowVersao;
 
     public CadastroEtbDialog(JFrame owner) {
         this(owner, null);
@@ -78,138 +76,124 @@ public class CadastroEtbDialog extends JDialog {
 
     public CadastroEtbDialog(JFrame owner, EtbModel etb) {
         super(owner, etb == null ? "Novo ETB" : "Editar ETB", true);
+        UiKit.applyDialogBase(this);
+
         this.isEdicao = etb != null;
         this.etbOrig = etb;
+
         buildUI(owner);
-        if (isEdicao) {
+        wireEvents(owner);
+
+        // carga inicial
+        carregarJogos();
+        carregarSeries();
+        carregarColecoesPorSerie();
+        carregarNcms();
+
+        if (isEdicao)
             preencherCampos();
-        }
+
+        // aplica a UI correta conforme jogo/tipo
+        atualizarCamposPorJogo();
+        adjustFieldsByTipo();
+
+        setMinimumSize(new Dimension(860, 620));
+        pack();
+        setLocationRelativeTo(owner);
     }
 
     private void buildUI(JFrame owner) {
-        JPanel content = new JPanel(new GridLayout(0, 2, 8, 8));
-        content.setBorder(new EmptyBorder(12, 12, 12, 12));
-        setContentPane(content);
+        setLayout(new BorderLayout(12, 12));
 
-        // → Nome
-        content.add(new JLabel("Nome:"));
-        content.add(tfNome);
+        // ===== Header =====
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
 
-        // → Jogo (novo campo)
-        content.add(new JLabel("Jogo:"));
-        content.add(cbJogo);
-        carregarJogos();
-        // Quando o usuário selecionar um Jogo, a UI de “set” / “série/coleção” deve
-        // mudar dinamicamente
-        cbJogo.addActionListener(e -> atualizarCamposPorJogo());
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title(isEdicao ? "Editar ETB" : "Novo ETB"));
+        left.add(UiKit.hint("Cadastro de selados • visual consistente • dark/light OK"));
+        header.add(left, BorderLayout.WEST);
 
-        // → Série / Coleção (via API)
-        carregarSeries();
-        cbSerie.addActionListener(e -> carregarColecoesPorSerie());
+        add(header, BorderLayout.NORTH);
 
-        content.add(new JLabel("Série:"));
-        content.add(cbSerie);
+        // ===== Form Card =====
+        JPanel form = UiKit.card();
+        form.setLayout(new GridBagLayout());
 
-        content.add(new JLabel("Coleção:"));
-        content.add(cbColecao);
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
 
-        // → NOVO: Label + painel com CardLayout para alternar entre combo-de-sets e
-        // campo-manual
-        content.add(new JLabel("Set (selecione ou digite):"));
-        // Adiciona os dois “cards” no panelSetSwitcher:
+        int r = 0;
+
+        addField(form, g, r++, "Nome:", tfNome);
+        addField(form, g, r++, "Jogo:", cbJogo);
+
+        // Série e Coleção (Pokémon)
+        rowSerie = makeRow("Série:", cbSerie);
+        addRowPanel(form, g, r++, rowSerie);
+
+        rowColecao = makeRow("Coleção:", cbColecao);
+        addRowPanel(form, g, r++, rowColecao);
+
+        // Set (outros jogos)
         panelSetSwitcher.add(cbSetJogo, CARD_COMBO);
         panelSetSwitcher.add(tfSetManual, CARD_MANUAL);
-        // Inicialmente, manter o painel mas sem escolher nenhum card
-        cbSetJogo.setVisible(false);
-        tfSetManual.setVisible(false);
-        content.add(panelSetSwitcher);
+        rowSet = makeRow("Set:", panelSetSwitcher);
+        addRowPanel(form, g, r++, rowSet);
 
-        // → Tipo
-        content.add(new JLabel("Tipo:"));
-        content.add(cbTipo);
+        rowTipo = makeRow("Tipo:", cbTipo);
+        addRowPanel(form, g, r++, rowTipo);
 
-        // Ajusta visibilidade de série/coleção e sets conforme o tipo
-        cbTipo.addActionListener(e -> adjustFieldsByTipo());
+        addField(form, g, r++, "NCM:", cbNcm);
 
-        // NCM: combo com todos os NCMs cadastrados
-        try {
-            List<NcmModel> ncms = NcmService.getInstance().findAll();
-            for (NcmModel n : ncms) {
-                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-        content.add(new JLabel("NCM:"));
-        content.add(cbNcm);
+        rowVersao = makeRow("Versão:", cbVersao);
+        addRowPanel(form, g, r++, rowVersao);
 
-        // → Versão
-        content.add(new JLabel("Versão:"));
-        content.add(cbVersao);
+        // Valores
+        JPanel valores = new JPanel(new GridLayout(1, 3, 10, 0));
+        valores.setOpaque(false);
+        valores.add(labeledInline("Qtd:", tfQtd));
+        valores.add(labeledInline("Custo (R$):", tfCusto));
+        valores.add(labeledInline("Venda (R$):", tfPreco));
+        addField(form, g, r++, "Valores:", valores);
 
-        // → Quantidade
-        content.add(new JLabel("Quantidade:"));
-        content.add(tfQtd);
+        // Código de barras (sem hardcode feio)
+        JPanel barcodeRow = new JPanel(new BorderLayout(8, 0));
+        barcodeRow.setOpaque(false);
 
-        // → Custo
-        content.add(new JLabel("Custo (R$):"));
-        content.add(tfCusto);
+        JPanel barcodeActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        barcodeActions.setOpaque(false);
 
-        // → Preço venda
-        content.add(new JLabel("Preço Venda (R$):"));
-        content.add(tfPreco);
+        JButton btnScanner = UiKit.ghost("📷 Ler com Scanner");
+        JButton btnManual = UiKit.ghost("⌨ Inserir Manualmente");
+        barcodeActions.add(btnScanner);
+        barcodeActions.add(btnManual);
 
-        // *** NOVO: Seção Código de Barras ***
-        content.add(new JLabel("Código de Barras:"));
-        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnScanner = new JButton("Ler com Scanner");
-        JButton btnManual = new JButton("Inserir Manualmente");
+        lblCodigoLido.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        lblCodigoLido.setOpaque(true);
+        lblCodigoLido.setBackground(UIManager.getColor("TextField.background"));
+        lblCodigoLido.setForeground(UIManager.getColor("TextField.foreground"));
 
-        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+        JPanel codeBox = new JPanel(new BorderLayout());
+        codeBox.setOpaque(false);
+        codeBox.add(lblCodigoLido, BorderLayout.CENTER);
+        codeBox.setPreferredSize(new Dimension(220, 34));
 
-        painelCodBarras.add(btnScanner);
-        painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido); // exibe o código lido
-        content.add(painelCodBarras);
+        barcodeRow.add(barcodeActions, BorderLayout.WEST);
+        barcodeRow.add(codeBox, BorderLayout.EAST);
 
-        // Ação para chamar o util de leitura
-        btnScanner.addActionListener(e -> {
-            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                lblCodigoLido.setText(codigo);
-                lblCodigoLido.setToolTipText(codigo);
-                lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        addField(form, g, r++, "Código de Barras:", barcodeRow);
 
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            });
-        });
+        // Fornecedor
+        JPanel fornRow = new JPanel(new BorderLayout(8, 0));
+        fornRow.setOpaque(false);
+        fornRow.add(lblFornecedor, BorderLayout.CENTER);
 
-        // Ação para inserir manualmente via diálogo
-        btnManual.addActionListener(e -> {
-            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
-            if (input != null && !input.trim().isEmpty()) {
-                String c = input.trim();
-                lblCodigoLido.setText(c);
-                lblCodigoLido.setToolTipText(c);
-                lblCodigoLido.putClientProperty("codigoBarras", c);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            }
-        });
-
-        // *** Fim da seção Código de Barras ***
-
-        // → Fornecedor via diálogo de seleção
-        content.add(new JLabel("Fornecedor:"));
-        content.add(lblFornecedor);
-        content.add(new JLabel());
-        btnSelectFornec.addActionListener(e -> {
+        JButton btnFornecedor = UiKit.ghost("Selecionar…");
+        btnFornecedor.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog(owner);
             dlg.setVisible(true);
             FornecedorModel f = dlg.getSelectedFornecedor();
@@ -218,16 +202,64 @@ public class CadastroEtbDialog extends JDialog {
                 lblFornecedor.setText(f.getNome());
             }
         });
-        content.add(btnSelectFornec);
+        fornRow.add(btnFornecedor, BorderLayout.EAST);
 
-        // → Botão Salvar / Atualizar
-        content.add(new JLabel());
-        JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
-        btnSalvar.addActionListener(e -> salvar());
-        content.add(btnSalvar);
+        addField(form, g, r++, "Fornecedor:", fornRow);
 
+        JScrollPane sp = UiKit.scroll(form);
+        sp.setBorder(null);
+        add(sp, BorderLayout.CENTER);
+
+        // ===== Footer =====
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
+        footer.add(UiKit.hint("Dica: o jogo define Série/Coleção ou Set. O tipo pode esconder set."),
+                BorderLayout.WEST);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton btCancelar = UiKit.ghost("Cancelar");
+        JButton btSalvar = UiKit.primary(isEdicao ? "Atualizar" : "Salvar");
+
+        btCancelar.addActionListener(e -> dispose());
+        btSalvar.addActionListener(e -> salvar());
+
+        actions.add(btCancelar);
+        actions.add(btSalvar);
+
+        footer.add(actions, BorderLayout.EAST);
+        add(footer, BorderLayout.SOUTH);
+
+        // ações barcode
+        btnScanner.addActionListener(
+                e -> ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", this::setCodigoBarras));
+
+        btnManual.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
+            if (input != null && !input.trim().isEmpty())
+                setCodigoBarras(input.trim());
+        });
+    }
+
+    private void wireEvents(JFrame owner) {
+        cbJogo.addActionListener(e -> {
+            atualizarCamposPorJogo();
+            adjustFieldsByTipo();
+        });
+
+        cbSerie.addActionListener(e -> carregarColecoesPorSerie());
+
+        cbTipo.addActionListener(e -> adjustFieldsByTipo());
+    }
+
+    private void setCodigoBarras(String codigo) {
+        lblCodigoLido.setText(codigo);
+        lblCodigoLido.setToolTipText(codigo);
+        lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        lblCodigoLido.revalidate();
+        lblCodigoLido.repaint();
         pack();
-        setLocationRelativeTo(owner);
     }
 
     private void carregarJogos() {
@@ -235,9 +267,8 @@ public class CadastroEtbDialog extends JDialog {
             cbJogo.removeAllItems();
             cbJogo.addItem(new JogoModel(null, "Selecione..."));
             List<JogoModel> jogos = new JogoDAO().listarTodos();
-            for (JogoModel jogo : jogos) {
+            for (JogoModel jogo : jogos)
                 cbJogo.addItem(jogo);
-            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar jogos.");
         }
@@ -246,9 +277,8 @@ public class CadastroEtbDialog extends JDialog {
     private void carregarSeries() {
         try {
             cbSerie.removeAllItems();
-            for (String s : new SetDAO().listarSeriesUnicas()) {
+            for (String s : new SetDAO().listarSeriesUnicas())
                 cbSerie.addItem(s);
-            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar séries.");
         }
@@ -259,75 +289,80 @@ public class CadastroEtbDialog extends JDialog {
             cbColecao.removeAllItems();
             String serie = (String) cbSerie.getSelectedItem();
             if (serie != null) {
-                for (ColecaoModel c : new ColecaoDAO().listarPorSerie(serie)) {
+                for (ColecaoModel c : new ColecaoDAO().listarPorSerie(serie))
                     cbColecao.addItem(c);
-                }
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar coleções.");
         }
     }
 
+    private void carregarNcms() {
+        try {
+            cbNcm.removeAllItems();
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms)
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     /**
-     * Atualiza quais campos serão visíveis:
-     * - Se for POKEMON → mostra cbSerie + cbColecao, esconde set genérico e campo
-     * manual
-     * - Se for ONEPIECE ou DRAGONBALL → mostra somente campo-manual (tfSetManual)
-     * - Caso contrário (YUGIOH, MAGIC, DIGIMON, etc) → mostra dropdown de sets
-     * (cbSetJogo)
+     * Jogo define:
+     * - Pokémon: Série/Coleção visíveis, Set escondido
+     * - OnePiece/DragonBall: Set manual
+     * - Outros: Set dropdown (carrega sets do jogo)
      */
     private void atualizarCamposPorJogo() {
         JogoModel jogo = (JogoModel) cbJogo.getSelectedItem();
-        if (jogo == null || jogo.getId() == null)
+
+        if (jogo == null || jogo.getId() == null) {
+            rowSerie.setVisible(false);
+            rowColecao.setVisible(false);
+            rowSet.setVisible(false);
+            revalidate();
+            repaint();
             return;
+        }
 
         String jogoId = jogo.getId();
         boolean isPokemon = jogoId.equalsIgnoreCase("POKEMON");
         boolean isOnePiece = jogoId.equalsIgnoreCase("ONEPIECE");
         boolean isDragonBall = jogoId.equalsIgnoreCase("DRAGONBALL");
 
-        // Série/Coleção só para Pokémon
-        cbSerie.setVisible(isPokemon);
-        cbColecao.setVisible(isPokemon);
+        rowSerie.setVisible(isPokemon);
+        rowColecao.setVisible(isPokemon);
 
-        // CardLayout: decide qual "card" exibir
+        rowSet.setVisible(!isPokemon);
+
         CardLayout cl = (CardLayout) panelSetSwitcher.getLayout();
         if (isOnePiece || isDragonBall) {
-            // Usuário digita manualmente o nome do set
             cl.show(panelSetSwitcher, CARD_MANUAL);
         } else if (!isPokemon) {
-            // Exibe combo de sets de acordo com API (Yu-Gi-Oh!, Magic, Digimon, etc)
             cl.show(panelSetSwitcher, CARD_COMBO);
             carregarSetsJogo(jogoId);
         } else {
-            // Se for Pokémon, nem dropdown nem textfield de set devem aparecer
-            // (força a exibição de um card vazio, apenas para manter o layout consistente)
-            panelSetSwitcher.removeAll();
-            panelSetSwitcher.add(new JPanel(), CARD_COMBO);
-            panelSetSwitcher.add(new JPanel(), CARD_MANUAL);
+            // Pokémon: não usa set genérico
             cl.show(panelSetSwitcher, CARD_COMBO);
         }
 
         revalidate();
         repaint();
+        pack();
     }
 
-    /**
-     * Carrega a lista de sets (filtrada + ordenada) para o combobox cbSetJogo.
-     * Uso de Comparator para ordenar alfabeticamente (ignorando maiúsculas).
-     */
     private void carregarSetsJogo(String jogoId) {
         try {
             cbSetJogo.removeAllItems();
-            // Recupera todos os sets via DAO
+
             var sets = new dao.SetJogoDAO().listarPorJogo(jogoId);
-            // Ordena por nome ignorando maiúsculas
             sets.sort(Comparator.comparing(s -> s.getNome().toLowerCase()));
-            // Converte para lista de Strings
-            setsFiltrados = sets.stream()
-                    .map(s -> s.getNome())
-                    .toList();
-            // Atualiza o combobox
+
+            setsFiltrados = sets.stream().map(s -> s.getNome()).toList();
+
             atualizarComboBoxSet(setsFiltrados);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar sets do jogo.");
@@ -335,20 +370,16 @@ public class CadastroEtbDialog extends JDialog {
         }
     }
 
-    /**
-     * Atualiza todos os itens de cbSetJogo a partir da lista fornecida.
-     */
     private void atualizarComboBoxSet(List<String> lista) {
         cbSetJogo.removeAllItems();
-        for (String nome : lista) {
+        for (String nome : lista)
             cbSetJogo.addItem(nome);
-        }
     }
 
     private void preencherCampos() {
         tfNome.setText(etbOrig.getNome());
 
-        // Selecionar jogo no combo
+        // jogo
         String jogoId = etbOrig.getJogoId();
         if (jogoId != null) {
             for (int i = 0; i < cbJogo.getItemCount(); i++) {
@@ -360,35 +391,34 @@ public class CadastroEtbDialog extends JDialog {
             }
         }
 
+        // barcode
         String cod = etbOrig.getCodigoBarras();
         if (cod != null && !cod.isBlank()) {
-            lblCodigoLido.setText(cod);
-            lblCodigoLido.setToolTipText(cod);
-            lblCodigoLido.putClientProperty("codigoBarras", cod);
+            setCodigoBarras(cod);
         }
 
-        // Carrega automaticamente a UI de “set” / “série/coleção”
+        // aplica campos por jogo
         atualizarCamposPorJogo();
 
-        // Se for Pokémon, preenche o combo de série/coleção
-        if (etbOrig.getJogoId().equalsIgnoreCase("POKEMON")) {
+        // Pokémon: série/coleção
+        if (etbOrig.getJogoId() != null && etbOrig.getJogoId().equalsIgnoreCase("POKEMON")) {
             cbSerie.setSelectedItem(etbOrig.getSerie());
             carregarColecoesPorSerie();
             for (int i = 0; i < cbColecao.getItemCount(); i++) {
                 ColecaoModel c = cbColecao.getItemAt(i);
                 if (c.getName().equalsIgnoreCase(etbOrig.getColecao())) {
-                    cbColecao.setSelectedItem(c);
+                    cbColecao.setSelectedIndex(i);
                     break;
                 }
             }
         }
 
-        // Se for jogo genérico com dropdown de sets, seleciona o set salvo (caso haja)
-        if (!etbOrig.getJogoId().equalsIgnoreCase("POKEMON")
+        // dropdown (não pokemon, não manual)
+        if (etbOrig.getJogoId() != null
+                && !etbOrig.getJogoId().equalsIgnoreCase("POKEMON")
                 && !etbOrig.getJogoId().equalsIgnoreCase("ONEPIECE")
                 && !etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL")) {
-            // Já executamos carregarSetsJogo() dentro de atualizarCamposPorJogo()
-            // Agora basta encontrar o índice do set antigo
+
             for (int i = 0; i < cbSetJogo.getItemCount(); i++) {
                 String nomeSet = cbSetJogo.getItemAt(i);
                 if (nomeSet != null && nomeSet.equalsIgnoreCase(etbOrig.getSerie())) {
@@ -398,32 +428,33 @@ public class CadastroEtbDialog extends JDialog {
             }
         }
 
-        // Se for One Piece ou Dragon Ball, preenche o campo manual
-        if (etbOrig.getJogoId().equalsIgnoreCase("ONEPIECE")
-                || etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL")) {
+        // manual
+        if (etbOrig.getJogoId() != null
+                && (etbOrig.getJogoId().equalsIgnoreCase("ONEPIECE")
+                        || etbOrig.getJogoId().equalsIgnoreCase("DRAGONBALL"))) {
             tfSetManual.setText(etbOrig.getSerie());
         }
 
-        // Preenche restante dos campos
         cbTipo.setSelectedItem(etbOrig.getTipo());
         cbVersao.setSelectedItem(etbOrig.getVersao());
         tfQtd.setValue(etbOrig.getQuantidade());
         tfCusto.setValue(etbOrig.getPrecoCompra());
         tfPreco.setValue(etbOrig.getPrecoVenda());
 
-        // Preenche o código de barras existente, caso EtbModel possua esse campo:
-        // String codigoExistente = etbOrig.getCodigoBarras();
-        // lblCodigoLido.setText(codigoExistente);
-        // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
+        // NCM
+        if (etbOrig.getNcm() != null) {
+            for (int i = 0; i < cbNcm.getItemCount(); i++) {
+                if (cbNcm.getItemAt(i).startsWith(etbOrig.getNcm())) {
+                    cbNcm.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
 
-        // Fornecedor
+        // fornecedor (mantém tua busca, mas sem jogar NPE na cara)
         try {
             fornecedorSel = new dao.FornecedorDAO().buscarPorId(etbOrig.getFornecedor());
-            if (fornecedorSel != null) {
-                lblFornecedor.setText(fornecedorSel.getNome());
-            } else {
-                lblFornecedor.setText("Fornecedor não cadastrado");
-            }
+            lblFornecedor.setText(fornecedorSel != null ? fornecedorSel.getNome() : "Fornecedor não cadastrado");
         } catch (Exception ex) {
             lblFornecedor.setText("Erro ao carregar fornecedor");
             ex.printStackTrace();
@@ -439,6 +470,7 @@ public class CadastroEtbDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Selecione um fornecedor.");
             return;
         }
+
         JogoModel jogoSel = (JogoModel) cbJogo.getSelectedItem();
         if (jogoSel == null || jogoSel.getId() == null) {
             JOptionPane.showMessageDialog(this, "Selecione um jogo.");
@@ -446,44 +478,31 @@ public class CadastroEtbDialog extends JDialog {
         }
 
         try {
-            // Recupera o código do NCM selecionado
             String ncmCombo = (String) cbNcm.getSelectedItem();
             String ncm = null;
             if (ncmCombo != null && ncmCombo.contains("-")) {
                 ncm = ncmCombo.split("-")[0].trim();
             }
 
-            String id = isEdicao
-                    ? etbOrig.getId()
-                    : UUID.randomUUID().toString();
+            String id = isEdicao ? etbOrig.getId() : UUID.randomUUID().toString();
 
-            // Decide o "set" final (série → nome do set)
-            String setSelecionado = "";
             String jogoId = jogoSel.getId();
             boolean isPokemon = jogoId.equalsIgnoreCase("POKEMON");
             boolean isOnePiece = jogoId.equalsIgnoreCase("ONEPIECE");
             boolean isDragonBall = jogoId.equalsIgnoreCase("DRAGONBALL");
 
+            String setSelecionado;
             if (isPokemon) {
-                // O campo “serie” já está em cbSerie (para Pokémon)
                 setSelecionado = (String) cbSerie.getSelectedItem();
             } else if (isOnePiece || isDragonBall) {
-                // Texto livre
                 setSelecionado = tfSetManual.getText().trim();
             } else {
-                // Dropdown de sets (Yu-Gi-Oh!, Magic, Digimon, etc)
                 setSelecionado = (String) cbSetJogo.getSelectedItem();
             }
 
-            // Recupera o código de barras lido (se houver); caso contrário, deixa em
-            // branco.
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
-            if (codigoBarras == null) {
+            if (codigoBarras == null)
                 codigoBarras = "";
-            }
-            // (No momento, não estamos passando esse código para o model. Se quiser
-            // persistir,
-            // inclua no construtor de EtbModel e no DAO.)
 
             EtbModel e = new EtbModel(
                     id,
@@ -493,25 +512,25 @@ public class CadastroEtbDialog extends JDialog {
                     ((Number) tfPreco.getValue()).doubleValue(),
                     fornecedorSel != null ? fornecedorSel.getId() : null,
                     setSelecionado,
-                    (String) ((cbColecao.getSelectedItem() != null)
+                    (cbColecao.getSelectedItem() != null)
                             ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
-                            : ""),
+                            : "",
                     (String) cbTipo.getSelectedItem(),
                     (String) cbVersao.getSelectedItem(),
                     jogoSel.getId());
 
             e.setNcm(ncm);
-            // Garante que o ID do fornecedor seja persistido na tabela produtos
             e.setFornecedorId(fornecedorSel.getId());
             e.setCodigoBarras(codigoBarras);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
-            if (isEdicao) {
+            if (isEdicao)
                 service.atualizarEtb(e);
-            } else {
+            else
                 service.salvarNovoEtb(e);
-            }
+
             dispose();
+
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
@@ -521,27 +540,85 @@ public class CadastroEtbDialog extends JDialog {
     }
 
     /**
-     * Ajusta visibilidade de campos de série/coleção e set de acordo com o tipo
-     * selecionado.
+     * Tipo pode esconder set/coleção:
+     * - Box colecionáveis: esconde tudo de set/coleção
+     * - Trainer Kit: mantém set (painel), mas pode esconder coleção dependendo do
+     * jogo
      */
     private void adjustFieldsByTipo() {
         String tipo = (String) cbTipo.getSelectedItem();
         boolean isBox = "Box colecionáveis".equals(tipo);
         boolean isTrainer = "Trainer Kit".equals(tipo);
 
-        // Para Box colecionáveis, esconde todos os campos de set/coleção
-        cbSerie.setVisible(!isBox && !isTrainer);
-        cbColecao.setVisible(!isBox && !isTrainer);
-        // O panelSetSwitcher controla set genérico/manual
-        panelSetSwitcher.setVisible(!isBox);
+        if (isBox) {
+            rowSerie.setVisible(false);
+            rowColecao.setVisible(false);
+            rowSet.setVisible(false);
+        } else {
+            // volta ao modo por jogo
+            atualizarCamposPorJogo();
 
-        // Para Trainer Kit, mantém apenas panelSetSwitcher visível
-        if (isTrainer) {
-            panelSetSwitcher.setVisible(true);
+            // Trainer Kit: não precisa coleção em geral, mas você decide:
+            // aqui eu deixo coleção seguir o jogo (pokémon mostra, outros não mostram
+            // mesmo).
+            if (isTrainer) {
+                // nada extra, só deixa o jogo mandar.
+            }
         }
 
-        // Revalida layout
         revalidate();
         repaint();
+        pack();
+    }
+
+    // ===== helpers layout =====
+
+    private JPanel makeRow(String label, JComponent field) {
+        JPanel row = new JPanel(new GridBagLayout());
+        row.setOpaque(false);
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(0, 0, 0, 0);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        row.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        row.add(field, g);
+
+        return row;
+    }
+
+    private void addRowPanel(JPanel parent, GridBagConstraints g, int row, JPanel rowPanel) {
+        g.gridy = row;
+        g.gridx = 0;
+        g.gridwidth = 2;
+        g.weightx = 1;
+        parent.add(rowPanel, g);
+        g.gridwidth = 1;
+    }
+
+    private void addField(JPanel parent, GridBagConstraints g, int row, String label, JComponent field) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        parent.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        parent.add(field, g);
+    }
+
+    private JPanel labeledInline(String label, JComponent field) {
+        JPanel p = new JPanel(new BorderLayout(6, 0));
+        p.setOpaque(false);
+        p.add(new JLabel(label), BorderLayout.WEST);
+        p.add(field, BorderLayout.CENTER);
+        return p;
     }
 }

@@ -5,45 +5,48 @@ import model.DeckModel;
 import model.JogoModel;
 import model.FornecedorModel;
 import service.ProdutoEstoqueService;
-import ui.estoque.dialog.FornecedorSelectionDialog;
 import util.MaskUtils;
-import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
+import util.ScannerUtils;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-
 import java.awt.*;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Dialog para cadastro/edição de Decks, agora com seleção de Jogo (TCG) e
- * leitor de código de barras.
+ * Dialog para cadastro/edição de Decks, com seleção de Jogo (TCG)
+ * e leitor de código de barras.
+ *
+ * Visual padronizado: Header + Card + Footer (sem GridLayout quebrado).
  */
 public class CadastroDeckDialog extends JDialog {
 
     private final boolean isEdicao;
     private final DeckModel deckOrig;
 
-    private final JTextField tfNome = new JTextField(20);
-    private final JTextField tfColecao = new JTextField(20);
+    private final JTextField tfNome = new JTextField(24);
+    private final JTextField tfColecao = new JTextField(24);
+
     private final JComboBox<String> cbTipoDeck = new JComboBox<>(new String[] {
             "Pré-montado", "Liga"
     });
+
     private final JComboBox<String> cbCategoria = new JComboBox<>(new String[] {
             "Estrela", "2 Estrelas", "3 Estrelas", "Junior", "Master"
     });
+
     private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
     private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
+
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
 
-    // *** NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
-    // ***
-    private final JLabel lblCodigoLido = new JLabel(" ");
+    private final JLabel lblCodigoLido = new JLabel("—");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
-    private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
+    private final JButton btnSelectFornec = new JButton("Selecionar…");
     private FornecedorModel fornecedorSel;
 
     public CadastroDeckDialog(JFrame owner) {
@@ -52,57 +55,68 @@ public class CadastroDeckDialog extends JDialog {
 
     public CadastroDeckDialog(JFrame owner, DeckModel deck) {
         super(owner, deck == null ? "Novo Deck" : "Editar Deck", true);
+        UiKit.applyDialogBase(this);
+
         this.isEdicao = deck != null;
         this.deckOrig = deck;
-        buildUI();
+
+        buildUI(owner);
+        carregarJogos();
+
         if (isEdicao)
             preencherCampos();
+
+        setMinimumSize(new Dimension(860, 560));
+        pack();
+        setLocationRelativeTo(owner);
     }
 
-    private void buildUI() {
-        // Painel principal com padding, 2 colunas
-        JPanel content = new JPanel(new GridLayout(0, 2, 8, 8));
-        content.setBorder(new EmptyBorder(12, 12, 12, 12));
-        setContentPane(content);
+    private void buildUI(JFrame owner) {
+        setLayout(new BorderLayout(12, 12));
 
-        // Nome
-        content.add(new JLabel("Nome:"));
-        content.add(tfNome);
+        // ===== Header =====
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
 
-        // Jogo (novo campo)
-        content.add(new JLabel("Jogo:"));
-        content.add(cbJogo);
-        carregarJogos(); // carrega lista de jogos no combo
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title(isEdicao ? "Editar Deck" : "Novo Deck"));
+        left.add(UiKit.hint("Decks • Jogo + fornecedor + código de barras"));
+        header.add(left, BorderLayout.WEST);
 
-        // Coleção
-        content.add(new JLabel("Coleção:"));
-        content.add(tfColecao);
+        add(header, BorderLayout.NORTH);
 
-        // Tipo de Deck
-        content.add(new JLabel("Tipo Deck:"));
-        content.add(cbTipoDeck);
+        // ===== Form (Card) =====
+        JPanel form = UiKit.card();
+        form.setLayout(new GridBagLayout());
 
-        // Categoria
-        content.add(new JLabel("Categoria:"));
-        content.add(cbCategoria);
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
 
-        // Quantidade
-        content.add(new JLabel("Quantidade:"));
-        content.add(tfQtd);
+        int r = 0;
 
-        // Custo
-        content.add(new JLabel("Custo (R$):"));
-        content.add(tfCusto);
+        addField(form, g, r++, "Nome:", tfNome);
+        addField(form, g, r++, "Jogo:", cbJogo);
+        addField(form, g, r++, "Coleção:", tfColecao);
+        addField(form, g, r++, "Tipo Deck:", cbTipoDeck);
+        addField(form, g, r++, "Categoria:", cbCategoria);
 
-        // Preço de Venda
-        content.add(new JLabel("Preço Venda (R$):"));
-        content.add(tfPreco);
+        // Valores em uma linha (mais “produto”, menos “planilha”)
+        JPanel valores = new JPanel(new GridLayout(1, 3, 10, 0));
+        valores.setOpaque(false);
+        valores.add(labeledInline("Qtd:", tfQtd));
+        valores.add(labeledInline("Custo (R$):", tfCusto));
+        valores.add(labeledInline("Venda (R$):", tfPreco));
+        addField(form, g, r++, "Valores:", valores);
 
-        // Fornecedor
-        content.add(new JLabel("Fornecedor:"));
-        content.add(lblFornecedor);
-        content.add(new JLabel());
-        content.add(btnSelectFornec);
+        // Fornecedor (label + botão)
+        JPanel fornRow = new JPanel(new BorderLayout(8, 0));
+        fornRow.setOpaque(false);
+        fornRow.add(lblFornecedor, BorderLayout.CENTER);
+        fornRow.add(btnSelectFornec, BorderLayout.EAST);
+        addField(form, g, r++, "Fornecedor:", fornRow);
 
         btnSelectFornec.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog((JFrame) getOwner());
@@ -114,59 +128,74 @@ public class CadastroDeckDialog extends JDialog {
             }
         });
 
-        // *** NOVO: Seção Código de Barras ***
-        content.add(new JLabel("Código de Barras:"));
-        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnScanner = new JButton("Ler com Scanner");
-        JButton btnManual = new JButton("Inserir Manualmente");
+        // Código de barras (tema-friendly, sem Color.GRAY)
+        JPanel barcodeRow = new JPanel(new BorderLayout(8, 0));
+        barcodeRow.setOpaque(false);
 
-        // deixa o label visível mesmo antes de ter código
-        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+        JPanel barcodeActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        barcodeActions.setOpaque(false);
 
-        painelCodBarras.add(btnScanner);
-        painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido);
-        content.add(painelCodBarras);
+        JButton btnScanner = UiKit.ghost("📷 Ler com Scanner");
+        JButton btnManual = UiKit.ghost("⌨ Inserir Manualmente");
 
-        // Ação para chamar o util de leitura
-        btnScanner.addActionListener(e -> {
-            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                lblCodigoLido.setText(codigo);
-                lblCodigoLido.setToolTipText(codigo);
-                lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        barcodeActions.add(btnScanner);
+        barcodeActions.add(btnManual);
 
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            });
-        });
+        lblCodigoLido.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        lblCodigoLido.setOpaque(true);
+        lblCodigoLido.setBackground(UIManager.getColor("TextField.background"));
+        lblCodigoLido.setForeground(UIManager.getColor("TextField.foreground"));
 
-        // Ação para inserir manualmente via diálogo
+        JPanel codeBox = new JPanel(new BorderLayout());
+        codeBox.setOpaque(false);
+        codeBox.add(lblCodigoLido, BorderLayout.CENTER);
+        codeBox.setPreferredSize(new Dimension(220, 34));
+
+        barcodeRow.add(barcodeActions, BorderLayout.WEST);
+        barcodeRow.add(codeBox, BorderLayout.EAST);
+
+        addField(form, g, r++, "Código de Barras:", barcodeRow);
+
+        btnScanner.addActionListener(
+                e -> ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", this::setCodigoBarras));
+
         btnManual.addActionListener(e -> {
             String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
-            if (input != null && !input.trim().isEmpty()) {
-                String c = input.trim();
-                lblCodigoLido.setText(c);
-                lblCodigoLido.setToolTipText(c);
-                lblCodigoLido.putClientProperty("codigoBarras", c);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            }
+            if (input != null && !input.trim().isEmpty())
+                setCodigoBarras(input.trim());
         });
 
-        // *** Fim da seção Código de Barras ***
+        JScrollPane sp = UiKit.scroll(form);
+        sp.setBorder(null);
+        add(sp, BorderLayout.CENTER);
 
-        // Botão Salvar/Atualizar
-        content.add(new JLabel());
-        JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
-        btnSalvar.addActionListener(e -> salvar());
-        content.add(btnSalvar);
+        // ===== Footer =====
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
+        footer.add(UiKit.hint("Dica: leia o código de barras pra evitar digitação e erro humano."), BorderLayout.WEST);
 
-        pack();
-        setLocationRelativeTo(getOwner());
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton btCancelar = UiKit.ghost("Cancelar");
+        JButton btSalvar = UiKit.primary(isEdicao ? "Atualizar" : "Salvar");
+
+        btCancelar.addActionListener(e -> dispose());
+        btSalvar.addActionListener(e -> salvar());
+
+        actions.add(btCancelar);
+        actions.add(btSalvar);
+
+        footer.add(actions, BorderLayout.EAST);
+        add(footer, BorderLayout.SOUTH);
+    }
+
+    private void setCodigoBarras(String codigo) {
+        lblCodigoLido.setText(codigo);
+        lblCodigoLido.setToolTipText(codigo);
+        lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        lblCodigoLido.revalidate();
+        lblCodigoLido.repaint();
     }
 
     private void carregarJogos() {
@@ -174,9 +203,8 @@ public class CadastroDeckDialog extends JDialog {
             cbJogo.removeAllItems();
             cbJogo.addItem(new JogoModel(null, "Selecione..."));
             List<JogoModel> jogos = new JogoDAO().listarTodos();
-            for (JogoModel jogo : jogos) {
+            for (JogoModel jogo : jogos)
                 cbJogo.addItem(jogo);
-            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar jogos.");
         }
@@ -190,19 +218,18 @@ public class CadastroDeckDialog extends JDialog {
         tfQtd.setValue(deckOrig.getQuantidade());
         tfCusto.setValue(deckOrig.getPrecoCompra());
         tfPreco.setValue(deckOrig.getPrecoVenda());
-        String cod = deckOrig.getCodigoBarras();
-        if (cod != null && !cod.isBlank()) {
-            lblCodigoLido.setText(cod);
-            lblCodigoLido.setToolTipText(cod);
-            lblCodigoLido.putClientProperty("codigoBarras", cod);
-        }
 
+        String cod = deckOrig.getCodigoBarras();
+        if (cod != null && !cod.isBlank())
+            setCodigoBarras(cod);
+
+        // fornecedor
         fornecedorSel = new FornecedorModel();
         fornecedorSel.setId(deckOrig.getFornecedor());
         fornecedorSel.setNome(deckOrig.getFornecedor());
         lblFornecedor.setText(deckOrig.getFornecedor());
 
-        // Selecionar jogo no combo
+        // jogo
         String jogoId = deckOrig.getJogoId();
         if (jogoId != null) {
             for (int i = 0; i < cbJogo.getItemCount(); i++) {
@@ -213,12 +240,6 @@ public class CadastroDeckDialog extends JDialog {
                 }
             }
         }
-
-        // Se o modelo DeckModel já possuísse campo “codigoBarras”, poderíamos
-        // preencher:
-        // String codigoExistente = deckOrig.getCodigoBarras();
-        // lblCodigoLido.setText(codigoExistente);
-        // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
     }
 
     private void salvar() {
@@ -237,18 +258,11 @@ public class CadastroDeckDialog extends JDialog {
         }
 
         try {
-            String id = isEdicao
-                    ? deckOrig.getId()
-                    : UUID.randomUUID().toString();
+            String id = isEdicao ? deckOrig.getId() : UUID.randomUUID().toString();
 
-            // Recupera o código de barras lido (se houver); caso contrário, deixa em
-            // branco.
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
-            if (codigoBarras == null) {
+            if (codigoBarras == null)
                 codigoBarras = "";
-            }
-            // (No momento, não estamos passando esse código para o model.
-            // Se quiser persistir, inclua no construtor de DeckModel e no DAO.)
 
             DeckModel d = new DeckModel(
                     id,
@@ -266,11 +280,10 @@ public class CadastroDeckDialog extends JDialog {
             d.setFornecedorId(fornecedorSel.getId());
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
-            if (isEdicao) {
+            if (isEdicao)
                 service.atualizarDeck(d);
-            } else {
+            else
                 service.salvarNovoDeck(d);
-            }
 
             dispose();
         } catch (Exception ex) {
@@ -279,5 +292,27 @@ public class CadastroDeckDialog extends JDialog {
                     "Erro ao salvar Deck:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // ===== helpers de layout =====
+
+    private void addField(JPanel parent, GridBagConstraints g, int row, String label, JComponent field) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        parent.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        parent.add(field, g);
+    }
+
+    private JPanel labeledInline(String label, JComponent field) {
+        JPanel p = new JPanel(new BorderLayout(6, 0));
+        p.setOpaque(false);
+        p.add(new JLabel(label), BorderLayout.WEST);
+        p.add(field, BorderLayout.CENTER);
+        return p;
     }
 }

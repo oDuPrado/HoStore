@@ -1,3 +1,4 @@
+// src/ui/TelaPrincipal.java
 package ui;
 
 import javax.swing.*;
@@ -32,7 +33,7 @@ public class TelaPrincipal extends JFrame {
     private JPanel painelConteudo;
     private JPanel painelFooter;
 
-    // Footer labels (pra atualizar)
+    // Footer labels
     private JLabel lblDbStatus;
     private JLabel lblSync;
     private JLabel lblClock;
@@ -44,38 +45,20 @@ public class TelaPrincipal extends JFrame {
             ex.printStackTrace();
         }
 
-        if (SessaoService.get() == null) {
-            LoginDialog loginDialog = new LoginDialog(this);
-            loginDialog.setVisible(true);
-            UsuarioModel logado = loginDialog.getUsuarioLogado();
-            if (logado == null) {
-                JOptionPane.showMessageDialog(this,
-                        "Login obrigatório para acessar o sistema.",
-                        "Acesso negado", JOptionPane.WARNING_MESSAGE);
-                System.exit(0);
-            } else {
-                SessaoService.login(logado);
-            }
-        }
-
-        UsuarioModel usuario = SessaoService.get();
-
+        // ====== Frame base ======
         setTitle("HoStore - ERP TCG Card Game");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1024, 600));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
 
-        painelHeader = createHeaderPanel(usuario);
-        painelTabs = createTabBarPanel();
+        // ✅ Monta a estrutura ANTES do login (para não existir painelConteudo null)
         painelConteudo = new JPanel(new BorderLayout());
         painelConteudo.setBackground(UIManager.getColor("Panel.background"));
 
-        // Home real
-        painelConteudo.add(new ui.dash.painel.DashboardPanel(this, destino -> {
-            // placeholder
-        }), BorderLayout.CENTER);
-
+        // Header inicial (placeholder null-safe)
+        painelHeader = createHeaderPanel(SessaoService.get());
+        painelTabs = createTabBarPanel();
         painelFooter = createFooterPanel();
 
         getContentPane().add(painelHeader, BorderLayout.NORTH);
@@ -90,6 +73,49 @@ public class TelaPrincipal extends JFrame {
         startFooterTimers();
 
         setVisible(true);
+
+        // ✅ Agora sim: login e carregar home real
+        SwingUtilities.invokeLater(this::garantirLoginECarregarHome);
+    }
+
+    /** Garante login e depois carrega a home/dashboard (agora com UI pronta). */
+    private void garantirLoginECarregarHome() {
+        if (SessaoService.get() == null) {
+            LoginDialog loginDialog = new LoginDialog(this);
+            loginDialog.setVisible(true);
+
+            UsuarioModel logado = loginDialog.getUsuarioLogado();
+            if (logado == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Login obrigatório para acessar o sistema.",
+                        "Acesso negado", JOptionPane.WARNING_MESSAGE);
+                System.exit(0);
+                return;
+            }
+            SessaoService.login(logado);
+        }
+
+        // Atualiza header com usuário real
+        refreshHeader();
+
+        // Carrega dashboard/home real
+        trocarPainel(new ui.dash.painel.DashboardPanel(this, destino -> {
+            // teu roteamento de destino aqui
+            // exemplo:
+            // if ("VENDAS".equals(destino)) trocarPainel(new PainelVendas(this));
+        }));
+    }
+
+    private void refreshHeader() {
+        UsuarioModel usuario = SessaoService.get();
+
+        // remove e recria o header
+        getContentPane().remove(painelHeader);
+        painelHeader = createHeaderPanel(usuario);
+        getContentPane().add(painelHeader, BorderLayout.NORTH);
+
+        getContentPane().revalidate();
+        getContentPane().repaint();
     }
 
     private JPanel createHeaderPanel(UsuarioModel usuario) {
@@ -114,7 +140,8 @@ public class TelaPrincipal extends JFrame {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         right.setOpaque(false);
 
-        JLabel lblUser = new JLabel("Usuário: " + usuario.getNome());
+        String nome = (usuario != null && usuario.getNome() != null) ? usuario.getNome() : "—";
+        JLabel lblUser = new JLabel("Usuário: " + nome);
         lblUser.setForeground(UIManager.getColor("Label.foreground"));
 
         boolean ok = DB.isConnected();
@@ -135,10 +162,7 @@ public class TelaPrincipal extends JFrame {
         JButton tabEstoque = criarTab("📦 Estoque", new PainelEstoque());
         JButton tabClientes = criarTab("🧍 Clientes", new PainelClientes());
         JButton tabVendas = criarTab("💰 Vendas", new PainelVendas(this));
-
-        // ✅ NOVO
         JButton tabComandas = criarTab("🧾 Comandas", new PainelComandas());
-
         JButton tabRelatorios = criarTab("📊 Relatórios", new DashboardPanel());
         JButton tabAjustes = criarTab("⚙️ Ajustes", new AjustesPanel());
         JButton tabBuscar = criarTab("🤖 HoRadars", null);
@@ -149,7 +173,7 @@ public class TelaPrincipal extends JFrame {
         tabBar.add(tabEstoque);
         tabBar.add(tabClientes);
         tabBar.add(tabVendas);
-        tabBar.add(tabComandas); // ✅ aqui
+        tabBar.add(tabComandas);
         tabBar.add(tabRelatorios);
         tabBar.add(tabAjustes);
         tabBar.add(tabBuscar);
@@ -171,6 +195,11 @@ public class TelaPrincipal extends JFrame {
     }
 
     private void trocarPainel(JPanel novoPainel) {
+        // ✅ blindagem extra (pra não quebrar nunca mais)
+        if (painelConteudo == null) {
+            System.err.println("painelConteudo ainda não inicializado. Ignorando troca.");
+            return;
+        }
         painelConteudo.removeAll();
         painelConteudo.add(novoPainel, BorderLayout.CENTER);
         painelConteudo.revalidate();

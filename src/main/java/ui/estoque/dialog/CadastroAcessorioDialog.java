@@ -1,41 +1,38 @@
+// src/ui/estoque/dialog/CadastroAcessorioDialog.java
 package ui.estoque.dialog;
 
-import controller.ProdutoEstoqueController;
 import model.AcessorioModel;
 import model.FornecedorModel;
+import model.NcmModel;
 import service.NcmService;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
-import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
+import util.ScannerUtils;
+import util.UiKit;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.UUID;
-import controller.ProdutoEstoqueController;
-import model.AcessorioModel;
-import model.FornecedorModel;
-import model.NcmModel; // <-- ADICIONE ESTA LINHA
-import service.NcmService;
-import service.ProdutoEstoqueService;
 
 public class CadastroAcessorioDialog extends JDialog {
 
     private final boolean isEdicao;
     private final AcessorioModel acessoOrig;
 
-    private final JTextField tfNome = new JTextField(20);
+    private final JTextField tfNome = new JTextField(24);
     private final JComboBox<String> cbCategoria = new JComboBox<>(new String[] {
             "Chaveiros", "Moedas", "Marcadores", "Kit (Moeda + Marcador)",
             "Sleeve", "Playmats", "Lancheiras", "Outros"
     });
+
     private final JLabel lblArte = new JLabel("Arte:");
     private final JComboBox<String> cbArte = new JComboBox<>();
     private final JLabel lblCor = new JLabel("Cor:");
-    private final JTextField tfCor = new JTextField();
+    private final JTextField tfCor = new JTextField(14);
 
-    // *** NOVO: Label que exibirá o código lido (via scanner ou manual) ***
-    private final JLabel lblCodigoLido = new JLabel(" ");
+    // Código de barras exibido (não muda lógica)
+    private final JLabel lblCodigoLido = new JLabel("—");
 
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
@@ -47,28 +44,131 @@ public class CadastroAcessorioDialog extends JDialog {
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
     private FornecedorModel fornecedorSel;
 
+    // helpers visuais
+    private JPanel rowArte;
+    private JPanel rowCor;
+
     public CadastroAcessorioDialog(JFrame owner) {
         this(owner, null);
     }
 
     public CadastroAcessorioDialog(JFrame owner, AcessorioModel acesso) {
         super(owner, acesso == null ? "Novo Acessório" : "Editar Acessório", true);
+        UiKit.applyDialogBase(this);
+
         this.isEdicao = acesso != null;
         this.acessoOrig = acesso;
+
         buildUI(owner);
+        wireEvents(owner);
+
         if (isEdicao)
             preencherCampos();
+
+        atualizarCamposArteCor(); // garante estado inicial
+
+        setMinimumSize(new Dimension(760, 520));
+        pack();
+        setLocationRelativeTo(owner);
     }
 
     private void buildUI(JFrame owner) {
-        setLayout(new GridLayout(0, 2, 8, 8));
+        setLayout(new BorderLayout(12, 12));
 
-        // Categoria → define se mostra arte e cor
-        cbCategoria.addActionListener(e -> atualizarCamposArteCor());
-        atualizarCamposArteCor();
+        // ===== Header =====
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
+
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title(isEdicao ? "Editar Acessório" : "Novo Acessório"));
+        left.add(UiKit.hint("Cadastro de acessórios • consistente com tema (FlatLaf)"));
+        header.add(left, BorderLayout.WEST);
+
+        add(header, BorderLayout.NORTH);
+
+        // ===== Form (card) =====
+        JPanel formCard = UiKit.card();
+        formCard.setLayout(new GridBagLayout());
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        int r = 0;
+
+        // Nome
+        addField(formCard, g, r++, "Nome:", tfNome);
+
+        // Categoria
+        addField(formCard, g, r++, "Categoria:", cbCategoria);
+
+        // Arte (linha escondível)
+        rowArte = new JPanel(new BorderLayout(8, 0));
+        rowArte.setOpaque(false);
+        rowArte.add(cbArte, BorderLayout.CENTER);
+        addField(formCard, g, r++, "Arte:", rowArte);
+
+        // Cor (linha escondível)
+        rowCor = new JPanel(new BorderLayout(8, 0));
+        rowCor.setOpaque(false);
+        rowCor.add(tfCor, BorderLayout.CENTER);
+        addField(formCard, g, r++, "Cor:", rowCor);
+
+        // Código de barras (card interno)
+        JPanel barcodeRow = new JPanel(new BorderLayout(8, 0));
+        barcodeRow.setOpaque(false);
+
+        JPanel barcodeActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        barcodeActions.setOpaque(false);
+
+        JButton btnScanner = UiKit.ghost("📷 Ler com Scanner");
+        JButton btnManual = UiKit.ghost("⌨ Inserir Manualmente");
+        barcodeActions.add(btnScanner);
+        barcodeActions.add(btnManual);
+
+        // label do código com cara de "campo"
+        lblCodigoLido.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        lblCodigoLido.setOpaque(true);
+        lblCodigoLido.setBackground(UIManager.getColor("TextField.background"));
+        lblCodigoLido.setForeground(UIManager.getColor("TextField.foreground"));
+
+        // envolve label num panel pra não esticar estranho
+        JPanel codeBox = new JPanel(new BorderLayout());
+        codeBox.setOpaque(false);
+        codeBox.add(lblCodigoLido, BorderLayout.CENTER);
+        codeBox.setPreferredSize(new Dimension(220, 34));
+
+        barcodeRow.add(barcodeActions, BorderLayout.WEST);
+        barcodeRow.add(codeBox, BorderLayout.EAST);
+
+        addField(formCard, g, r++, "Código de Barras:", barcodeRow);
+
+        // NCM
+        addField(formCard, g, r++, "NCM:", cbNcm);
+
+        // Quantidade / Custo / Preço (em uma linha)
+        JPanel linhaValores = new JPanel(new GridLayout(1, 3, 10, 0));
+        linhaValores.setOpaque(false);
+
+        JPanel pQtd = labeledInline("Qtd:", tfQtd);
+        JPanel pCusto = labeledInline("Custo (R$):", tfCusto);
+        JPanel pPreco = labeledInline("Venda (R$):", tfPreco);
+
+        linhaValores.add(pQtd);
+        linhaValores.add(pCusto);
+        linhaValores.add(pPreco);
+
+        addField(formCard, g, r++, "Valores:", linhaValores);
 
         // Fornecedor
-        btnSelectFornec.addActionListener(e -> {
+        JPanel fornRow = new JPanel(new BorderLayout(8, 0));
+        fornRow.setOpaque(false);
+        fornRow.add(lblFornecedor, BorderLayout.CENTER);
+
+        JButton btEscolher = UiKit.ghost("Selecionar…");
+        btEscolher.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog(owner);
             dlg.setVisible(true);
             FornecedorModel f = dlg.getSelectedFornecedor();
@@ -78,64 +178,54 @@ public class CadastroAcessorioDialog extends JDialog {
             }
         });
 
-        // Montagem do formulário
-        add(new JLabel("Nome:"));
-        add(tfNome);
-        add(new JLabel("Categoria:"));
-        add(cbCategoria);
-        add(lblArte);
-        add(cbArte);
-        add(lblCor);
-        add(tfCor);
+        fornRow.add(btEscolher, BorderLayout.EAST);
+        addField(formCard, g, r++, "Fornecedor:", fornRow);
 
-        // *** NOVO: Seção Código de Barras ***
-        add(new JLabel("Código de Barras:"));
+        // Scroll pra não quebrar em telas menores
+        JScrollPane sp = UiKit.scroll(formCard);
+        sp.setBorder(null);
+        add(sp, BorderLayout.CENTER);
 
-        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnScanner = new JButton("Ler com Scanner");
-        JButton btnManual = new JButton("Inserir Manualmente");
+        // ===== Footer =====
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
 
-        // 👇 CONFIGURAÇÃO DO LABEL (AQUI)
-        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+        footer.add(UiKit.hint("Dica: Sleeve com “Cor Única” habilita o campo de cor."), BorderLayout.WEST);
 
-        painelCodBarras.add(btnScanner);
-        painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
 
-        add(painelCodBarras);
+        JButton btCancelar = UiKit.ghost("Cancelar");
+        JButton btSalvar = UiKit.primary(isEdicao ? "Atualizar" : "Salvar");
 
-        // Ação para chamar o util de leitura
+        actions.add(btCancelar);
+        actions.add(btSalvar);
+
+        btCancelar.addActionListener(e -> dispose());
+        btSalvar.addActionListener(e -> salvar());
+
+        footer.add(actions, BorderLayout.EAST);
+        add(footer, BorderLayout.SOUTH);
+
+        // Guarda referência dos botões do barcode pra usar nos listeners
+        btnScanner.putClientProperty("barcodeLabel", lblCodigoLido);
+        btnManual.putClientProperty("barcodeLabel", lblCodigoLido);
+
+        // actions barcode (mantendo tua lógica)
         btnScanner.addActionListener(e -> {
             ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                lblCodigoLido.setText(codigo);
-                lblCodigoLido.setToolTipText(codigo);
-                lblCodigoLido.putClientProperty("codigoBarras", codigo);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
+                setCodigoBarras(codigo);
             });
         });
 
-        // Ação para inserir manualmente via diálogo
         btnManual.addActionListener(e -> {
             String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
             if (input != null && !input.trim().isEmpty()) {
-                String c = input.trim();
-                lblCodigoLido.setText(c);
-                lblCodigoLido.setToolTipText(c);
-                lblCodigoLido.putClientProperty("codigoBarras", c);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
+                setCodigoBarras(input.trim());
             }
         });
 
-        // *** Fim da seção Código de Barras ***
-
-        // NCM: combo com todos os NCMs cadastrados
+        // NCM: carrega igual você fazia
         try {
             List<NcmModel> ncms = NcmService.getInstance().findAll();
             for (NcmModel n : ncms) {
@@ -146,51 +236,80 @@ public class CadastroAcessorioDialog extends JDialog {
                     "Erro ao carregar NCMs:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
-        add(new JLabel("NCM:"));
-        add(cbNcm);
-
-        add(new JLabel("Quantidade:"));
-        add(tfQtd);
-        add(new JLabel("Custo (R$):"));
-        add(tfCusto);
-        add(new JLabel("Preço Venda (R$):"));
-        add(tfPreco);
-        add(new JLabel("Fornecedor:"));
-        add(lblFornecedor);
-        add(new JLabel());
-        add(btnSelectFornec);
-
-        JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
-        btnSalvar.addActionListener(e -> salvar());
-        add(new JLabel());
-        add(btnSalvar);
-
-        pack();
-        setLocationRelativeTo(owner);
     }
 
-    /** Exibe ou oculta os campos Arte/Cor de acordo com a categoria */
+    private void wireEvents(JFrame owner) {
+        cbCategoria.addActionListener(e -> atualizarCamposArteCor());
+    }
+
+    private void setCodigoBarras(String codigo) {
+        lblCodigoLido.setText(codigo);
+        lblCodigoLido.setToolTipText(codigo);
+        lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        lblCodigoLido.revalidate();
+        lblCodigoLido.repaint();
+        pack();
+    }
+
+    private JPanel labeledInline(String label, JComponent field) {
+        JPanel p = new JPanel(new BorderLayout(6, 0));
+        p.setOpaque(false);
+        JLabel l = new JLabel(label);
+        l.setForeground(UIManager.getColor("Label.foreground"));
+        p.add(l, BorderLayout.WEST);
+        p.add(field, BorderLayout.CENTER);
+        return p;
+    }
+
+    private void addField(JPanel parent, GridBagConstraints g, int row, String label, JComponent field) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        JLabel l = new JLabel(label);
+        parent.add(l, g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        parent.add(field, g);
+    }
+
+    /** Exibe ou oculta os campos Arte/Cor de acordo com a categoria (mesma lógica, só mais estável visualmente) */
     private void atualizarCamposArteCor() {
         String cat = (String) cbCategoria.getSelectedItem();
-        lblArte.setVisible(false);
-        cbArte.setVisible(false);
-        lblCor.setVisible(false);
-        tfCor.setVisible(false);
+
+        // default: some tudo
+        rowArte.setVisible(false);
+        rowCor.setVisible(false);
 
         if ("Playmats".equals(cat)) {
-            lblArte.setVisible(true);
             cbArte.setModel(new DefaultComboBoxModel<>(new String[] { "Pokémon", "Treinador", "Outros" }));
-            cbArte.setVisible(true);
+            rowArte.setVisible(true);
+
         } else if ("Sleeve".equals(cat)) {
-            lblArte.setVisible(true);
             cbArte.setModel(new DefaultComboBoxModel<>(new String[] { "Pokémon", "Treinador", "Outros", "Cor Única" }));
-            cbArte.setVisible(true);
+            rowArte.setVisible(true);
+
+            // garante que não vai acumulando listeners toda vez que muda categoria
+            for (var al : cbArte.getActionListeners())
+                cbArte.removeActionListener(al);
+
             cbArte.addActionListener(e -> {
                 boolean corUnica = "Cor Única".equals(cbArte.getSelectedItem());
-                lblCor.setVisible(corUnica);
-                tfCor.setVisible(corUnica);
+                rowCor.setVisible(corUnica);
+                revalidate();
+                repaint();
+                pack();
             });
+
+            // aplica estado imediato
+            boolean corUnica = "Cor Única".equals(cbArte.getSelectedItem());
+            rowCor.setVisible(corUnica);
         }
+
+        revalidate();
+        repaint();
+        pack();
     }
 
     private void preencherCampos() {
@@ -201,25 +320,21 @@ public class CadastroAcessorioDialog extends JDialog {
 
         cbCategoria.setSelectedItem(acessoOrig.getCategoria());
         atualizarCamposArteCor();
-        if (cbArte.isVisible()) {
+
+        if (rowArte.isVisible()) {
             cbArte.setSelectedItem(acessoOrig.getArte());
-            if (tfCor.isVisible()) {
+            // cor só se estiver visível
+            if (rowCor.isVisible()) {
                 tfCor.setText(acessoOrig.getCor());
             }
         }
-
-        // Se o modelo AcessorioModel tivesse um campo “codigoBarras”, aqui
-        // preencheríamos:
-        // String codigoExistente = acessoOrig.getCodigoBarras();
-        // lblCodigoLido.setText(codigoExistente);
-        // lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
 
         fornecedorSel = new FornecedorModel();
         fornecedorSel.setId(acessoOrig.getFornecedorId());
         fornecedorSel.setNome(acessoOrig.getFornecedorNome());
         lblFornecedor.setText(acessoOrig.getFornecedorNome());
 
-        // Seleciona o NCM correspondente se existir
+        // Seleciona NCM
         if (acessoOrig.getNcm() != null) {
             for (int i = 0; i < cbNcm.getItemCount(); i++) {
                 if (cbNcm.getItemAt(i).startsWith(acessoOrig.getNcm())) {
@@ -231,6 +346,7 @@ public class CadastroAcessorioDialog extends JDialog {
     }
 
     private void salvar() {
+        // === tua lógica original, intacta ===
         if (tfNome.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nome é obrigatório.");
             return;
@@ -241,27 +357,16 @@ public class CadastroAcessorioDialog extends JDialog {
         }
 
         try {
-            String id = isEdicao
-                    ? acessoOrig.getId()
-                    : UUID.randomUUID().toString();
+            String id = isEdicao ? acessoOrig.getId() : UUID.randomUUID().toString();
 
             String nome = tfNome.getText().trim();
             String categoria = (String) cbCategoria.getSelectedItem();
-            String arte = cbArte.isVisible()
-                    ? (String) cbArte.getSelectedItem()
-                    : "";
-            String cor = tfCor.isVisible()
-                    ? tfCor.getText().trim()
-                    : "";
+            String arte = rowArte.isVisible() ? (String) cbArte.getSelectedItem() : "";
+            String cor = rowCor.isVisible() ? tfCor.getText().trim() : "";
 
-            // Recupera o código de barras lido (se houver); caso contrário, deixa em
-            // branco.
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
-            if (codigoBarras == null) {
-                codigoBarras = "";
-            }
+            if (codigoBarras == null) codigoBarras = "";
 
-            // Recupera o código do NCM selecionado
             String ncmCombo = (String) cbNcm.getSelectedItem();
             String ncm = "";
             if (ncmCombo != null && ncmCombo.contains("-")) {
@@ -274,25 +379,17 @@ public class CadastroAcessorioDialog extends JDialog {
             String fornId = fornecedorSel.getId();
             String fornNom = fornecedorSel.getNome();
 
-            // Como o AcessorioModel original não possui campo “codigoBarras”, não
-            // alteramos o construtor nem a lógica de persistência. Mantemos apenas
-            // o valor em lblCodigoLido, caso mais tarde queira estender o model/DAO.
-
-            AcessorioModel a = new AcessorioModel(
-                    id, nome, qtd, custo, preco,
-                    fornId, categoria, arte, cor);
+            AcessorioModel a = new AcessorioModel(id, nome, qtd, custo, preco, fornId, categoria, arte, cor);
             a.setFornecedorId(fornId);
-
             a.setFornecedorNome(fornNom);
             a.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
-            if (isEdicao) {
-                service.atualizarAcessorio(a); // método existente no service
-            } else {
-                service.salvarNovoAcessorio(a);
-            }
+            if (isEdicao) service.atualizarAcessorio(a);
+            else service.salvarNovoAcessorio(a);
+
             dispose();
+
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,

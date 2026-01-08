@@ -10,15 +10,14 @@ import model.ConfigFiscalModel;
 import model.CsosnModel;
 import model.NcmModel;
 import model.OrigemModel;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.ActionEvent;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Diálogo para configuração fiscal de um cliente:
@@ -28,178 +27,201 @@ import java.util.UUID;
  * - Origem padrão
  * - NCM padrão
  * - Unidade padrão
- *
- * A configuração é salva na tabela config_fiscal, vinculada a um cliente (clienteId).
  */
 public class ConfigFiscalDialog extends JDialog {
 
-    private final String clienteId; // id do cliente para quem estamos configurando
+    private final String clienteId;
 
-    // ===== Campos do formulário =====
     private final JComboBox<String> cbRegime = new JComboBox<>(new String[] {
-        "Simples Nacional",
-        "Lucro Presumido",
-        "Lucro Real"
+            "Simples Nacional",
+            "Lucro Presumido",
+            "Lucro Real"
     });
 
-    private final JComboBox<String> cbCfop = new JComboBox<>();   // será populado com dados da tabela cfop
-    private final JComboBox<String> cbCsosn = new JComboBox<>();  // populado da tabela csosn
-    private final JComboBox<String> cbOrigem = new JComboBox<>(); // populado da tabela origem
-    private final JComboBox<String> cbNcm = new JComboBox<>();    // populado da tabela ncm (códigos + descrição)
+    private final JComboBox<String> cbCfop = new JComboBox<>();
+    private final JComboBox<String> cbCsosn = new JComboBox<>();
+    private final JComboBox<String> cbOrigem = new JComboBox<>();
+    private final JComboBox<String> cbNcm = new JComboBox<>();
     private final JComboBox<String> cbUnidade = new JComboBox<>(new String[] {
-        "UN", "CX", "KG", "LT", "M", "M2", "M3"
+            "UN", "CX", "KG", "LT", "M", "M2", "M3"
     });
 
-    // Configuração carregada (ou null se não existir)
     private ConfigFiscalModel currentConfig;
 
     public ConfigFiscalDialog(Frame owner, String clienteId) {
-        super(owner, "Configuração Fiscal - Cliente " + clienteId, true);
+        super(owner, "Configuração Fiscal", true);
         this.clienteId = clienteId;
 
+        UiKit.applyDialogBase(this);
+
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
+        ((JComponent) getContentPane()).setBorder(new EmptyBorder(16, 16, 16, 16));
+
         initComponents();
+
         pack();
+        setMinimumSize(new Dimension(760, 420));
         setLocationRelativeTo(owner);
+
+        popularCombos();
         carregarDadosExistentes();
     }
 
     private void initComponents() {
-        JPanel painel = new JPanel(new BorderLayout());
-        painel.setBorder(new EmptyBorder(12, 12, 12, 12));
-        getContentPane().add(painel);
+        // ===================== CARD =====================
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(12, 12));
+        add(card, BorderLayout.CENTER);
 
+        // ===================== HEADER =====================
+        JPanel header = new JPanel(new GridLayout(0, 1, 0, 2));
+        header.setOpaque(false);
+        header.add(UiKit.title("Dados fiscais padrão"));
+        header.add(UiKit.hint("Cliente: " + clienteId + " • ENTER salva • ESC cancela"));
+        card.add(header, BorderLayout.NORTH);
+
+        // ===================== FORM (SCROLL) =====================
         JPanel form = new JPanel(new GridBagLayout());
-        form.setBorder(BorderFactory.createTitledBorder("Dados Fiscais Padrão"));
+        form.setOpaque(false);
+
         JScrollPane scroll = new JScrollPane(form);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-        painel.add(scroll, BorderLayout.CENTER);
+        card.add(scroll, BorderLayout.CENTER);
+
+        // Padrões visuais
+        Dimension labelSize = new Dimension(150, 26);
+        Dimension fieldSize = new Dimension(420, 32);
+
+        padCombo(cbRegime, fieldSize);
+        padCombo(cbCfop, fieldSize);
+        padCombo(cbCsosn, fieldSize);
+        padCombo(cbOrigem, fieldSize);
+        padCombo(cbNcm, fieldSize);
+        padCombo(cbUnidade, new Dimension(140, 32));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 6, 6, 6);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = 0;
 
-        int y = 0;
+        addRow(form, gbc, labelSize, "Regime tributário:", cbRegime);
+        addRow(form, gbc, labelSize, "CFOP padrão:", cbCfop);
+        addRow(form, gbc, labelSize, "CSOSN padrão:", cbCsosn);
+        addRow(form, gbc, labelSize, "Origem padrão:", cbOrigem);
+        addRow(form, gbc, labelSize, "NCM padrão:", cbNcm);
 
-        // --- Linha 1: Regime Tributário ---
-        gbc.gridy = y;
+        // Unidade em linha (fica mais “compacto” e bonito)
         gbc.gridx = 0;
         gbc.weightx = 0;
-        form.add(new JLabel("Regime Tributário:"), gbc);
+        JLabel lUn = new JLabel("Unidade padrão:");
+        lUn.setPreferredSize(labelSize);
+        form.add(lUn, gbc);
+
         gbc.gridx = 1;
         gbc.weightx = 1;
-        form.add(cbRegime, gbc);
+        JPanel unidadeWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        unidadeWrap.setOpaque(false);
+        unidadeWrap.add(cbUnidade);
+        form.add(unidadeWrap, gbc);
+        gbc.gridy++;
 
-        // --- CFOP padrão ---
-        y++;
-        gbc.gridy = y;
+        // “empurra” pra cima
         gbc.gridx = 0;
-        gbc.weightx = 0;
-        form.add(new JLabel("CFOP Padrão:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        form.add(cbCfop, gbc);
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        form.add(Box.createVerticalGlue(), gbc);
 
-        // --- CSOSN padrão ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        form.add(new JLabel("CSOSN Padrão:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        form.add(cbCsosn, gbc);
+        // ===================== FOOTER BUTTONS =====================
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        footer.setOpaque(false);
+        card.add(footer, BorderLayout.SOUTH);
 
-        // --- Origem padrão ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        form.add(new JLabel("Origem Padrão:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        form.add(cbOrigem, gbc);
+        JButton btnCancelar = UiKit.ghost("Cancelar");
+        JButton btnSalvar = UiKit.primary("Salvar");
 
-        // --- NCM padrão ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        form.add(new JLabel("NCM Padrão:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        form.add(cbNcm, gbc);
+        btnCancelar.setPreferredSize(new Dimension(110, 32));
+        btnSalvar.setPreferredSize(new Dimension(110, 32));
 
-        // --- Unidade padrão ---
-        y++;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
-        form.add(new JLabel("Unidade Padrão:"), gbc);
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        form.add(cbUnidade, gbc);
-
-        // --- Rodapé com botões ---
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
-        painel.add(rodape, BorderLayout.SOUTH);
-
-        JButton btnSalvar = new JButton("Salvar");
-        btnSalvar.setPreferredSize(new Dimension(100, 30));
         btnSalvar.addActionListener(e -> onSalvar());
-        rodape.add(btnSalvar);
-
-        JButton btnCancelar = new JButton("Cancelar");
-        btnCancelar.setPreferredSize(new Dimension(100, 30));
         btnCancelar.addActionListener(e -> dispose());
-        rodape.add(btnCancelar);
 
-        // Enter aciona salvar
+        footer.add(btnCancelar);
+        footer.add(btnSalvar);
+
+        // Enter salva
         getRootPane().setDefaultButton(btnSalvar);
 
-        // Fecha como cancelado se usuário fechar
-        addWindowListener(new WindowAdapter() {
+        // ESC fecha
+        bindEscapeToClose();
+    }
+
+    private void addRow(JPanel form, GridBagConstraints gbc, Dimension labelSize, String label, JComponent field) {
+        gbc.gridx = 0;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.NONE;
+        JLabel l = new JLabel(label);
+        l.setPreferredSize(labelSize);
+        form.add(l, gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        form.add(field, gbc);
+
+        gbc.gridy++;
+    }
+
+    private void padCombo(JComboBox<String> cb, Dimension size) {
+        cb.setPreferredSize(size);
+        cb.setMinimumSize(size);
+    }
+
+    private void bindEscapeToClose() {
+        JRootPane root = getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+        am.put("close", new AbstractAction() {
             @Override
-            public void windowClosing(WindowEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 dispose();
             }
         });
-
-        // Carrega dados de CFOP, CSOSN, Origem e NCM
-        popularCombos();
     }
 
     /** Preenche os JComboBox com dados vindos das tabelas fiscais. */
     private void popularCombos() {
         try {
+            cbCfop.removeAllItems();
+            cbCsosn.removeAllItems();
+            cbOrigem.removeAllItems();
+            cbNcm.removeAllItems();
+
             // CFOP
-            CfopDAO cfopDAO = new CfopDAO();
-            List<CfopModel> listaCfops = cfopDAO.buscarTodos();
+            List<CfopModel> listaCfops = new CfopDAO().buscarTodos();
             for (CfopModel item : listaCfops) {
                 cbCfop.addItem(item.getCodigo() + " - " + item.getDescricao());
             }
 
             // CSOSN
-            CsosnDAO csosnDAO = new CsosnDAO();
-            List<CsosnModel> listaCsosn = csosnDAO.buscarTodos();
+            List<CsosnModel> listaCsosn = new CsosnDAO().buscarTodos();
             for (CsosnModel item : listaCsosn) {
                 cbCsosn.addItem(item.getCodigo() + " - " + item.getDescricao());
             }
 
             // Origem
-            OrigemDAO origemDAO = new OrigemDAO();
-            List<OrigemModel> listaOrigem = origemDAO.buscarTodos();
+            List<OrigemModel> listaOrigem = new OrigemDAO().buscarTodos();
             for (OrigemModel item : listaOrigem) {
                 cbOrigem.addItem(item.getCodigo() + " - " + item.getDescricao());
             }
 
             // NCM
-            NcmDAO ncmDAO = new NcmDAO();
-            List<NcmModel> listaNcm = ncmDAO.findAll();
+            List<NcmModel> listaNcm = new NcmDAO().findAll();
             for (NcmModel item : listaNcm) {
-                // Exibe "95044000 - Jogos de cartas..."
                 cbNcm.addItem(item.getCodigo() + " - " + item.getDescricao());
             }
 
@@ -214,51 +236,17 @@ public class ConfigFiscalDialog extends JDialog {
     /** Se já existir configuração para este cliente, pré-preenche os campos. */
     private void carregarDadosExistentes() {
         try {
-            ConfigFiscalDAO dao = new ConfigFiscalDAO();
-            currentConfig = dao.buscarPorCliente(clienteId);
-            if (currentConfig != null) {
-                // Regime
-                cbRegime.setSelectedItem(currentConfig.getRegimeTributario());
+            currentConfig = new ConfigFiscalDAO().buscarPorCliente(clienteId);
+            if (currentConfig == null)
+                return;
 
-                // CFOP — temos itens no formato "5102 - ...", então só buscamos o prefixo
-                String cfop = currentConfig.getCfopPadrao();
-                for (int i = 0; i < cbCfop.getItemCount(); i++) {
-                    if (cbCfop.getItemAt(i).startsWith(cfop + " ")) {
-                        cbCfop.setSelectedIndex(i);
-                        break;
-                    }
-                }
+            cbRegime.setSelectedItem(currentConfig.getRegimeTributario());
+            selecionarPorCodigoPrefix(cbCfop, currentConfig.getCfopPadrao());
+            selecionarPorCodigoPrefix(cbCsosn, currentConfig.getCsosnPadrao());
+            selecionarPorCodigoPrefix(cbOrigem, currentConfig.getOrigemPadrao());
+            selecionarPorCodigoPrefix(cbNcm, currentConfig.getNcmPadrao());
+            cbUnidade.setSelectedItem(currentConfig.getUnidadePadrao());
 
-                // CSOSN
-                String csosn = currentConfig.getCsosnPadrao();
-                for (int i = 0; i < cbCsosn.getItemCount(); i++) {
-                    if (cbCsosn.getItemAt(i).startsWith(csosn + " ")) {
-                        cbCsosn.setSelectedIndex(i);
-                        break;
-                    }
-                }
-
-                // Origem
-                String origem = currentConfig.getOrigemPadrao();
-                for (int i = 0; i < cbOrigem.getItemCount(); i++) {
-                    if (cbOrigem.getItemAt(i).startsWith(origem + " ")) {
-                        cbOrigem.setSelectedIndex(i);
-                        break;
-                    }
-                }
-
-                // NCM
-                String ncm = currentConfig.getNcmPadrao();
-                for (int i = 0; i < cbNcm.getItemCount(); i++) {
-                    if (cbNcm.getItemAt(i).startsWith(ncm + " ")) {
-                        cbNcm.setSelectedIndex(i);
-                        break;
-                    }
-                }
-
-                // Unidade
-                cbUnidade.setSelectedItem(currentConfig.getUnidadePadrao());
-            }
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
@@ -267,78 +255,66 @@ public class ConfigFiscalDialog extends JDialog {
         }
     }
 
+    private void selecionarPorCodigoPrefix(JComboBox<String> combo, String codigo) {
+        if (codigo == null || codigo.isBlank())
+            return;
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            String it = combo.getItemAt(i);
+            if (it != null && it.startsWith(codigo + " ")) {
+                combo.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
     /** Valida e persiste as escolhas do usuário. */
     private void onSalvar() {
-        // Regime tributário
         String regime = (String) cbRegime.getSelectedItem();
 
-        // CFOP selecionado no formato "5102 - descrição"
-        String cfopFull = (String) cbCfop.getSelectedItem();
-        String cfop = cfopFull != null ? cfopFull.split(" ")[0] : "";
-
-        // CSOSN
-        String csosnFull = (String) cbCsosn.getSelectedItem();
-        String csosn = csosnFull != null ? csosnFull.split(" ")[0] : "";
-
-        // Origem
-        String origemFull = (String) cbOrigem.getSelectedItem();
-        String origem = origemFull != null ? origemFull.split(" ")[0] : "";
-
-        // NCM
-        String ncmFull = (String) cbNcm.getSelectedItem();
-        String ncm = ncmFull != null ? ncmFull.split(" ")[0] : "";
-
-        // Unidade
+        String cfop = firstToken((String) cbCfop.getSelectedItem());
+        String csosn = firstToken((String) cbCsosn.getSelectedItem());
+        String origem = firstToken((String) cbOrigem.getSelectedItem());
+        String ncm = firstToken((String) cbNcm.getSelectedItem());
         String unidade = (String) cbUnidade.getSelectedItem();
 
-        // Validações básicas
-        if (regime == null || regime.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Selecione o regime tributário.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (regime == null || regime.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selecione o regime tributário.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            cbRegime.requestFocusInWindow();
             return;
         }
-        if (cfop.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Selecione um CFOP padrão.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (cfop.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selecione um CFOP padrão.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            cbCfop.requestFocusInWindow();
             return;
         }
-        if (csosn.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Selecione um CSOSN padrão.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (csosn.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selecione um CSOSN padrão.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            cbCsosn.requestFocusInWindow();
             return;
         }
-        if (origem.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Selecione uma origem padrão.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (origem.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selecione uma origem padrão.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            cbOrigem.requestFocusInWindow();
             return;
         }
-        if (ncm.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Selecione um NCM padrão.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (ncm.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selecione um NCM padrão.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            cbNcm.requestFocusInWindow();
             return;
         }
-        if (unidade == null || unidade.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Selecione uma unidade padrão.",
-                    "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (unidade == null || unidade.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Selecione uma unidade padrão.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            cbUnidade.requestFocusInWindow();
             return;
         }
 
         try {
             ConfigFiscalDAO dao = new ConfigFiscalDAO();
+
             if (currentConfig == null) {
-                // Cria nova configuração
-                ConfigFiscalModel cfg = new ConfigFiscalModel(
-                    clienteId, regime, cfop, csosn, origem, ncm, unidade
-                );
+                ConfigFiscalModel cfg = new ConfigFiscalModel(clienteId, regime, cfop, csosn, origem, ncm, unidade);
                 dao.inserir(cfg);
             } else {
-                // Atualiza a configuração existente
                 currentConfig.setRegimeTributario(regime);
                 currentConfig.setCfopPadrao(cfop);
                 currentConfig.setCsosnPadrao(csosn);
@@ -359,5 +335,12 @@ public class ConfigFiscalDialog extends JDialog {
                     "Erro ao salvar configuração fiscal:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String firstToken(String s) {
+        if (s == null)
+            return "";
+        String[] parts = s.trim().split("\\s+");
+        return parts.length > 0 ? parts[0] : "";
     }
 }

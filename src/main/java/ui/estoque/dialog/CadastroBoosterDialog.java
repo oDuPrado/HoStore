@@ -1,67 +1,74 @@
+// src/ui/estoque/dialog/CadastroBoosterDialog.java
 package ui.estoque.dialog;
 
-import controller.ProdutoEstoqueController;
 import dao.JogoDAO;
 import model.BoosterModel;
 import model.ColecaoModel;
 import model.FornecedorModel;
 import model.JogoModel;
+import model.NcmModel;
+import service.NcmService;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
 import util.ScannerUtils;
-import model.NcmModel;
-import service.NcmService;
+import util.UiKit;
 
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import java.util.Comparator;
 import java.util.ArrayList;
 
-/**
- * Dialog para cadastro/edição de Boosters, agora com seleção de Jogo (TCG).
- */
 public class CadastroBoosterDialog extends JDialog {
 
     private final boolean isEdicao;
     private final BoosterModel boosterOrig;
 
-    private final JTextField tfNome = new JTextField(20);
+    private final JTextField tfNome = new JTextField(24);
+
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
+
+    // Pokémon
     private final JComboBox<String> cbSerie = new JComboBox<>();
     private final JComboBox<ColecaoModel> cbColecao = new JComboBox<>();
-    // Para jogos que não são Pokémon
+
+    // Outros jogos: Set por combo / manual
     private final JComboBox<String> cbSetJogo = new JComboBox<>();
-    private final JTextField tfSetManual = new JTextField();
-    // Painel com CardLayout para alternar entre ComboBox e campo manual
+    private final JTextField tfSetManual = new JTextField(24);
+
     private final JPanel panelSetSwitcher = new JPanel(new CardLayout());
-    private final static String CARD_COMBO = "combo";
-    private final static String CARD_MANUAL = "manual";
+    private static final String CARD_COMBO = "combo";
+    private static final String CARD_MANUAL = "manual";
 
     private List<String> setsFiltrados = new ArrayList<>();
 
     private final JComboBox<String> cbTipo = new JComboBox<>(new String[] {
             "Unitário", "Quadri-pack", "Triple-pack", "Especial", "Blister"
     });
+
     private final JComboBox<String> cbIdioma = new JComboBox<>();
-    private final JTextField tfDataLanc = new JTextField();
-    private final JLabel lblCodigoLido = new JLabel("");
-    private final JTextField tfCodigoBarras = new JTextField();
+    private final JTextField tfDataLanc = new JTextField(12);
+
+    private final JLabel lblCodigoLido = new JLabel("—");
+
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
     private final JFormattedTextField tfPreco = FormatterFactory.getFormattedDoubleField(0.0);
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
-    private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
     private FornecedorModel fornecedorSel;
 
     private final JComboBox<String> cbNcm = new JComboBox<>();
 
     private static final DateTimeFormatter DISPLAY_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    // ====== Linhas (pra esconder label+campo junto) ======
+    private JPanel rowSerie;
+    private JPanel rowColecao;
+    private JPanel rowSet; // (cardlayout)
 
     public CadastroBoosterDialog(JFrame owner) {
         this(owner, null);
@@ -69,39 +76,126 @@ public class CadastroBoosterDialog extends JDialog {
 
     public CadastroBoosterDialog(JFrame owner, BoosterModel booster) {
         super(owner, booster == null ? "Novo Booster" : "Editar Booster", true);
+        UiKit.applyDialogBase(this);
+
         this.isEdicao = booster != null;
         this.boosterOrig = booster;
+
         buildUI(owner);
-        if (isEdicao) {
+        wireEvents(owner);
+
+        // Carregamento inicial
+        carregarJogos();
+        carregarIdiomas();
+        carregarSeries();
+        carregarColecoesPorSerie();
+        carregarNcms();
+
+        tfDataLanc.setEditable(false);
+
+        if (isEdicao)
             preencherCampos();
-        }
+
+        // força aplicar o modo certo do jogo após preencher/selecionar
+        atualizarCamposPorJogo();
+
+        setMinimumSize(new Dimension(820, 560));
+        pack();
+        setLocationRelativeTo(owner);
     }
 
     private void buildUI(JFrame owner) {
-        setLayout(new GridLayout(0, 2, 8, 8));
+        setLayout(new BorderLayout(12, 12));
 
-        // Carregamento inicial de séries, coleções, idiomas e jogos
-        carregarSeries();
-        cbSerie.addActionListener(e -> carregarColecoesPorSerie());
-        carregarColecoesPorSerie();
-        carregarIdiomas();
-        carregarJogos(); // NOVO: popula cbJogo
+        // ===== Header =====
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
 
-        // Data não editável
-        tfDataLanc.setEditable(false);
-        cbColecao.addActionListener(e -> {
-            ColecaoModel c = (ColecaoModel) cbColecao.getSelectedItem();
-            if (c != null && c.getReleaseDate() != null && !c.getReleaseDate().isBlank()) {
-                LocalDate d = LocalDate.parse(c.getReleaseDate(),
-                        DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-                tfDataLanc.setText(d.format(DISPLAY_DATE_FMT));
-            } else {
-                tfDataLanc.setText("");
-            }
-        });
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title(isEdicao ? "Editar Booster" : "Novo Booster"));
+        left.add(UiKit.hint("Cadastro de booster • visual consistente • tema FlatLaf (dark/light)"));
+        header.add(left, BorderLayout.WEST);
+
+        add(header, BorderLayout.NORTH);
+
+        // ===== Form Card =====
+        JPanel formCard = UiKit.card();
+        formCard.setLayout(new GridBagLayout());
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        int r = 0;
+
+        addField(formCard, g, r++, "Nome:", tfNome);
+        addField(formCard, g, r++, "Jogo:", cbJogo);
+
+        // Série (Pokémon)
+        rowSerie = makeRow("Série:", cbSerie);
+        addRowPanel(formCard, g, r++, rowSerie);
+
+        // Coleção (Pokémon)
+        rowColecao = makeRow("Coleção:", cbColecao);
+        addRowPanel(formCard, g, r++, rowColecao);
+
+        // Set (outros jogos)
+        panelSetSwitcher.add(cbSetJogo, CARD_COMBO);
+        panelSetSwitcher.add(tfSetManual, CARD_MANUAL);
+
+        rowSet = makeRow("Set:", panelSetSwitcher);
+        addRowPanel(formCard, g, r++, rowSet);
+
+        addField(formCard, g, r++, "Tipo:", cbTipo);
+        addField(formCard, g, r++, "Idioma:", cbIdioma);
+        addField(formCard, g, r++, "Data de Lançamento:", tfDataLanc);
+
+        // Código de barras: botões + label “campo”
+        JPanel barcodeRow = new JPanel(new BorderLayout(8, 0));
+        barcodeRow.setOpaque(false);
+
+        JPanel barcodeActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        barcodeActions.setOpaque(false);
+
+        JButton btnScanner = UiKit.ghost("📷 Ler com Scanner");
+        JButton btnManual = UiKit.ghost("⌨ Inserir Manualmente");
+        barcodeActions.add(btnScanner);
+        barcodeActions.add(btnManual);
+
+        lblCodigoLido.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        lblCodigoLido.setOpaque(true);
+        lblCodigoLido.setBackground(UIManager.getColor("TextField.background"));
+        lblCodigoLido.setForeground(UIManager.getColor("TextField.foreground"));
+
+        JPanel codeBox = new JPanel(new BorderLayout());
+        codeBox.setOpaque(false);
+        codeBox.add(lblCodigoLido, BorderLayout.CENTER);
+        codeBox.setPreferredSize(new Dimension(220, 34));
+
+        barcodeRow.add(barcodeActions, BorderLayout.WEST);
+        barcodeRow.add(codeBox, BorderLayout.EAST);
+
+        addField(formCard, g, r++, "Código de Barras:", barcodeRow);
+
+        addField(formCard, g, r++, "NCM:", cbNcm);
+
+        // Valores em linha (Qtd / Custo / Preço)
+        JPanel linhaValores = new JPanel(new GridLayout(1, 3, 10, 0));
+        linhaValores.setOpaque(false);
+        linhaValores.add(labeledInline("Qtd:", tfQtd));
+        linhaValores.add(labeledInline("Custo (R$):", tfCusto));
+        linhaValores.add(labeledInline("Venda (R$):", tfPreco));
+        addField(formCard, g, r++, "Valores:", linhaValores);
 
         // Fornecedor
-        btnSelectFornec.addActionListener(e -> {
+        JPanel fornRow = new JPanel(new BorderLayout(8, 0));
+        fornRow.setOpaque(false);
+        fornRow.add(lblFornecedor, BorderLayout.CENTER);
+
+        JButton btEscolher = UiKit.ghost("Selecionar…");
+        btEscolher.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog(owner);
             dlg.setVisible(true);
             FornecedorModel f = dlg.getSelectedFornecedor();
@@ -111,109 +205,76 @@ public class CadastroBoosterDialog extends JDialog {
             }
         });
 
-        // Montar formulário
-        add(new JLabel("Nome:"));
-        add(tfNome);
+        fornRow.add(btEscolher, BorderLayout.EAST);
+        addField(formCard, g, r++, "Fornecedor:", fornRow);
 
-        // NOVO: Campo Jogo
-        add(new JLabel("Jogo:"));
-        add(cbJogo);
+        JScrollPane sp = UiKit.scroll(formCard);
+        sp.setBorder(null);
+        add(sp, BorderLayout.CENTER);
 
-        add(new JLabel("Série:"));
-        add(cbSerie);
-        add(new JLabel("Coleção:"));
-        add(cbColecao);
-        add(new JLabel("Set:"));
+        // ===== Footer =====
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
+        footer.add(UiKit.hint("Dica: troque o jogo para alternar Série/Coleção vs Set."), BorderLayout.WEST);
 
-        // Adiciona os dois componentes ao painel com "cartões"
-        panelSetSwitcher.add(cbSetJogo, CARD_COMBO);
-        panelSetSwitcher.add(tfSetManual, CARD_MANUAL);
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
 
-        add(panelSetSwitcher); // adiciona o painel no layout
+        JButton btCancelar = UiKit.ghost("Cancelar");
+        JButton btSalvar = UiKit.primary(isEdicao ? "Atualizar" : "Salvar");
 
-        add(new JLabel("Tipo:"));
-        add(cbTipo);
-        add(new JLabel("Idioma:"));
-        add(cbIdioma);
-        add(new JLabel("Data de Lançamento:"));
-        add(tfDataLanc);
-        add(new JLabel("Código de Barras:"));
-        // @USAR_SCANNER_UTIL
-        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnScanner = new JButton("Ler com Scanner");
-        JButton btnManual = new JButton("Inserir Manualmente");
+        actions.add(btCancelar);
+        actions.add(btSalvar);
 
-        // deixa o label "visível" mesmo vazio
-        lblCodigoLido.setText(" ");
-        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
+        btCancelar.addActionListener(e -> dispose());
+        btSalvar.addActionListener(e -> salvar());
 
-        painelCodBarras.add(btnScanner);
-        painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido);
-        add(painelCodBarras);
+        footer.add(actions, BorderLayout.EAST);
+        add(footer, BorderLayout.SOUTH);
 
-        // NCM: combo com todos os NCMs cadastrados
-        try {
-            List<NcmModel> ncms = NcmService.getInstance().findAll();
-            for (NcmModel n : ncms) {
-                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-        add(new JLabel("NCM:"));
-        add(cbNcm);
-
-        // Ação para chamar o util
+        // Barcode actions (mantém tua lógica)
         btnScanner.addActionListener(e -> {
-            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                lblCodigoLido.setText(codigo);
-                lblCodigoLido.setToolTipText(codigo);
-                lblCodigoLido.putClientProperty("codigoBarras", codigo);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            });
+            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", this::setCodigoBarras);
         });
 
-        // Ação para inserir manualmente via diálogo
         btnManual.addActionListener(e -> {
             String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
             if (input != null && !input.trim().isEmpty()) {
-                String c = input.trim();
-                lblCodigoLido.setText(c);
-                lblCodigoLido.setToolTipText(c);
-                lblCodigoLido.putClientProperty("codigoBarras", c);
+                setCodigoBarras(input.trim());
+            }
+        });
+    }
 
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
+    private void wireEvents(JFrame owner) {
+        cbSerie.addActionListener(e -> carregarColecoesPorSerie());
+
+        cbColecao.addActionListener(e -> {
+            ColecaoModel c = (ColecaoModel) cbColecao.getSelectedItem();
+            if (c != null && c.getReleaseDate() != null && !c.getReleaseDate().isBlank()) {
+                try {
+                    LocalDate d = LocalDate.parse(c.getReleaseDate(), DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                    tfDataLanc.setText(d.format(DISPLAY_DATE_FMT));
+                } catch (Exception ex) {
+                    tfDataLanc.setText("");
+                }
+            } else {
+                tfDataLanc.setText("");
             }
         });
 
-        add(new JLabel("Quantidade:"));
-        add(tfQtd);
-        add(new JLabel("Custo (R$):"));
-        add(tfCusto);
-        add(new JLabel("Preço Venda (R$):"));
-        add(tfPreco);
-        add(new JLabel("Fornecedor:"));
-        add(lblFornecedor);
-        add(new JLabel());
-        add(btnSelectFornec);
-
-        JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
-        btnSalvar.addActionListener(e -> salvar());
-        add(new JLabel());
-        add(btnSalvar);
-
-        pack();
-        setLocationRelativeTo(owner);
+        cbJogo.addActionListener(e -> atualizarCamposPorJogo());
     }
+
+    private void setCodigoBarras(String codigo) {
+        lblCodigoLido.setText(codigo);
+        lblCodigoLido.setToolTipText(codigo);
+        lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        lblCodigoLido.revalidate();
+        lblCodigoLido.repaint();
+        pack();
+    }
+
+    // ====== Carregamentos (mantém tua lógica) ======
 
     private void carregarSeries() {
         try {
@@ -231,6 +292,7 @@ public class CadastroBoosterDialog extends JDialog {
             cbColecao.removeAllItems();
             if (serie == null)
                 return;
+
             for (ColecaoModel c : new dao.ColecaoDAO().listarPorSerie(serie)) {
                 cbColecao.addItem(c);
             }
@@ -255,30 +317,52 @@ public class CadastroBoosterDialog extends JDialog {
             cbJogo.removeAllItems();
             cbJogo.addItem(new JogoModel(null, "Selecione..."));
             List<JogoModel> jogos = new JogoDAO().listarTodos();
-            for (JogoModel jogo : jogos) {
+            for (JogoModel jogo : jogos)
                 cbJogo.addItem(jogo);
-            }
-
-            // 🔧 ESSENCIAL: atualizar visuais ao selecionar jogo
-            cbJogo.addActionListener(e -> atualizarCamposPorJogo());
-
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar jogos.");
         }
     }
 
+    private void carregarNcms() {
+        try {
+            cbNcm.removeAllItems();
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // ====== Alternância de campos por Jogo (corrigida visualmente) ======
+
     private void atualizarCamposPorJogo() {
         JogoModel jogo = (JogoModel) cbJogo.getSelectedItem();
-        if (jogo == null || jogo.getId() == null)
+        if (jogo == null || jogo.getId() == null) {
+            // Sem jogo: esconde tudo específico e não quebra layout
+            rowSerie.setVisible(false);
+            rowColecao.setVisible(false);
+            rowSet.setVisible(false);
+            revalidate();
+            repaint();
             return;
+        }
 
         boolean isPokemon = jogo.getId().equalsIgnoreCase("POKEMON");
         boolean isOnePiece = jogo.getId().equalsIgnoreCase("ONEPIECE");
         boolean isDragonBall = jogo.getId().equalsIgnoreCase("DRAGONBALL");
 
-        // Mostrar apenas os campos relevantes
-        cbSerie.setVisible(isPokemon);
-        cbColecao.setVisible(isPokemon);
+        // Série/Coleção só para Pokémon
+        rowSerie.setVisible(isPokemon);
+        rowColecao.setVisible(isPokemon);
+
+        // Set para não-Pokémon (alguns manual)
+        rowSet.setVisible(!isPokemon);
+
         CardLayout cl = (CardLayout) panelSetSwitcher.getLayout();
 
         if (isOnePiece || isDragonBall) {
@@ -296,6 +380,7 @@ public class CadastroBoosterDialog extends JDialog {
 
         revalidate();
         repaint();
+        pack();
     }
 
     private void carregarSetsJogo(String jogoId) {
@@ -303,15 +388,10 @@ public class CadastroBoosterDialog extends JDialog {
             cbSetJogo.removeAllItems();
 
             var sets = new dao.SetJogoDAO().listarPorJogo(jogoId);
-            // Ordenar por nome (ignorando maiúsculas/minúsculas)
             sets.sort(Comparator.comparing(s -> s.getNome().toLowerCase()));
 
-            // Guardar os nomes para uso no filtro
-            setsFiltrados = sets.stream()
-                    .map(s -> s.getNome())
-                    .toList();
+            setsFiltrados = sets.stream().map(s -> s.getNome()).toList();
 
-            // Atualizar combo com a lista inicial completa
             atualizarComboBoxSet(setsFiltrados);
 
         } catch (Exception ex) {
@@ -322,10 +402,11 @@ public class CadastroBoosterDialog extends JDialog {
 
     private void atualizarComboBoxSet(List<String> lista) {
         cbSetJogo.removeAllItems();
-        for (String nome : lista) {
+        for (String nome : lista)
             cbSetJogo.addItem(nome);
-        }
     }
+
+    // ====== Preencher / salvar (mantém regra) ======
 
     private void preencherCampos() {
         tfNome.setText(boosterOrig.getNome());
@@ -345,20 +426,19 @@ public class CadastroBoosterDialog extends JDialog {
             }
         }
 
-        // Série (set)
+        // Série (Pokémon)
         try {
             cbSerie.removeAllItems();
             List<String> series = new dao.SetDAO().listarSeriesUnicas();
-            for (String s : series) {
+            for (String s : series)
                 cbSerie.addItem(s);
-            }
             cbSerie.setSelectedItem(boosterOrig.getSet());
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar séries.");
             ex.printStackTrace();
         }
 
-        // Coleções + Data de Lançamento
+        // Coleções + Data
         cbColecao.removeAllItems();
         try {
             List<ColecaoModel> todas = new dao.ColecaoDAO().listarPorSerie(boosterOrig.getSet());
@@ -367,9 +447,7 @@ public class CadastroBoosterDialog extends JDialog {
                 if (c.getName().equalsIgnoreCase(boosterOrig.getColecao())) {
                     cbColecao.setSelectedItem(c);
                     if (c.getReleaseDate() != null && !c.getReleaseDate().isBlank()) {
-                        LocalDate d = LocalDate.parse(
-                                c.getReleaseDate(),
-                                DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+                        LocalDate d = LocalDate.parse(c.getReleaseDate(), DateTimeFormatter.ofPattern("yyyy/MM/dd"));
                         tfDataLanc.setText(d.format(DISPLAY_DATE_FMT));
                     }
                 }
@@ -379,15 +457,12 @@ public class CadastroBoosterDialog extends JDialog {
             e.printStackTrace();
         }
 
-        // Tipo + Idioma + Código de Barras
         cbTipo.setSelectedItem(boosterOrig.getTipoBooster());
         cbIdioma.setSelectedItem(boosterOrig.getIdioma());
+
         String cod = boosterOrig.getCodigoBarras();
-        if (cod != null && !cod.isBlank()) {
-            lblCodigoLido.setText(cod);
-            lblCodigoLido.setToolTipText(cod);
-            lblCodigoLido.putClientProperty("codigoBarras", cod);
-        }
+        if (cod != null && !cod.isBlank())
+            setCodigoBarras(cod);
 
         // Fornecedor
         fornecedorSel = new FornecedorModel();
@@ -395,7 +470,7 @@ public class CadastroBoosterDialog extends JDialog {
         fornecedorSel.setNome(boosterOrig.getFornecedorNome());
         lblFornecedor.setText(boosterOrig.getFornecedorNome());
 
-        // Seleciona o NCM correspondente se existir
+        // NCM
         if (boosterOrig.getNcm() != null) {
             for (int i = 0; i < cbNcm.getItemCount(); i++) {
                 if (cbNcm.getItemAt(i).startsWith(boosterOrig.getNcm())) {
@@ -415,7 +490,7 @@ public class CadastroBoosterDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Selecione um fornecedor.");
             return;
         }
-        // Verifica seleção de jogo
+
         JogoModel jogoSel = (JogoModel) cbJogo.getSelectedItem();
         if (jogoSel == null || jogoSel.getId() == null) {
             JOptionPane.showMessageDialog(this, "Selecione um jogo.");
@@ -423,69 +498,130 @@ public class CadastroBoosterDialog extends JDialog {
         }
 
         try {
-            // Recupera o código do NCM selecionado
             String ncmCombo = (String) cbNcm.getSelectedItem();
             String ncm = "";
             if (ncmCombo != null && ncmCombo.contains("-")) {
                 ncm = ncmCombo.split("-")[0].trim();
             }
 
-            String id = isEdicao
-                    ? boosterOrig.getId()
-                    : UUID.randomUUID().toString();
+            String id = isEdicao ? boosterOrig.getId() : UUID.randomUUID().toString();
 
             String nome = tfNome.getText().trim();
+
             String serie = (String) cbSerie.getSelectedItem();
             String colecao = cbColecao.getSelectedItem() != null
                     ? ((ColecaoModel) cbColecao.getSelectedItem()).getName()
                     : "";
-            // Se for jogo com set manual, pegar do campo de texto
-            if (cbSetJogo.isVisible()) {
-                serie = (String) cbSetJogo.getSelectedItem();
-            } else if (tfSetManual.isVisible()) {
-                serie = tfSetManual.getText().trim();
+
+            // Se for jogo sem série/coleção, pega do Set switcher
+            if (rowSet.isVisible()) {
+                // combo
+                Component showing = getShowingSetComponent();
+                if (showing == cbSetJogo) {
+                    serie = (String) cbSetJogo.getSelectedItem();
+                } else {
+                    serie = tfSetManual.getText().trim();
+                }
             }
 
             String tipo = (String) cbTipo.getSelectedItem();
             String idioma = (String) cbIdioma.getSelectedItem();
             String validade = tfDataLanc.getText().trim();
+
             String codigo = (String) lblCodigoLido.getClientProperty("codigoBarras");
-            if (codigo == null) {
-                codigo = ""; // ou trate como “não informado”
-            }
+            if (codigo == null)
+                codigo = "";
+
             int qtd = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();
             double preco = ((Number) tfPreco.getValue()).doubleValue();
+
             String fornId = fornecedorSel.getId();
             String fornNom = fornecedorSel.getNome();
             String jogoId = jogoSel.getId();
 
-            // Cria BoosterModel com jogoId
             BoosterModel b = new BoosterModel(
                     id, nome, qtd, custo, preco,
                     fornId,
                     colecao, serie, tipo,
                     idioma, validade, codigo,
-                    jogoId // NOVO
-            );
-            // Assegura que o fornecedorId seja preenchido corretamente
+                    jogoId);
+
             b.setFornecedorId(fornId);
             b.setFornecedorNome(fornNom);
             b.setNcm(ncm);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
-            if (isEdicao) {
-                service.atualizarBooster(b); // já salva em ambas as tabelas
-            } else {
+            if (isEdicao)
+                service.atualizarBooster(b);
+            else
                 service.salvarNovoBooster(b);
-            }
 
             dispose();
+
         } catch (Exception ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar Booster:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private Component getShowingSetComponent() {
+        // CardLayout não expõe "qual está visível", então verificamos visibilidade real
+        if (cbSetJogo.isShowing())
+            return cbSetJogo;
+        return tfSetManual;
+    }
+
+    // ====== Helpers de layout ======
+
+    private JPanel makeRow(String label, JComponent field) {
+        JPanel row = new JPanel(new GridBagLayout());
+        row.setOpaque(false);
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(0, 0, 0, 0);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        row.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        row.add(field, g);
+
+        return row;
+    }
+
+    private void addRowPanel(JPanel parent, GridBagConstraints g, int row, JPanel rowPanel) {
+        g.gridy = row;
+        g.gridx = 0;
+        g.gridwidth = 2;
+        g.weightx = 1;
+        parent.add(rowPanel, g);
+        g.gridwidth = 1;
+    }
+
+    private void addField(JPanel parent, GridBagConstraints g, int row, String label, JComponent field) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        parent.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        parent.add(field, g);
+    }
+
+    private JPanel labeledInline(String label, JComponent field) {
+        JPanel p = new JPanel(new BorderLayout(6, 0));
+        p.setOpaque(false);
+        p.add(new JLabel(label), BorderLayout.WEST);
+        p.add(field, BorderLayout.CENTER);
+        return p;
     }
 }

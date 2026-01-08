@@ -4,40 +4,37 @@ import dao.ProdutoDAO;
 import model.ProdutoModel;
 import util.AlertUtils;
 import util.ScannerUtils;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
-import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 
 /**
  * Seletor genérico de produtos (multi-check).
  * Usa ProdutoDAO.listAll() e ProdutoDAO.findById(),
- * agora com sistema de busca por código de barras.
+ * com busca por código de barras.
  */
 public class SelectProdutoDialog extends JDialog {
 
     private final ProdutoDAO produtoDAO = new ProdutoDAO();
-    private final List<ProdutoModel> todosProdutos; // cache de todos
+    private final List<ProdutoModel> todosProdutos; // cache
 
-    // Inicializamos model e table em linha, para satisfazer o final
     private final DefaultTableModel model = new DefaultTableModel(new String[] {
             "✓", "ID", "Nome", "Tipo", "Estoque", "R$ Venda"
     }, 0) {
         @Override
         public boolean isCellEditable(int r, int c) {
-            return c == 0; // apenas checkbox
+            return c == 0;
         }
 
         @Override
@@ -51,9 +48,10 @@ public class SelectProdutoDialog extends JDialog {
             return String.class;
         }
     };
+
     private final JTable table = new JTable(model);
 
-    private final JTextField txtNome = new JTextField(15);
+    private final JTextField txtNome = new JTextField(18);
     private final JComboBox<String> cboTipo = new JComboBox<>();
     private final JComboBox<String> cboOrder = new JComboBox<>(
             new String[] { "Mais novo", "Mais antigo", "Maior preço", "Menor preço", "Maior estoque",
@@ -63,78 +61,110 @@ public class SelectProdutoDialog extends JDialog {
 
     public SelectProdutoDialog(JFrame owner) {
         super(owner, "Selecionar Produtos", true);
-        setSize(900, 600);
-        setLocationRelativeTo(owner);
-        setLayout(new BorderLayout(8, 8));
-        ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        UiKit.applyDialogBase(this);
+
+        setMinimumSize(new Dimension(980, 640));
+        setLayout(new BorderLayout(10, 10));
 
         // carrega tudo uma vez
         todosProdutos = produtoDAO.listAll();
 
-        // --- filtros ---
-        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        filtros.add(new JLabel("Nome:"));
-        filtros.add(txtNome);
-        filtros.add(new JLabel("Tipo:"));
-        filtros.add(cboTipo);
-        filtros.add(new JLabel("Ordenar por:"));
-        filtros.add(cboOrder);
+        /* ===================== TOP (CARD) ===================== */
+        JPanel top = UiKit.card();
+        top.setLayout(new BorderLayout(10, 10));
 
-        JButton btnBuscar = new JButton("🔍 Buscar");
+        JPanel title = new JPanel(new GridLayout(0, 1, 0, 2));
+        title.setOpaque(false);
+        title.add(UiKit.title("Selecionar Produtos"));
+        title.add(UiKit.hint("F2 Buscar | F3 Ler código | ENTER Confirmar | ESC Fechar | Ctrl+F Buscar nome"));
+        top.add(title, BorderLayout.WEST);
+
+        JPanel filtros = new JPanel(new GridBagLayout());
+        filtros.setOpaque(false);
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(2, 4, 2, 4);
+        gc.gridy = 0;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+
+        gc.gridx = 0;
+        filtros.add(new JLabel("Nome:"), gc);
+        gc.gridx = 1;
+        filtros.add(txtNome, gc);
+
+        gc.gridx = 2;
+        filtros.add(new JLabel("Tipo:"), gc);
+        gc.gridx = 3;
+        filtros.add(cboTipo, gc);
+
+        gc.gridx = 4;
+        filtros.add(new JLabel("Ordenar:"), gc);
+        gc.gridx = 5;
+        filtros.add(cboOrder, gc);
+
+        JButton btnBuscar = UiKit.primary("🔍 Buscar (F2)");
         btnBuscar.addActionListener(e -> carregarTabela());
-        filtros.add(btnBuscar);
 
-        // 📷 Botão de leitura de código de barras
-        JButton btnScan = new JButton("📷 Ler Código de Barras");
-        btnScan.addActionListener(e -> {
-            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                List<ProdutoModel> encontrados = todosProdutos.stream()
-                    .filter(p -> p.getCodigoBarras() != null && p.getCodigoBarras().equalsIgnoreCase(codigo))
-                    .collect(Collectors.toList());
+        JButton btnScan = UiKit.ghost("📷 Ler Código (F3)");
+        btnScan.addActionListener(e -> lerCodigoBarras());
 
-                if (encontrados.isEmpty()) {
-                    AlertUtils.warn("Nenhum produto com este código de barras foi encontrado.");
-                } else if (encontrados.size() == 1) {
-                    marcarProdutoNaTabela(encontrados.get(0));
-                } else {
-                    // múltiplas opções, pergunta ao usuário
-                    ProdutoModel escolhido = (ProdutoModel) JOptionPane.showInputDialog(
-                        this,
-                        "Múltiplos produtos encontrados com este código. Escolha o correto:",
-                        "Selecionar Produto",
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        encontrados.toArray(),
-                        encontrados.get(0)
-                    );
-                    if (escolhido != null) {
-                        marcarProdutoNaTabela(escolhido);
-                    }
-                }
-            });
-        });
-        filtros.add(btnScan);
+        gc.gridx = 6;
+        gc.weightx = 0;
+        filtros.add(btnBuscar, gc);
+        gc.gridx = 7;
+        filtros.add(btnScan, gc);
 
-        add(filtros, BorderLayout.NORTH);
+        top.add(filtros, BorderLayout.EAST);
 
-        // --- tabela ---
+        add(top, BorderLayout.NORTH);
+
+        /* ===================== CENTER (CARD + TABLE) ===================== */
+        JPanel center = UiKit.card();
+        center.setLayout(new BorderLayout(8, 8));
+
+        JPanel centerHeader = new JPanel(new BorderLayout());
+        centerHeader.setOpaque(false);
+        centerHeader.add(UiKit.title("Resultados"), BorderLayout.WEST);
+        center.add(centerHeader, BorderLayout.NORTH);
+
         personalizarTabela();
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        UiKit.tableDefaults(table);
 
-        // --- rodapé ---
-        JButton btnCancelar = new JButton("Cancelar");
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        applyZebra(table, zebra);
+
+        // moeda na coluna 5 (R$ Venda) mantendo zebra
+        table.getColumnModel().getColumn(5).setCellRenderer(currencyRendererZebra(zebra));
+
+        center.add(UiKit.scroll(table), BorderLayout.CENTER);
+        add(center, BorderLayout.CENTER);
+
+        /* ===================== FOOTER (CARD) ===================== */
+        JPanel bottom = UiKit.card();
+        bottom.setLayout(new BorderLayout(10, 10));
+
+        bottom.add(UiKit.hint("Dica: você pode marcar vários itens e confirmar."), BorderLayout.WEST);
+
+        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        rodape.setOpaque(false);
+
+        JButton btnCancelar = UiKit.ghost("Cancelar (ESC)");
         btnCancelar.addActionListener(e -> dispose());
-        JButton btnAdd = new JButton("Adicionar Selecionados");
+
+        JButton btnAdd = UiKit.primary("Adicionar Selecionados (ENTER)");
         btnAdd.addActionListener(e -> confirmarSelecao());
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+
         rodape.add(btnCancelar);
         rodape.add(btnAdd);
-        add(rodape, BorderLayout.SOUTH);
+        bottom.add(rodape, BorderLayout.EAST);
+
+        add(bottom, BorderLayout.SOUTH);
 
         popularTipos();
         carregarTabela();
 
-        // Atalhos de teclado
+        // atalhos
         JRootPane root = getRootPane();
         InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = root.getActionMap();
@@ -152,9 +182,7 @@ public class SelectProdutoDialog extends JDialog {
         });
         am.put("lerCodigo", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                for (ActionListener al : btnScan.getActionListeners()) {
-                    al.actionPerformed(new ActionEvent(btnScan, ActionEvent.ACTION_PERFORMED, ""));
-                }
+                lerCodigoBarras();
             }
         });
         am.put("confirmar", new AbstractAction() {
@@ -173,46 +201,58 @@ public class SelectProdutoDialog extends JDialog {
             }
         });
 
+        pack();
+        setLocationRelativeTo(owner);
     }
 
     private void personalizarTabela() {
-        // formata moeda na coluna 5
-        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         TableColumnModel cols = table.getColumnModel();
-        cols.getColumn(5).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public void setValue(Object v) {
-                setHorizontalAlignment(SwingConstants.RIGHT);
-                super.setText(cf.format((Double) v));
-            }
-        });
-        // oculta coluna ID visualmente
-        cols.removeColumn(cols.getColumn(1));
+
         // checkbox estreito
-        cols.getColumn(0).setMaxWidth(40);
+        cols.getColumn(0).setMaxWidth(42);
+        cols.getColumn(0).setMinWidth(42);
+
+        // “ocultar” ID sem removeColumn (evita treta entre model e view)
+        TableColumn idCol = cols.getColumn(1);
+        idCol.setMinWidth(0);
+        idCol.setMaxWidth(0);
+        idCol.setPreferredWidth(0);
+
+        // alinhamentos
+        DefaultTableCellRenderer right = new DefaultTableCellRenderer();
+        right.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(SwingConstants.CENTER);
+
+        cols.getColumn(4).setCellRenderer(center); // estoque
+        cols.getColumn(5).setCellRenderer(right); // venda (vai ser sobrescrito pelo renderer zebra-moeda)
     }
 
     private void popularTipos() {
-        // extrai tipos únicos e ordena
+        cboTipo.removeAllItems();
+        cboTipo.addItem("Todos");
+
         Set<String> tiposSet = todosProdutos.stream()
                 .map(ProdutoModel::getTipo)
-                .collect(Collectors.toSet());
-        List<String> tipos = new ArrayList<>(tiposSet);
-        Collections.sort(tipos);
-        cboTipo.addItem("Todos");
-        tipos.forEach(cboTipo::addItem);
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(TreeSet::new)); // ordenado
+
+        for (String t : tiposSet)
+            cboTipo.addItem(t);
+        cboTipo.setSelectedIndex(0);
     }
 
     private void carregarTabela() {
         model.setRowCount(0);
-        // cópia para filtrar/ordenar
+
         List<ProdutoModel> lista = new ArrayList<>(todosProdutos);
 
         // filtro por nome
         String txt = txtNome.getText().trim().toLowerCase();
         if (!txt.isEmpty()) {
             lista = lista.stream()
-                    .filter(p -> p.getNome().toLowerCase().contains(txt))
+                    .filter(p -> p.getNome() != null && p.getNome().toLowerCase().contains(txt))
                     .collect(Collectors.toList());
         }
 
@@ -220,26 +260,35 @@ public class SelectProdutoDialog extends JDialog {
         String tipoSel = (String) cboTipo.getSelectedItem();
         if (tipoSel != null && !"Todos".equals(tipoSel)) {
             lista = lista.stream()
-                    .filter(p -> p.getTipo().equals(tipoSel))
+                    .filter(p -> tipoSel.equals(p.getTipo()))
                     .collect(Collectors.toList());
         }
 
         // ordenação
         switch (cboOrder.getSelectedIndex()) {
-            case 0 -> lista.sort(Comparator.comparing(ProdutoModel::getCriadoEm).reversed());
-            case 1 -> lista.sort(Comparator.comparing(ProdutoModel::getCriadoEm));
-            case 2 -> lista.sort(Comparator.comparing(ProdutoModel::getPrecoVenda).reversed());
-            case 3 -> lista.sort(Comparator.comparing(ProdutoModel::getPrecoVenda));
+            case 0 -> lista.sort(Comparator
+                    .comparing(ProdutoModel::getCriadoEm, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+            case 1 -> lista.sort(
+                    Comparator.comparing(ProdutoModel::getCriadoEm, Comparator.nullsLast(Comparator.naturalOrder())));
+            case 2 -> lista.sort(
+                    Comparator.comparing(ProdutoModel::getPrecoVenda, Comparator.nullsLast(Comparator.naturalOrder()))
+                            .reversed());
+            case 3 -> lista.sort(
+                    Comparator.comparing(ProdutoModel::getPrecoVenda, Comparator.nullsLast(Comparator.naturalOrder())));
             case 4 -> lista.sort(Comparator.comparing(ProdutoModel::getQuantidade).reversed());
             case 5 -> lista.sort(Comparator.comparing(ProdutoModel::getQuantidade));
         }
 
-        // popula linhas (ignora estoque = 0)
+        // popula linhas (estoque > 0)
         for (ProdutoModel p : lista) {
-            if (p.getQuantidade() > 0) {
+            if (p != null && p.getQuantidade() > 0) {
                 model.addRow(new Object[] {
-                        false, p.getId(), p.getNome(), p.getTipo(),
-                        p.getQuantidade(), p.getPrecoVenda()
+                        false,
+                        p.getId(),
+                        p.getNome(),
+                        p.getTipo(),
+                        p.getQuantidade(),
+                        p.getPrecoVenda()
                 });
             }
         }
@@ -247,6 +296,7 @@ public class SelectProdutoDialog extends JDialog {
 
     private void confirmarSelecao() {
         List<ProdutoModel> sel = new ArrayList<>();
+
         for (int r = 0; r < model.getRowCount(); r++) {
             if (Boolean.TRUE.equals(model.getValueAt(r, 0))) {
                 String id = (String) model.getValueAt(r, 1);
@@ -255,42 +305,93 @@ public class SelectProdutoDialog extends JDialog {
                     sel.add(p);
             }
         }
+
         if (sel.isEmpty()) {
             AlertUtils.info("Nenhum produto selecionado.");
             return;
         }
-        // resumo de confirmação
+
         String resumo = sel.stream()
                 .map(p -> "- " + p.getNome() + " (Qtde: " + p.getQuantidade() + ")")
                 .collect(Collectors.joining("\n"));
+
         int op = JOptionPane.showConfirmDialog(this,
                 "Você está adicionando:\n\n" + resumo + "\n\nConfirmar?",
                 "Confirmar produtos",
                 JOptionPane.YES_NO_OPTION);
+
         if (op == JOptionPane.YES_OPTION) {
             selecionados = sel;
             dispose();
         }
     }
 
-    /** Retorna os produtos marcados após fechar o diálogo */
     public List<ProdutoModel> getSelecionados() {
         return selecionados;
     }
 
-    /**
-     * Marca na tabela o produto correspondente ao modelo fornecido.
-     */
+    private void lerCodigoBarras() {
+        ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+            if (codigo == null || codigo.isBlank())
+                return;
+
+            List<ProdutoModel> encontrados = todosProdutos.stream()
+                    .filter(p -> p.getCodigoBarras() != null && p.getCodigoBarras().equalsIgnoreCase(codigo))
+                    .collect(Collectors.toList());
+
+            if (encontrados.isEmpty()) {
+                AlertUtils.warn("Nenhum produto com este código de barras foi encontrado.");
+                return;
+            }
+
+            ProdutoModel escolhido;
+            if (encontrados.size() == 1) {
+                escolhido = encontrados.get(0);
+            } else {
+                escolhido = (ProdutoModel) JOptionPane.showInputDialog(
+                        this,
+                        "Múltiplos produtos encontrados com este código. Escolha o correto:",
+                        "Selecionar Produto",
+                        JOptionPane.PLAIN_MESSAGE,
+                        null,
+                        encontrados.toArray(),
+                        encontrados.get(0));
+            }
+
+            if (escolhido != null) {
+                marcarProdutoNaTabela(escolhido);
+            }
+        });
+    }
+
     private void marcarProdutoNaTabela(ProdutoModel p) {
-        for (int i = 0; i < table.getRowCount(); i++) {
-            String idTabela = (String) model.getValueAt(i, 1); // coluna ID oculta
-            if (idTabela.equals(p.getId())) {
-                model.setValueAt(true, i, 0); // marca checkbox
-                table.scrollRectToVisible(table.getCellRect(i, 0, true));
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String idTabela = (String) model.getValueAt(i, 1); // ID oculto, mas existe no model
+            if (Objects.equals(idTabela, p.getId())) {
+                model.setValueAt(true, i, 0);
+                Rectangle rect = table.getCellRect(i, 0, true);
+                table.scrollRectToVisible(rect);
                 table.setRowSelectionInterval(i, i);
                 return;
             }
         }
         AlertUtils.warn("Produto encontrado, mas está sem estoque ou não visível na tabela.");
+    }
+
+    private static void applyZebra(JTable t, DefaultTableCellRenderer zebra) {
+        for (int i = 0; i < t.getColumnCount(); i++) {
+            t.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
+    }
+
+    private static TableCellRenderer currencyRendererZebra(DefaultTableCellRenderer zebra) {
+        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        return (table, value, isSelected, hasFocus, row, column) -> {
+            JLabel l = (JLabel) zebra.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            l.setHorizontalAlignment(SwingConstants.RIGHT);
+            double v = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
+            l.setText(cf.format(v));
+            return l;
+        };
     }
 }

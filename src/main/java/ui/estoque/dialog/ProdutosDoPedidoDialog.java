@@ -1,23 +1,21 @@
+// src/ui/estoque/dialog/ProdutosDoPedidoDialog.java
 package ui.estoque.dialog;
 
 import dao.PedidoCompraDAO;
+import javax.swing.border.*;
 import dao.PedidoEstoqueProdutoDAO;
 import dao.ProdutoDAO;
 import model.PedidoEstoqueProdutoModel;
 import model.ProdutoModel;
 import model.PedidoCompraModel;
+import util.UiKit;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.List;
+import java.text.SimpleDateFormat;
 
-
-/**
- * Permite visualizar e editar as quantidades pedidas de cada item
- * (antes da entrada), mantendo a consistência do pedido.
- */
 public class ProdutosDoPedidoDialog extends JDialog {
 
     private final PedidoCompraModel pedido;
@@ -28,18 +26,37 @@ public class ProdutosDoPedidoDialog extends JDialog {
     private DefaultTableModel tm;
 
     public ProdutosDoPedidoDialog(Frame parent, PedidoCompraModel pedido) {
-        super(parent, "Itens do Pedido • " + pedido.getNome(), true);
+        super(parent, "📦 Itens do Pedido", true);
+        UiKit.applyDialogBase(this);
         this.pedido = pedido;
         initComponents();
         loadData();
-        pack();
+        setSize(760, 520);
         setLocationRelativeTo(parent);
     }
 
-    /** UI: Item ID (oculto), Produto ID, Qtd Pedida (editável) */
     private void initComponents() {
-        tm = new DefaultTableModel(
-                new Object[] { "Item ID", "Produto ID", "Qtd Pedida" }, 0) {
+        setLayout(new BorderLayout(12, 12));
+
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
+
+        String dataVis = pedido.getData();
+        try {
+            dataVis = new SimpleDateFormat("dd/MM/yyyy")
+                    .format(new SimpleDateFormat("yyyy-MM-dd").parse(pedido.getData()));
+        } catch (Exception ignore) {
+        }
+
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title("Itens do Pedido • " + pedido.getNome()));
+        left.add(UiKit.hint("Data: " + dataVis + " • Status: " + pedido.getStatus()));
+        header.add(left, BorderLayout.WEST);
+
+        add(header, BorderLayout.NORTH);
+
+        tm = new DefaultTableModel(new Object[] { "Item ID", "Produto", "Qtd Pedida" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
                 return col == 2;
@@ -47,51 +64,69 @@ public class ProdutosDoPedidoDialog extends JDialog {
         };
 
         table = new JTable(tm);
-        table.getColumnModel().getColumn(0).setMinWidth(0); // esconde Item ID
-        table.getColumnModel().getColumn(0).setMaxWidth(0);
-        JScrollPane scroll = new JScrollPane(table);
+        UiKit.tableDefaults(table);
 
-        JButton btnSave = new JButton("Salvar Alterações");
+        // esconder Item ID
+        TableColumnModel cm = table.getColumnModel();
+        cm.getColumn(0).setMinWidth(0);
+        cm.getColumn(0).setMaxWidth(0);
+        cm.getColumn(0).setPreferredWidth(0);
+
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        cm.getColumn(1).setCellRenderer(zebra);
+        cm.getColumn(2).setCellRenderer(zebra);
+        cm.getColumn(2).setMaxWidth(130);
+
+        JPanel tableCard = UiKit.card();
+        tableCard.setLayout(new BorderLayout(8, 8));
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(new LineBorder(new Color(0xEEF0F3), 1, true));
+        tableCard.add(scroll, BorderLayout.CENTER);
+        add(tableCard, BorderLayout.CENTER);
+
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
+        footer.add(UiKit.hint("Edite apenas a quantidade pedida. O status do pedido será recalculado."),
+                BorderLayout.WEST);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+        JButton btnCancel = UiKit.ghost("Cancelar");
+        JButton btnSave = UiKit.primary("Salvar Alterações");
+        actions.add(btnCancel);
+        actions.add(btnSave);
+        footer.add(actions, BorderLayout.EAST);
+
+        btnCancel.addActionListener(e -> dispose());
         btnSave.addActionListener(e -> onSave());
 
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(scroll, BorderLayout.CENTER);
-        getContentPane().add(btnSave, BorderLayout.SOUTH);
+        add(footer, BorderLayout.SOUTH);
     }
 
-    /** Carrega itens existentes */
     private void loadData() {
         try {
-            List<PedidoEstoqueProdutoModel> itens = pedProdDAO.listarPorPedido(pedido.getId());
+            tm.setRowCount(0);
+            var itens = pedProdDAO.listarPorPedido(pedido.getId());
             ProdutoDAO prodDAO = new ProdutoDAO();
 
             for (PedidoEstoqueProdutoModel it : itens) {
-                String nomeProduto = it.getProdutoId(); // fallback padrão
-
+                String nomeProduto = it.getProdutoId();
                 try {
                     ProdutoModel prod = prodDAO.findById(it.getProdutoId());
-                    if (prod != null) {
+                    if (prod != null)
                         nomeProduto = prod.getNome();
-                    }
-                } catch (Exception e) {
-                    // se der erro, mantém produtoId
+                } catch (Exception ignore) {
                 }
 
-                tm.addRow(new Object[] {
-                        it.getId(),
-                        nomeProduto,
-                        it.getQuantidadePedida()
-                });
+                tm.addRow(new Object[] { it.getId(), nomeProduto, it.getQuantidadePedida() });
             }
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao carregar itens: " + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao carregar itens: " + ex.getMessage(), "Erro",
+                    JOptionPane.ERROR_MESSAGE);
             dispose();
         }
     }
 
-    /** Salva novas quantidades pedidas */
     private void onSave() {
         try {
             int totalPedida = 0;
@@ -106,7 +141,6 @@ public class ProdutosDoPedidoDialog extends JDialog {
                     continue;
 
                 item.setQuantidadePedida(qtdPedida);
-                // Revalida status do item
                 String st = (item.getQuantidadeRecebida() == 0) ? "pendente"
                         : (item.getQuantidadeRecebida() >= qtdPedida) ? "completo" : "parcial";
                 item.setStatus(st);
@@ -116,7 +150,6 @@ public class ProdutosDoPedidoDialog extends JDialog {
                 totalRecebida += item.getQuantidadeRecebida();
             }
 
-            // Reavalie status do pedido
             String novoStatus = (totalRecebida == 0) ? "enviado"
                     : (totalRecebida >= totalPedida) ? "recebido" : "parcialmente recebido";
             pedido.setStatus(novoStatus);
@@ -126,9 +159,8 @@ public class ProdutosDoPedidoDialog extends JDialog {
             dispose();
 
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao salvar: " + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage(), "Erro",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }

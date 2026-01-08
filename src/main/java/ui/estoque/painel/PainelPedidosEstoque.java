@@ -1,58 +1,56 @@
+// src/ui/estoque/painel/PainelPedidosEstoque.java
 package ui.estoque.painel;
 
 import dao.PedidoCompraDAO;
+import javax.swing.border.*;
 import dao.PedidoEstoqueProdutoDAO;
 import model.PedidoCompraModel;
 import model.PedidoEstoqueProdutoModel;
 import ui.estoque.dialog.EntradaPedidoDialog;
 import ui.estoque.dialog.ProdutosDoPedidoDialog;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.*;
 import java.awt.*;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.awt.event.KeyEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-/**
- * Lista pedidos de estoque com filtros, Δ e ações.
- */
 public class PainelPedidosEstoque extends JDialog {
 
-    /* DAO */
     private final PedidoCompraDAO pedidoDAO = new PedidoCompraDAO();
     private final PedidoEstoqueProdutoDAO pedProdDAO = new PedidoEstoqueProdutoDAO();
     private List<PedidoCompraModel> cache;
 
-    /* Filtros */
-    private final JTextField tfFiltroNome = new JTextField(18);
+    private final JTextField tfFiltroNome = new JTextField(20);
     private final JComboBox<String> cbFiltroStatus = new JComboBox<>(
             new String[] { "Todos", "rascunho", "enviado", "parcialmente recebido", "recebido" });
 
-    /* Tabela */
     private final DefaultTableModel tm = new DefaultTableModel(
-            new String[] { "ID", "Nome", "Data", "Status", "Δ" }, 0) {
+            new String[] { "ID", "Data", "Nome", "Status", "Δ" }, 0) {
         @Override
         public boolean isCellEditable(int r, int c) {
             return c == 3;
-        } // só Status
+        } // mantém sua lógica
     };
+
     private final JTable tabela = new JTable(tm);
 
     public PainelPedidosEstoque(Frame owner) {
         super(owner, "📄 Pedidos de Estoque", true);
+        UiKit.applyDialogBase(this);
         initUI();
         loadData();
-        setSize(820, 430);
+        setSize(920, 520);
         setLocationRelativeTo(owner);
-        // Atalhos de Teclado
+        bindHotkeys();
+    }
+
+    private void bindHotkeys() {
         JRootPane root = getRootPane();
         InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = root.getActionMap();
@@ -88,71 +86,118 @@ public class PainelPedidosEstoque extends JDialog {
                 dispose();
             }
         });
-
     }
 
-    /* ---------- UI ---------- */
     private void initUI() {
-        setLayout(new BorderLayout(10, 10));
+        setLayout(new BorderLayout(12, 12));
 
-        /* topo filtros */
-        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+        // Header card
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 8));
+
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title("Pedidos de Estoque"));
+        left.add(UiKit.hint("F2 filtrar • F3 itens • F4 entrada • DEL excluir • ESC fechar"));
+        header.add(left, BorderLayout.WEST);
+
+        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        filtros.setOpaque(false);
         filtros.add(new JLabel("Nome:"));
         filtros.add(tfFiltroNome);
         filtros.add(new JLabel("Status:"));
         filtros.add(cbFiltroStatus);
-        JButton btFiltrar = new JButton("Filtrar");
+        JButton btFiltrar = UiKit.primary("Filtrar (F2)");
         btFiltrar.addActionListener(e -> loadData());
         filtros.add(btFiltrar);
-        add(filtros, BorderLayout.NORTH);
+        header.add(filtros, BorderLayout.EAST);
 
-        /* tabela */
-        tabela.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        JScrollPane scroll = new JScrollPane(tabela);
-        tabela.getColumnModel().getColumn(0).setMinWidth(0);
-        tabela.getColumnModel().getColumn(0).setMaxWidth(0);
-        tabela.getColumnModel().getColumn(0).setPreferredWidth(0);
+        add(header, BorderLayout.NORTH);
 
-        /* editor Status */
+        // Table card
+        JPanel center = UiKit.card();
+        center.setLayout(new BorderLayout(8, 8));
+
+        UiKit.tableDefaults(tabela);
+
+        // hide ID
+        TableColumnModel cm = tabela.getColumnModel();
+        cm.getColumn(0).setMinWidth(0);
+        cm.getColumn(0).setMaxWidth(0);
+        cm.getColumn(0).setPreferredWidth(0);
+
+        // Status editor (mantém sua lógica)
         JComboBox<String> cb = new JComboBox<>(new String[] {
-                "rascunho", "enviado", "parcialmente recebido", "recebido" });
-        tabela.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(cb));
-
-        /* render Δ centralizado */
-        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
-        center.setHorizontalAlignment(SwingConstants.CENTER);
-        tabela.getColumnModel().getColumn(4).setCellRenderer(center);
-
-        /* listener status inline */
-        tm.addTableModelListener((TableModelEvent e) -> {
-            if (e.getType() == TableModelEvent.UPDATE && e.getColumn() == 3) {
-                int row = e.getFirstRow();
-                atualizarStatusPedido(tm.getValueAt(row, 0).toString(),
-                        tm.getValueAt(row, 3).toString());
-            }
+                "rascunho", "enviado", "parcialmente recebido", "recebido"
         });
+        cm.getColumn(3).setCellEditor(new DefaultCellEditor(cb));
 
-        add(scroll, BorderLayout.CENTER);
+        // Renderers: zebra + badge status + delta central
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        for (int i = 0; i < tabela.getColumnCount(); i++)
+            cm.getColumn(i).setCellRenderer(zebra);
 
-        /* rodapé botões */
-        JPanel bot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
-        JButton btProdutos = new JButton("🔍 Ver Produtos");
-        JButton btEntrada = new JButton("📥 Entrada");
-        JButton btExcluir = new JButton("🗑 Excluir");
-        JButton btFechar = new JButton("Fechar");
-        bot.add(btProdutos);
-        bot.add(btEntrada);
-        bot.add(btExcluir);
-        bot.add(btFechar);
-        add(bot, BorderLayout.SOUTH);
+        cm.getColumn(3).setCellRenderer(UiKit.badgeStatusRenderer());
+
+        DefaultTableCellRenderer deltaCenter = new DefaultTableCellRenderer();
+        deltaCenter.setHorizontalAlignment(SwingConstants.CENTER);
+        deltaCenter.setBorder(new javax.swing.border.EmptyBorder(0, 8, 0, 8));
+        cm.getColumn(4).setCellRenderer(deltaCenter);
+
+        JScrollPane scroll = UiKit.scroll(tabela);
+        center.add(scroll, BorderLayout.CENTER);
+
+        center.add(scroll, BorderLayout.CENTER);
+
+        add(center, BorderLayout.CENTER);
+
+        // Footer actions card
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
+
+        JPanel leftActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        leftActions.setOpaque(false);
+        leftActions.add(UiKit.hint("Dica: clique duplo abre itens"));
+        footer.add(leftActions, BorderLayout.WEST);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton btProdutos = UiKit.ghost("🔍 Ver Itens (F3)");
+        JButton btEntrada = UiKit.primary("📥 Entrada (F4)");
+        JButton btExcluir = UiKit.ghost("🗑 Excluir (DEL)");
+        JButton btFechar = UiKit.ghost("Fechar (ESC)");
+
+        actions.add(btProdutos);
+        actions.add(btEntrada);
+        actions.add(btExcluir);
+        actions.add(btFechar);
+
+        footer.add(actions, BorderLayout.EAST);
+        add(footer, BorderLayout.SOUTH);
 
         btProdutos.addActionListener(e -> abrirProdutos());
         btEntrada.addActionListener(e -> abrirEntrada());
         btExcluir.addActionListener(e -> excluirPedido());
         btFechar.addActionListener(e -> dispose());
+
+        // double click: abrir produtos (visual)
+        tabela.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2 && tabela.getSelectedRow() >= 0)
+                    abrirProdutos();
+            }
+        });
+
+        // listener status inline (mantém)
+        tm.addTableModelListener((TableModelEvent e) -> {
+            if (e.getType() == TableModelEvent.UPDATE && e.getColumn() == 3) {
+                int row = e.getFirstRow();
+                atualizarStatusPedido(tm.getValueAt(row, 0).toString(), tm.getValueAt(row, 3).toString());
+            }
+        });
     }
 
-    /* ---------- Carrega + Δ ---------- */
     private void loadData() {
         try {
             cache = pedidoDAO.listarTodos();
@@ -169,7 +214,6 @@ public class PainelPedidosEstoque extends JDialog {
                 if (!okNome || !okStatus)
                     continue;
 
-                /* calcula faltas/excesso */
                 int total = 0, rec = 0;
                 for (PedidoEstoqueProdutoModel it : pedProdDAO.listarPorPedido(p.getId())) {
                     total += it.getQuantidadePedida();
@@ -177,8 +221,7 @@ public class PainelPedidosEstoque extends JDialog {
                 }
                 int delta = rec - total;
                 String deltaStr = (delta < 0) ? "Faltam " + (-delta)
-                        : (delta > 0) ? "Excesso +" + delta
-                                : "OK";
+                        : (delta > 0) ? "Excesso +" + delta : "OK";
 
                 String dataVis = p.getData();
                 try {
@@ -186,16 +229,14 @@ public class PainelPedidosEstoque extends JDialog {
                 } catch (Exception ignore) {
                 }
 
-                tm.addRow(new Object[] { p.getId(), p.getNome(), dataVis, p.getStatus(), deltaStr });
+                tm.addRow(new Object[] { p.getId(), dataVis, p.getNome(), p.getStatus(), deltaStr });
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Erro ao carregar:\n" + ex.getMessage(),
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao carregar:\n" + ex.getMessage(), "Erro",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    /* ---------- Botões ---------- */
     private void abrirProdutos() {
         fila(P -> {
             Frame parent = (Frame) SwingUtilities.getWindowAncestor(this);
@@ -219,14 +260,17 @@ public class PainelPedidosEstoque extends JDialog {
 
         int resp = JOptionPane.showConfirmDialog(this,
                 "Excluir os " + rows.length + " pedidos selecionados?",
-                "Confirmar",
-                JOptionPane.YES_NO_OPTION);
+                "Confirmar", JOptionPane.YES_NO_OPTION);
 
         if (resp != JOptionPane.YES_OPTION)
             return;
 
-        for (int row : rows) {
-            String id = tm.getValueAt(row, 0).toString();
+        // cuidado: índices mudam depois de deletar, então vamos pegar IDs primeiro
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (int row : rows)
+            ids.add(tm.getValueAt(row, 0).toString());
+
+        for (String id : ids) {
             try {
                 pedidoDAO.excluir(id);
             } catch (SQLException e) {
@@ -236,7 +280,6 @@ public class PainelPedidosEstoque extends JDialog {
         loadData();
     }
 
-    /* ---------- Aux ---------- */
     private void fila(java.util.function.Consumer<PedidoCompraModel> action) {
         int row = tabela.getSelectedRow();
         if (row < 0) {

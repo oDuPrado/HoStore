@@ -1,3 +1,4 @@
+// src/ui/estoque/painel/PainelEstoque.java
 package ui.estoque.painel;
 
 import controller.ProdutoEstoqueController;
@@ -5,33 +6,18 @@ import dao.JogoDAO;
 import model.JogoModel;
 import model.ProdutoModel;
 import ui.estoque.dialog.*;
-import ui.dialog.SelecionarCategoriaDialog;
+import util.UiKit;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import java.text.NumberFormat;
-import java.util.Locale;
 import java.awt.*;
 import java.awt.event.*;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
-/**
- * Painel de estoque repaginado.
- * <p>
- * Novidades:
- * <ul>
- * <li>Menu lateral com JList de categorias;</li>
- * <li>Barra superior com busca e filtro por Jogo (TCG);</li>
- * <li>Botão flutuante único “➕ Adicionar Produto” que abre JPopupMenu;</li>
- * <li>Visual mais espaçado (padding e gaps) e uso de emojis como ícones
- * nativos;</li>
- * <li>Filtro feito do lado do painel, sem tocar no controller.</li>
- * </ul>
- */
 public class PainelEstoque extends JPanel {
 
     private static final String[] CATEGORIAS = {
@@ -39,13 +25,14 @@ public class PainelEstoque extends JPanel {
     };
 
     private String categoriaFiltro = "Todos";
-    private String jogoFiltroId = null; // null significa “Todos Jogos”
+    private String jogoFiltroId = null; // null = “Todos Jogos”
 
     private final ProdutoEstoqueController ctrl = new ProdutoEstoqueController();
+
     private final JTextField campoBusca = new JTextField();
     private final DefaultTableModel modeloTabela;
-    // Lista para armazenar os produtos atualmente exibidos na tabela
     private List<ProdutoModel> produtosFiltrados;
+
     private final JTable tabela;
     private final JList<String> listaCategorias;
     private final JComboBox<JogoModel> comboJogo;
@@ -61,89 +48,96 @@ public class PainelEstoque extends JPanel {
     private final NumberFormat brl = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
     public PainelEstoque() {
+        UiKit.applyPanelBase(this);
+
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         /*
-         * =============================== PAINEL LATERAL: CATEGORIAS
+         * =============================== LATERAL (CARD)
          * ===============================
          */
+        JPanel cardCategorias = UiKit.card();
+        cardCategorias.setLayout(new BorderLayout(8, 8));
+        cardCategorias.add(UiKit.title("Categorias"), BorderLayout.NORTH);
+
         listaCategorias = new JList<>(CATEGORIAS);
         listaCategorias.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listaCategorias.setSelectedIndex(0);
-        listaCategorias.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    String selecionada = listaCategorias.getSelectedValue();
-                    categoriaFiltro = selecionada;
-                    listar();
-                }
+        listaCategorias.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                categoriaFiltro = listaCategorias.getSelectedValue();
+                listar();
             }
         });
-        JScrollPane scrollCategorias = new JScrollPane(listaCategorias);
-        scrollCategorias.setPreferredSize(new Dimension(120, 0));
-        add(scrollCategorias, BorderLayout.WEST);
 
-        /* =============================== CABEÇALHO =============================== */
-        JPanel painelSuperior = new JPanel(new BorderLayout(10, 10));
+        JScrollPane scrollCategorias = UiKit.scroll(listaCategorias);
+        scrollCategorias.setPreferredSize(new Dimension(170, 0));
+        cardCategorias.add(scrollCategorias, BorderLayout.CENTER);
 
-        // ——— Subpainel de filtros (busca + filtro por jogo) ———
-        JPanel painelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+        add(cardCategorias, BorderLayout.WEST);
+
+        /*
+         * =============================== TOPO (CARD) ===============================
+         */
+        JPanel topCard = UiKit.card();
+        topCard.setLayout(new BorderLayout(10, 10));
+
+        JPanel painelFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+        painelFiltros.setOpaque(false);
 
         // Filtro por Jogo
         painelFiltros.add(new JLabel("Jogo:"));
         comboJogo = new JComboBox<>();
-        comboJogo.setPreferredSize(new Dimension(160, 24));
+        comboJogo.setPreferredSize(new Dimension(180, 28));
         carregarJogosNoCombo();
         comboJogo.addActionListener(e -> {
             JogoModel selecionado = (JogoModel) comboJogo.getSelectedItem();
-            if (selecionado != null && selecionado.getId() != null) {
-                jogoFiltroId = selecionado.getId();
-            } else {
-                jogoFiltroId = null;
-            }
+            jogoFiltroId = (selecionado != null && selecionado.getId() != null) ? selecionado.getId() : null;
             listar();
         });
         painelFiltros.add(comboJogo);
 
-        // Espaço entre filtros
-        painelFiltros.add(Box.createHorizontalStrut(12));
+        painelFiltros.add(Box.createHorizontalStrut(10));
 
-        // Campo de busca por texto
+        // Busca
         painelFiltros.add(new JLabel("🔍"));
-        campoBusca.setPreferredSize(new Dimension(160, 24));
+        campoBusca.setPreferredSize(new Dimension(220, 28));
         painelFiltros.add(campoBusca);
 
-        JButton botaoBuscar = new JButton("OK");
+        JButton botaoBuscar = UiKit.primary("Filtrar");
         botaoBuscar.addActionListener(e -> listar());
         painelFiltros.add(botaoBuscar);
 
-        JButton botaoLimpar = new JButton("⟳");
+        JButton botaoLimpar = UiKit.ghost("Limpar");
         botaoLimpar.addActionListener(e -> {
             campoBusca.setText("");
             listar();
         });
         painelFiltros.add(botaoLimpar);
 
-        painelSuperior.add(painelFiltros, BorderLayout.WEST);
+        topCard.add(painelFiltros, BorderLayout.WEST);
 
-        // ——— Botão flutuante “Adicionar Produto” com JPopupMenu ———
-        botaoAdicionar = new JButton("➕ Adicionar Produto");
+        // Botão “Adicionar Produto” com popup
+        botaoAdicionar = UiKit.primary("➕ Adicionar Produto");
         botaoAdicionar.setToolTipText("Clique para adicionar novo produto");
-        botaoAdicionar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mostrarMenuAdicionarProduto(botaoAdicionar);
-            }
-        });
+        botaoAdicionar.addActionListener(e -> mostrarMenuAdicionarProduto(botaoAdicionar));
+
         JPanel painelBotaoAdicionar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        painelBotaoAdicionar.setOpaque(false);
         painelBotaoAdicionar.add(botaoAdicionar);
-        painelSuperior.add(painelBotaoAdicionar, BorderLayout.EAST);
 
-        add(painelSuperior, BorderLayout.NORTH);
+        topCard.add(painelBotaoAdicionar, BorderLayout.EAST);
 
-        /* =============================== TABELA =============================== */
+        add(topCard, BorderLayout.NORTH);
+
+        /*
+         * =============================== TABELA (CARD) ===============================
+         */
+        JPanel tableCard = UiKit.card();
+        tableCard.setLayout(new BorderLayout(8, 8));
+        tableCard.add(UiKit.title("Estoque"), BorderLayout.NORTH);
+
         modeloTabela = new DefaultTableModel(new String[] {
                 "Nome", "Tipo", "Quantidade", "R$ Compra", "R$ Venda", "Fornecedor"
         }, 0) {
@@ -152,33 +146,19 @@ public class PainelEstoque extends JPanel {
                 return false;
             }
         };
+
         tabela = new JTable(modeloTabela);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Centralizar colunas de números e formatar moeda
-        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
-        center.setHorizontalAlignment(SwingConstants.CENTER);
+        UiKit.tableDefaults(tabela);
 
-        DefaultTableCellRenderer moeda = new DefaultTableCellRenderer() {
-            @Override
-            public void setValue(Object value) {
-                if (value instanceof Number) {
-                    setText(brl.format(((Number) value).doubleValue()));
-                } else {
-                    super.setValue(value);
-                }
-            }
-        };
-        moeda.setHorizontalAlignment(SwingConstants.CENTER);
+        // Zebra em todas as colunas
+        var zebra = UiKit.zebraRenderer();
+        for (int i = 0; i < tabela.getColumnCount(); i++) {
+            tabela.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
 
-        // Quantidade = col 2
-        tabela.getColumnModel().getColumn(2).setCellRenderer(center);
-        // R$ Compra = col 3
-        tabela.getColumnModel().getColumn(3).setCellRenderer(moeda);
-        // R$ Venda = col 4
-        tabela.getColumnModel().getColumn(4).setCellRenderer(moeda);
-
-        // Duplo-clique = editar
+        // Duplo clique = editar
         tabela.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent evento) {
@@ -188,57 +168,62 @@ public class PainelEstoque extends JPanel {
             }
         });
 
-        JScrollPane scrollTabela = new JScrollPane(tabela);
-        add(scrollTabela, BorderLayout.CENTER);
+        JScrollPane scrollTabela = UiKit.scroll(tabela);
+        tableCard.add(scrollTabela, BorderLayout.CENTER);
 
-        /* =============================== RODAPÉ =============================== */
-        JPanel painelRodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 4));
+        add(tableCard, BorderLayout.CENTER);
 
-        JButton botaoEditar = new JButton("✏️ Editar");
-        JButton botaoExcluir = new JButton("🗑️ Excluir");
-        painelRodape.add(botaoEditar);
-        painelRodape.add(botaoExcluir);
+        /*
+         * =============================== RODAPÉ (CARD) ===============================
+         */
+        JPanel bottomCard = UiKit.card();
+        bottomCard.setLayout(new BorderLayout(10, 10));
 
-        botaoEditar.addActionListener(e -> abrirEditar());
-        botaoExcluir.addActionListener(e -> deletarSelecionado());
-
-        // Botão de criar pedido
-        JButton botaoCriarPedido = new JButton("📦 Criar Pedido");
-        botaoCriarPedido.addActionListener(e -> abrirCriarPedido());
-        painelRodape.add(botaoCriarPedido);
-
-        // Botão para visualizar pedidos
-        JButton botaoVerPedidos = new JButton("📄 Ver Pedidos");
-        botaoVerPedidos.addActionListener(e -> {
-            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
-            new ui.estoque.painel.PainelPedidosEstoque(owner).setVisible(true);
-            listar();
-        });
-        painelRodape.add(botaoVerPedidos);
-
-        // Botão para abrir movimentações de estoque
-        JButton botaoMovimentacoes = new JButton("📊 Movimentações");
-        botaoMovimentacoes.addActionListener(e -> {
-            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
-            new ui.estoque.dialog.MovimentacaoEstoqueDialog(owner).setVisible(true);
-        });
-        painelRodape.add(botaoMovimentacoes);
-
-        // painel de resumo abaixo da tabela
         JPanel painelResumo = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 4));
+        painelResumo.setOpaque(false);
         painelResumo.add(lblTotalEstoqueCusto);
         painelResumo.add(lblTotalEstoqueVenda);
         painelResumo.add(lblPmz);
         painelResumo.add(lblItensEstoque);
         painelResumo.add(lblPrecoMedioVenda);
+        bottomCard.add(painelResumo, BorderLayout.NORTH);
 
-        JPanel wrapperSouth = new JPanel(new BorderLayout());
-        wrapperSouth.add(painelResumo, BorderLayout.NORTH);
-        wrapperSouth.add(painelRodape, BorderLayout.SOUTH);
-        add(wrapperSouth, BorderLayout.SOUTH);
+        JPanel painelRodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+        painelRodape.setOpaque(false);
 
-        // Carrega os produtos ao iniciar
+        JButton botaoEditar = UiKit.ghost("✏️ Editar");
+        JButton botaoExcluir = UiKit.ghost("🗑️ Excluir");
+        JButton botaoCriarPedido = UiKit.ghost("📦 Criar Pedido");
+        JButton botaoVerPedidos = UiKit.ghost("📄 Ver Pedidos");
+        JButton botaoMovimentacoes = UiKit.ghost("📊 Movimentações");
+
+        botaoEditar.addActionListener(e -> abrirEditar());
+        botaoExcluir.addActionListener(e -> deletarSelecionado());
+        botaoCriarPedido.addActionListener(e -> abrirCriarPedido());
+        botaoVerPedidos.addActionListener(e -> {
+            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
+            new ui.estoque.painel.PainelPedidosEstoque(owner).setVisible(true);
+            listar();
+        });
+        botaoMovimentacoes.addActionListener(e -> {
+            JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
+            new ui.estoque.dialog.MovimentacaoEstoqueDialog(owner).setVisible(true);
+        });
+
+        painelRodape.add(botaoEditar);
+        painelRodape.add(botaoExcluir);
+        painelRodape.add(botaoCriarPedido);
+        painelRodape.add(botaoVerPedidos);
+        painelRodape.add(botaoMovimentacoes);
+
+        bottomCard.add(painelRodape, BorderLayout.SOUTH);
+
+        add(bottomCard, BorderLayout.SOUTH);
+
+        // Carrega ao iniciar
         listar();
+
+        // Atalhos
         SwingUtilities.invokeLater(() -> {
             JRootPane root = SwingUtilities.getRootPane(this);
             if (root == null)
@@ -267,7 +252,6 @@ public class PainelEstoque extends JPanel {
                 }
             });
         });
-
     }
 
     /**
@@ -288,7 +272,7 @@ public class PainelEstoque extends JPanel {
 
     /**
      * Exibe um JPopupMenu ancorado no botão “➕ Adicionar Produto” com opções de
-     * tipo de cadastro.
+     * tipo.
      */
     private void mostrarMenuAdicionarProduto(Component componente) {
         JPopupMenu menu = new JPopupMenu();
@@ -321,14 +305,13 @@ public class PainelEstoque extends JPanel {
     }
 
     /**
-     * Atualiza a tabela de produtos aplicando filtros de pesquisa, categoria e
-     * jogo.
+     * Atualiza a tabela de produtos aplicando filtros: busca, categoria e jogo.
      */
     private void listar() {
         modeloTabela.setRowCount(0);
         List<ProdutoModel> produtos = ctrl.listar(campoBusca.getText().trim());
 
-        // Preencher o nome do fornecedor a partir do ID
+        // Preencher nome do fornecedor a partir do ID
         for (ProdutoModel p : produtos) {
             try {
                 if (p.getFornecedorId() != null) {
@@ -344,8 +327,6 @@ public class PainelEstoque extends JPanel {
 
         List<ProdutoModel> filtradosPorCategoria = produtos.stream().filter(produto -> {
             String tipo = produto.getTipo();
-
-            // Pré-filtro bruto para evitar NullPointer
             if (tipo == null)
                 return false;
 
@@ -369,24 +350,20 @@ public class PainelEstoque extends JPanel {
             return tipo.equalsIgnoreCase(categoriaFiltro);
         }).collect(Collectors.toList());
 
-        // Filtro por jogo (jogoFiltroId == null significa “Todos Jogos”)
+        // Filtro por jogo
         List<ProdutoModel> filtradosPorJogo = filtradosPorCategoria.stream().filter(produto -> {
-            if (jogoFiltroId == null) {
+            if (jogoFiltroId == null)
                 return true;
-            }
             return jogoFiltroId.equals(produto.getJogoId());
         }).collect(Collectors.toList());
 
-        // Salva a lista filtrada para uso em editar
         produtosFiltrados = filtradosPorJogo;
 
-        // Agora preenche a tabela conforme antiga lógica, mas apenas com
-        // filtradosPorJogo
+        // Preenche tabela
         for (ProdutoModel produto : filtradosPorJogo) {
             String tipo = produto.getTipo();
             String tipoExibido = tipo;
 
-            // Alimento → exibe o subtipo (Salgadinho, Suco, etc.)
             if ("Alimento".equalsIgnoreCase(tipo)) {
                 try {
                     model.AlimentoModel alimentoModel = new dao.AlimentoDAO().buscarPorId(produto.getId());
@@ -399,7 +376,6 @@ public class PainelEstoque extends JPanel {
                 }
             }
 
-            // Acessórios → mostrar categoria
             if ("Acessório".equalsIgnoreCase(tipo)) {
                 try {
                     model.AcessorioModel acessorioModel = new dao.AcessorioDAO().buscarPorId(produto.getId());
@@ -412,12 +388,11 @@ public class PainelEstoque extends JPanel {
                 }
             }
 
-            // ETBs → mostrar subtipo visual como Booster Box ou Pokémon Center
             if ("ETB".equalsIgnoreCase(tipo)) {
                 try {
                     model.EtbModel etbModel = new dao.EtbDAO().buscarPorId(produto.getId());
                     if (etbModel != null && etbModel.getTipo() != null && !etbModel.getTipo().isBlank()) {
-                        tipoExibido = etbModel.getTipo(); // Booster Box, Pokémon Center, etc.
+                        tipoExibido = etbModel.getTipo();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -434,15 +409,7 @@ public class PainelEstoque extends JPanel {
             });
         }
 
-        // ======================= RESUMO (CONSISTENTE COM RELATÓRIOS)
-        // =======================
-        // Regras:
-        // - Estoque (Custo): soma(qtd * precoCompra)
-        // - Estoque (Venda): soma(qtd * precoVenda)
-        // - Itens em Estoque: soma(qtd)
-        // - PMZ: (Estoque Custo) / (Itens) [se itens > 0]
-        // - Preço Médio Venda (ponderado): (Estoque Venda) / (Itens) [se itens > 0]
-
+        // ======================= RESUMO =======================
         int itensEstoque = 0;
         double estoqueCusto = 0.0;
         double estoqueVenda = 0.0;
@@ -453,7 +420,6 @@ public class PainelEstoque extends JPanel {
             double compra = p.getPrecoCompra();
             double venda = p.getPrecoVenda();
 
-            // evita ruído: se vier null/NaN/negativo, zera (melhor do que quebrar KPI)
             if (Double.isNaN(compra) || Double.isInfinite(compra) || compra < 0)
                 compra = 0.0;
             if (Double.isNaN(venda) || Double.isInfinite(venda) || venda < 0)
@@ -492,13 +458,12 @@ public class PainelEstoque extends JPanel {
                 new CadastroEtbDialog((JFrame) owner).setVisible(true);
                 break;
             case "Acessório":
-                new CadastroAcessorioDialog((JFrame) owner).setVisible(true);
+                new CadastroAcessorioDialog((JFrame) owner, null).setVisible(true);
                 break;
             case "Alimento":
-                new CadastroProdutoAlimenticioDialog((JFrame) owner).setVisible(true);
+                new CadastroProdutoAlimenticioDialog((JFrame) owner, null).setVisible(true);
                 break;
             default:
-                // fallback genérico
                 new ProdutoCadastroDialog((JFrame) owner, null).setVisible(true);
                 break;
         }
@@ -516,88 +481,65 @@ public class PainelEstoque extends JPanel {
             JOptionPane.showMessageDialog(this, "Erro ao localizar produto selecionado.");
             return;
         }
+
         ProdutoModel produtoSelecionado = produtosFiltrados.get(linhaSelecionada);
-        if (produtoSelecionado == null) {
+        if (produtoSelecionado == null)
             return;
-        }
 
         Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
         String tipo = produtoSelecionado.getTipo();
 
         switch (tipo) {
-            case "Carta":
+            case "Carta" -> {
                 model.Carta carta = new dao.CartaDAO().buscarPorId(produtoSelecionado.getId());
-                if (carta != null) {
-                    new ui.estoque.dialog.CadastroCartaDialog(owner, carta).setVisible(true);
-                }
-                break;
-
-            case "Booster":
+                if (carta != null)
+                    new CadastroCartaDialog((JFrame) owner, carta).setVisible(true);
+            }
+            case "Booster" -> {
                 model.BoosterModel booster = new dao.BoosterDAO().buscarPorId(produtoSelecionado.getId());
-                if (booster != null) {
-                    new ui.estoque.dialog.CadastroBoosterDialog((JFrame) owner, booster).setVisible(true);
-                }
-                break;
-
-            case "Deck":
+                if (booster != null)
+                    new CadastroBoosterDialog((JFrame) owner, booster).setVisible(true);
+            }
+            case "Deck" -> {
                 try {
                     model.DeckModel deck = new dao.DeckDAO().buscarPorId(produtoSelecionado.getId());
-                    if (deck != null) {
-                        new ui.estoque.dialog.CadastroDeckDialog((JFrame) owner, deck).setVisible(true);
-                    }
+                    if (deck != null)
+                        new CadastroDeckDialog((JFrame) owner, deck).setVisible(true);
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(this, "Erro ao buscar deck: " + e.getMessage());
                 }
-                break;
-
-            case "ETB":
-            case "Booster Box":
-            case "Pokémon Center":
-            case "Mini ETB":
-            case "Collection Box":
-            case "Special Collection":
-            case "Latas":
-            case "Box colecionáveis":
-            case "Mini Booster Box":
-            case "Trainer Kit":
+            }
+            case "ETB", "Booster Box", "Pokémon Center", "Mini ETB", "Collection Box", "Special Collection",
+                    "Latas", "Box colecionáveis", "Mini Booster Box", "Trainer Kit" -> {
                 try {
                     model.EtbModel etb = new dao.EtbDAO().buscarPorId(produtoSelecionado.getId());
-                    if (etb != null) {
+                    if (etb != null)
                         new CadastroEtbDialog((JFrame) owner, etb).setVisible(true);
-                    }
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(this, "Erro ao buscar ETB: " + e.getMessage());
                 }
-                break;
-
-            case "Acessório":
+            }
+            case "Acessório" -> {
                 try {
                     model.AcessorioModel acessorio = new dao.AcessorioDAO().buscarPorId(produtoSelecionado.getId());
-                    if (acessorio != null) {
-                        new ui.estoque.dialog.CadastroAcessorioDialog((JFrame) owner, acessorio).setVisible(true);
-                    }
+                    if (acessorio != null)
+                        new CadastroAcessorioDialog((JFrame) owner, acessorio).setVisible(true);
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(this, "Erro ao buscar acessório: " + e.getMessage());
                     e.printStackTrace();
                 }
-                break;
-
-            case "Alimento":
+            }
+            case "Alimento" -> {
                 try {
                     model.AlimentoModel alimento = new dao.AlimentoDAO().buscarPorId(produtoSelecionado.getId());
-                    if (alimento != null) {
-                        new ui.estoque.dialog.CadastroProdutoAlimenticioDialog((JFrame) owner, alimento)
-                                .setVisible(true);
-                    }
+                    if (alimento != null)
+                        new CadastroProdutoAlimenticioDialog((JFrame) owner, alimento).setVisible(true);
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(this, "Erro ao buscar alimento: " + e.getMessage());
                     e.printStackTrace();
                 }
-                break;
-
-            default:
-                new ui.estoque.dialog.ProdutoCadastroDialog((JFrame) owner, produtoSelecionado).setVisible(true);
-                break;
+            }
+            default -> new ProdutoCadastroDialog((JFrame) owner, produtoSelecionado).setVisible(true);
         }
 
         listar();
@@ -638,11 +580,15 @@ public class PainelEstoque extends JPanel {
 
     private void abrirCriarPedido() {
         List<ProdutoModel> produtos = ctrl.listar(campoBusca.getText().trim());
+
         List<ProdutoModel> filtradosPorCategoria = produtos.stream().filter(produto -> {
             String tipo = produto.getTipo();
-            if ("Todos".equalsIgnoreCase(categoriaFiltro)) {
+            if (tipo == null)
+                return false;
+
+            if ("Todos".equalsIgnoreCase(categoriaFiltro))
                 return true;
-            }
+
             if ("Selados".equalsIgnoreCase(categoriaFiltro)) {
                 return tipo.equalsIgnoreCase("ETB");
             }
@@ -655,6 +601,6 @@ public class PainelEstoque extends JPanel {
         }
 
         JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
-        new ui.estoque.dialog.CriarPedidoEstoqueDialog(owner, filtradosPorCategoria).setVisible(true);
+        new CriarPedidoEstoqueDialog(owner, filtradosPorCategoria).setVisible(true);
     }
 }

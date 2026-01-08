@@ -1070,3 +1070,15 @@ jan. 07, 2026 10:20:12 AM util.LogService info
 INFORMAÇÕES: FinalizarVenda: clienteId=C-7646d totalLiquido=20.0 parcelas=0 venc=2026-01-07 intervaloDias=0
 jan. 07, 2026 10:20:12 AM util.LogService info
 INFORMAÇÕES: Venda 4 finalizada com sucesso
+jan. 08, 2026 9:48:42 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+jan. 08, 2026 9:48:42 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=15.0 parcelas=0 venc=2026-01-08 intervaloDias=0
+jan. 08, 2026 9:48:42 AM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso
+jan. 08, 2026 9:48:56 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+jan. 08, 2026 9:48:56 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=75.0 parcelas=0 venc=2026-01-08 intervaloDias=0
+jan. 08, 2026 9:48:56 AM util.LogService info
+INFORMAÇÕES: Venda 2 finalizada com sucesso

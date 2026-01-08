@@ -6,7 +6,8 @@ import model.NcmModel;
 import service.NcmService;
 import service.ProdutoEstoqueService;
 import util.FormatterFactory;
-import util.ScannerUtils; // <-- import necessário para o leitor de código de barras
+import util.ScannerUtils;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
@@ -20,30 +21,33 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
     private final boolean isEdicao;
     private final AlimentoModel alimentoOrig;
 
-    private final JTextField tfNome = new JTextField(20);
+    private final JTextField tfNome = new JTextField(24);
     private final JComboBox<String> cbCategoria = new JComboBox<>(new String[] { "Comida", "Bebida" });
     private final JComboBox<String> cbSubtipo = new JComboBox<>();
     private final JComboBox<String> cbMarca = new JComboBox<>();
-    private final JTextField tfMarcaOutro = new JTextField(20);
+    private final JTextField tfMarcaOutro = new JTextField(24);
     private final JComboBox<String> cbSabor = new JComboBox<>();
-    private final JTextField tfLote = new JTextField(10);
+    private final JTextField tfLote = new JTextField(14);
     private final JFormattedTextField tfPeso = FormatterFactory.getFormattedDoubleField(0.0);
     private final JLabel lblPeso = new JLabel("Peso (g):");
+
     private final JFormattedTextField tfDataValidade;
-    // private final JTextField tfCodigoBarras = new JTextField(15); // removido
-    // para usar leitor
+
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
     private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
     private final JFormattedTextField tfPreco = FormatterFactory.getFormattedDoubleField(0.0);
 
-    // NOVO: Label que exibirá o código de barras lido (via scanner ou manual)
-    private final JLabel lblCodigoLido = new JLabel(" ");
+    private final JLabel lblCodigoLido = new JLabel("—");
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
-    private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
+    private final JButton btnSelectFornec = new JButton("Selecionar…");
     private FornecedorModel fornecedorSel;
 
     private final JComboBox<String> cbNcm = new JComboBox<>();
+
+    // ===== rows para esconder label + campo juntos =====
+    private JPanel rowMarcaOutro;
+    private JPanel rowSabor;
 
     private static final DateTimeFormatter DISPLAY_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -53,8 +57,11 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
 
     public CadastroProdutoAlimenticioDialog(JFrame owner, AlimentoModel a) {
         super(owner, a == null ? "Novo Produto Alimentício" : "Editar Produto Alimentício", true);
+        UiKit.applyDialogBase(this);
+
         this.isEdicao = a != null;
         this.alimentoOrig = a;
+
         // máscara data
         JFormattedTextField temp;
         try {
@@ -67,32 +74,178 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         this.tfDataValidade = temp;
 
         buildUI(owner);
-        if (isEdicao)
-            preencherCampos();
-    }
+        wireEvents(owner);
 
-    private void buildUI(JFrame owner) {
-        setLayout(new GridLayout(0, 2, 8, 8));
-
-        // popula combos iniciais
+        // combos iniciais
         carregarSubtipos();
         carregarMarcas();
         carregarSabores();
-        tfMarcaOutro.setVisible(false);
-        cbSabor.setVisible(false);
-        lblPeso.setText("Peso (g):");
+        atualizarVisibilidade();
 
-        // eventos
+        // NCMs
+        carregarNcms();
+
+        if (isEdicao)
+            preencherCampos();
+
+        setMinimumSize(new Dimension(860, 640));
+        pack();
+        setLocationRelativeTo(owner);
+    }
+
+    private void buildUI(JFrame owner) {
+        setLayout(new BorderLayout(12, 12));
+
+        // ===== Header =====
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
+
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title(isEdicao ? "Editar Produto Alimentício" : "Novo Produto Alimentício"));
+        left.add(UiKit.hint("Cadastro de lanches • consistente com os outros cadastros"));
+        header.add(left, BorderLayout.WEST);
+
+        add(header, BorderLayout.NORTH);
+
+        // ===== Form card =====
+        JPanel form = UiKit.card();
+        form.setLayout(new GridBagLayout());
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        int r = 0;
+
+        addField(form, g, r++, "Nome:", tfNome);
+        addField(form, g, r++, "Categoria:", cbCategoria);
+        addField(form, g, r++, "Subtipo:", cbSubtipo);
+        addField(form, g, r++, "Marca:", cbMarca);
+
+        rowMarcaOutro = makeRow("Marca (Outros):", tfMarcaOutro);
+        addRowPanel(form, g, r++, rowMarcaOutro);
+
+        rowSabor = makeRow("Sabor (apenas Suco):", cbSabor);
+        addRowPanel(form, g, r++, rowSabor);
+
+        addField(form, g, r++, "Lote:", tfLote);
+
+        JPanel pesoRow = new JPanel(new BorderLayout(6, 0));
+        pesoRow.setOpaque(false);
+        pesoRow.add(lblPeso, BorderLayout.WEST);
+        pesoRow.add(tfPeso, BorderLayout.CENTER);
+        addField(form, g, r++, "Peso/Volume:", pesoRow);
+
+        addField(form, g, r++, "Data Validade:", tfDataValidade);
+
+        // ===== Código de barras (bonito no tema) =====
+        JPanel barcodeRow = new JPanel(new BorderLayout(8, 0));
+        barcodeRow.setOpaque(false);
+
+        JPanel barcodeActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        barcodeActions.setOpaque(false);
+
+        JButton btnScanner = UiKit.ghost("📷 Ler com Scanner");
+        JButton btnManual = UiKit.ghost("⌨ Inserir Manualmente");
+
+        barcodeActions.add(btnScanner);
+        barcodeActions.add(btnManual);
+
+        lblCodigoLido.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
+        lblCodigoLido.setOpaque(true);
+        lblCodigoLido.setBackground(UIManager.getColor("TextField.background"));
+        lblCodigoLido.setForeground(UIManager.getColor("TextField.foreground"));
+
+        JPanel codeBox = new JPanel(new BorderLayout());
+        codeBox.setOpaque(false);
+        codeBox.add(lblCodigoLido, BorderLayout.CENTER);
+        codeBox.setPreferredSize(new Dimension(220, 34));
+
+        barcodeRow.add(barcodeActions, BorderLayout.WEST);
+        barcodeRow.add(codeBox, BorderLayout.EAST);
+
+        addField(form, g, r++, "Código de Barras:", barcodeRow);
+
+        // ação scanner/manual
+        btnScanner.addActionListener(
+                e -> ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", this::setCodigoBarras));
+
+        btnManual.addActionListener(e -> {
+            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
+            if (input != null && !input.trim().isEmpty())
+                setCodigoBarras(input.trim());
+        });
+
+        // NCM
+        addField(form, g, r++, "NCM:", cbNcm);
+
+        // Valores em uma linha (fica mais profissional)
+        JPanel valores = new JPanel(new GridLayout(1, 3, 10, 0));
+        valores.setOpaque(false);
+        valores.add(labeledInline("Qtd:", tfQtd));
+        valores.add(labeledInline("Custo (R$):", tfCusto));
+        valores.add(labeledInline("Venda (R$):", tfPreco));
+        addField(form, g, r++, "Valores:", valores);
+
+        // Fornecedor
+        JPanel fornRow = new JPanel(new BorderLayout(8, 0));
+        fornRow.setOpaque(false);
+        fornRow.add(lblFornecedor, BorderLayout.CENTER);
+
+        btnSelectFornec.setText("Selecionar…");
+        fornRow.add(btnSelectFornec, BorderLayout.EAST);
+
+        addField(form, g, r++, "Fornecedor:", fornRow);
+
+        JScrollPane sp = UiKit.scroll(form);
+        sp.setBorder(null);
+        add(sp, BorderLayout.CENTER);
+
+        // ===== Footer =====
+        JPanel footer = UiKit.card();
+        footer.setLayout(new BorderLayout());
+        footer.add(UiKit.hint("Marca e sabor aparecem só quando fizer sentido. Sem layout quebrado."),
+                BorderLayout.WEST);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton btCancelar = UiKit.ghost("Cancelar");
+        JButton btSalvar = UiKit.primary(isEdicao ? "Atualizar" : "Salvar");
+
+        btCancelar.addActionListener(e -> dispose());
+        btSalvar.addActionListener(e -> salvar());
+
+        actions.add(btCancelar);
+        actions.add(btSalvar);
+
+        footer.add(actions, BorderLayout.EAST);
+        add(footer, BorderLayout.SOUTH);
+    }
+
+    private void wireEvents(JFrame owner) {
         cbCategoria.addActionListener(e -> {
             carregarSubtipos();
+            carregarMarcas();
+            carregarSabores();
             atualizarVisibilidade();
+            pack();
         });
+
         cbSubtipo.addActionListener(e -> {
             carregarMarcas();
             carregarSabores();
             atualizarVisibilidade();
+            pack();
         });
-        cbMarca.addActionListener(e -> tfMarcaOutro.setVisible("Outros".equals(cbMarca.getSelectedItem())));
+
+        cbMarca.addActionListener(e -> {
+            atualizarVisibilidade();
+            pack();
+        });
+
         btnSelectFornec.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog(owner);
             dlg.setVisible(true);
@@ -102,74 +255,19 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 lblFornecedor.setText(f.getNome());
             }
         });
+    }
 
-        // layout
-        add(new JLabel("Nome:"));
-        add(tfNome);
-        add(new JLabel("Categoria:"));
-        add(cbCategoria);
-        add(new JLabel("Subtipo:"));
-        add(cbSubtipo);
-        add(new JLabel("Marca:"));
-        add(cbMarca);
-        add(new JLabel("Marca (Outros):"));
-        add(tfMarcaOutro);
-        add(new JLabel("Sabor (apenas Suco):"));
-        add(cbSabor);
-        add(new JLabel("Lote:"));
-        add(tfLote);
-        add(lblPeso);
-        add(tfPeso);
-        add(new JLabel("Data Validade:"));
-        add(tfDataValidade);
+    private void setCodigoBarras(String codigo) {
+        lblCodigoLido.setText(codigo);
+        lblCodigoLido.setToolTipText(codigo);
+        lblCodigoLido.putClientProperty("codigoBarras", codigo);
+        lblCodigoLido.revalidate();
+        lblCodigoLido.repaint();
+    }
 
-        // ** Seção Código de Barras **
-        add(new JLabel("Código de Barras:"));
-        JPanel painelCodBarras = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnScanner = new JButton("Ler com Scanner");
-        JButton btnManual = new JButton("Inserir Manualmente");
-
-        // deixa o label visível
-        lblCodigoLido.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        lblCodigoLido.setPreferredSize(new Dimension(160, 22));
-
-        painelCodBarras.add(btnScanner);
-        painelCodBarras.add(btnManual);
-        painelCodBarras.add(lblCodigoLido);
-        add(painelCodBarras);
-
-        // Ação para chamar o util de leitura
-        btnScanner.addActionListener(e -> {
-            ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
-                lblCodigoLido.setText(codigo);
-                lblCodigoLido.setToolTipText(codigo);
-                lblCodigoLido.putClientProperty("codigoBarras", codigo);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            });
-        });
-
-        // Ação para inserir manualmente via diálogo
-        btnManual.addActionListener(e -> {
-            String input = JOptionPane.showInputDialog(this, "Digite o código de barras:");
-            if (input != null && !input.trim().isEmpty()) {
-                String c = input.trim();
-                lblCodigoLido.setText(c);
-                lblCodigoLido.setToolTipText(c);
-                lblCodigoLido.putClientProperty("codigoBarras", c);
-
-                lblCodigoLido.revalidate();
-                lblCodigoLido.repaint();
-                pack();
-            }
-        });
-
-        // ** Fim da seção Código de Barras **
-
-        // NCM: combo com todos os NCMs cadastrados
+    private void carregarNcms() {
         try {
+            cbNcm.removeAllItems();
             List<NcmModel> ncms = NcmService.getInstance().findAll();
             for (NcmModel n : ncms) {
                 cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
@@ -179,27 +277,6 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                     "Erro ao carregar NCMs:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
-        add(new JLabel("NCM:"));
-        add(cbNcm);
-
-        add(new JLabel("Quantidade:"));
-        add(tfQtd);
-        add(new JLabel("Custo (R$):"));
-        add(tfCusto);
-        add(new JLabel("Preço Venda (R$):"));
-        add(tfPreco);
-        add(new JLabel("Fornecedor:"));
-        add(lblFornecedor);
-        add(new JLabel());
-        add(btnSelectFornec);
-
-        JButton btnSalvar = new JButton(isEdicao ? "Atualizar" : "Salvar");
-        btnSalvar.addActionListener(e -> salvar());
-        add(new JLabel());
-        add(btnSalvar);
-
-        pack();
-        setLocationRelativeTo(owner);
     }
 
     private void carregarSubtipos() {
@@ -209,12 +286,10 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             for (String s : new String[] { "Salgadinho", "Doce" })
                 cbSubtipo.addItem(s);
         } else {
-            for (String s : new String[] { "Refrigerante", "Suco",
-                    "Achocolatado", "Água", "Bebida energética" })
+            for (String s : new String[] { "Refrigerante", "Suco", "Achocolatado", "Água", "Bebida energética" })
                 cbSubtipo.addItem(s);
         }
 
-        // ✅ Seleciona o primeiro item automaticamente
         if (cbSubtipo.getItemCount() > 0)
             cbSubtipo.setSelectedIndex(0);
     }
@@ -222,9 +297,8 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
     private void carregarMarcas() {
         cbMarca.removeAllItems();
         String st = (String) cbSubtipo.getSelectedItem();
-
         if (st == null)
-            return; // Protege o switch
+            return;
 
         String[] arr;
         switch (st) {
@@ -259,15 +333,14 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
 
     private void carregarSabores() {
         cbSabor.removeAllItems();
-
         String st = (String) cbSubtipo.getSelectedItem();
         if (st == null)
             return;
 
         if ("Suco".equals(st)) {
             for (String s : new String[] {
-                    "Laranja", "Uva", "Maçã", "Maracujá", "Manga",
-                    "Abacaxi", "Acerola", "Goiaba", "Pêssego", "Limão", "Outros"
+                    "Laranja", "Uva", "Maçã", "Maracujá", "Manga", "Abacaxi", "Acerola", "Goiaba", "Pêssego", "Limão",
+                    "Outros"
             })
                 cbSabor.addItem(s);
         }
@@ -275,14 +348,18 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
 
     private void atualizarVisibilidade() {
         String st = (String) cbSubtipo.getSelectedItem();
-        tfMarcaOutro.setVisible("Outros".equals(cbMarca.getSelectedItem()));
-        cbSabor.setVisible("Suco".equals(st));
+        boolean marcaOutros = "Outros".equals(cbMarca.getSelectedItem());
+        boolean isSuco = "Suco".equals(st);
+
+        rowMarcaOutro.setVisible(marcaOutros);
+        rowSabor.setVisible(isSuco);
 
         if ("Bebida".equals(cbCategoria.getSelectedItem())) {
             lblPeso.setText("Volume (ml):");
         } else {
             lblPeso.setText("Peso (g):");
         }
+
         revalidate();
         repaint();
     }
@@ -290,35 +367,37 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
     private void preencherCampos() {
         tfNome.setText(alimentoOrig.getNome());
         cbCategoria.setSelectedItem(alimentoOrig.getCategoria());
+
         carregarSubtipos();
         cbSubtipo.setSelectedItem(alimentoOrig.getSubtipo());
+
         carregarMarcas();
         cbMarca.setSelectedItem(alimentoOrig.getMarca());
+
         tfMarcaOutro.setText(alimentoOrig.getMarca());
+
         carregarSabores();
         if ("Suco".equals(alimentoOrig.getSubtipo()))
             cbSabor.setSelectedItem(alimentoOrig.getSabor());
+
         tfLote.setText(alimentoOrig.getLote());
         tfPeso.setValue(alimentoOrig.getPeso());
         tfDataValidade.setText(alimentoOrig.getDataValidade());
 
-        // Preenche o código de barras existente no lblCodigoLido
         String codigoExistente = alimentoOrig.getCodigoBarras();
         if (codigoExistente != null && !codigoExistente.isBlank()) {
-            lblCodigoLido.setText(codigoExistente);
-            lblCodigoLido.setToolTipText(codigoExistente);
-            lblCodigoLido.putClientProperty("codigoBarras", codigoExistente);
+            setCodigoBarras(codigoExistente);
         }
 
         tfQtd.setValue(alimentoOrig.getQuantidade());
         tfCusto.setValue(alimentoOrig.getPrecoCompra());
         tfPreco.setValue(alimentoOrig.getPrecoVenda());
+
         fornecedorSel = new FornecedorModel();
         fornecedorSel.setId(alimentoOrig.getFornecedorId());
         fornecedorSel.setNome(alimentoOrig.getFornecedorNome());
         lblFornecedor.setText(alimentoOrig.getFornecedorNome());
 
-        // Seleciona o NCM correspondente se existir
         if (alimentoOrig.getNcm() != null) {
             for (int i = 0; i < cbNcm.getItemCount(); i++) {
                 if (cbNcm.getItemAt(i).startsWith(alimentoOrig.getNcm())) {
@@ -327,6 +406,8 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 }
             }
         }
+
+        atualizarVisibilidade();
     }
 
     private void salvar() {
@@ -338,14 +419,12 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Selecione um fornecedor.");
             return;
         }
-        if ("Outros".equals(cbMarca.getSelectedItem()) &&
-                tfMarcaOutro.getText().trim().isEmpty()) {
+        if ("Outros".equals(cbMarca.getSelectedItem()) && tfMarcaOutro.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Informe a marca.");
             return;
         }
 
         try {
-            // Recupera o código do NCM selecionado
             String ncmCombo = (String) cbNcm.getSelectedItem();
             String ncm = null;
             if (ncmCombo != null && ncmCombo.contains("-")) {
@@ -359,7 +438,7 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             String marca = "Outros".equals(cbMarca.getSelectedItem())
                     ? tfMarcaOutro.getText().trim()
                     : (String) cbMarca.getSelectedItem();
-            String sabor = cbSabor.isVisible()
+            String sabor = rowSabor.isVisible() && cbSabor.getSelectedItem() != null
                     ? (String) cbSabor.getSelectedItem()
                     : "";
             String lote = tfLote.getText().trim();
@@ -367,12 +446,9 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             String unidade = "Bebida".equals(categoria) ? "ml" : "g";
             String dataVal = tfDataValidade.getText().trim();
 
-            // Recupera o código de barras lido (se houver), caso contrário, deixa em
-            // branco.
             String codigo = (String) lblCodigoLido.getClientProperty("codigoBarras");
-            if (codigo == null) {
+            if (codigo == null)
                 codigo = "";
-            }
 
             int quantidade = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();
@@ -383,7 +459,6 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                     id, nome, quantidade, custo, preco,
                     fornId, categoria, subtipo, marca, sabor,
                     lote, peso, unidade, codigo, dataVal);
-            // Garante que o fornecedorId seja propagado corretamente
             a.setFornecedorId(fornId);
             a.setNcm(ncm);
 
@@ -402,5 +477,56 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                     "Erro",
                     JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    // ===== helpers layout =====
+
+    private JPanel makeRow(String label, JComponent field) {
+        JPanel row = new JPanel(new GridBagLayout());
+        row.setOpaque(false);
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(0, 0, 0, 0);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        row.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        row.add(field, g);
+
+        return row;
+    }
+
+    private void addRowPanel(JPanel parent, GridBagConstraints g, int row, JPanel rowPanel) {
+        g.gridy = row;
+        g.gridx = 0;
+        g.gridwidth = 2;
+        g.weightx = 1;
+        parent.add(rowPanel, g);
+        g.gridwidth = 1;
+    }
+
+    private void addField(JPanel parent, GridBagConstraints g, int row, String label, JComponent field) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        parent.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        parent.add(field, g);
+    }
+
+    private JPanel labeledInline(String label, JComponent field) {
+        JPanel p = new JPanel(new BorderLayout(6, 0));
+        p.setOpaque(false);
+        p.add(new JLabel(label), BorderLayout.WEST);
+        p.add(field, BorderLayout.CENTER);
+        return p;
     }
 }

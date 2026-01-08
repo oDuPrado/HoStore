@@ -1,19 +1,18 @@
 // src/ui/venda/painel/PainelVendas.java
 package ui.venda.painel;
 
-import com.toedter.calendar.JDateChooser; // picker de data
+import com.toedter.calendar.JDateChooser;
 import dao.ClienteDAO;
 import model.ClienteModel;
 import ui.venda.dialog.VendaDetalhesDialog;
 import ui.venda.dialog.VendaNovaDialog;
 import util.AlertUtils;
 import util.DB;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.ResultSet;
@@ -28,29 +27,20 @@ import java.util.StringJoiner;
 
 public class PainelVendas extends JPanel {
 
-    // Tabela e modelo de dados
     private final JTable tabela;
     private final DefaultTableModel modelo;
 
-    // Componentes de filtro
     private final JDateChooser inicioChooser = new JDateChooser();
     private final JDateChooser fimChooser = new JDateChooser();
     private final JComboBox<String> clienteCombo = new JComboBox<>();
     private final JComboBox<String> statusCombo = new JComboBox<>(
             new String[] {
-                    "Todos",
-                    "Fechada",
-                    "Pendente",
-                    "Cancelada",
-                    "Estornada",
-                    "Devolvida",
-                    "Parcialmente Devolvida"
+                    "Todos", "Fechada", "Pendente", "Cancelada",
+                    "Estornada", "Devolvida", "Parcialmente Devolvida"
             });
 
-    // Labels de resumo
-    private final JLabel resumoLbl = new JLabel();
+    private final JLabel resumoLbl = new JLabel(" ");
 
-    // Formatter para SQL (yyyy-MM-dd) e BR (dd/MM/yyyy)
     private static final DateTimeFormatter SQL_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter BR_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -58,219 +48,332 @@ public class PainelVendas extends JPanel {
 
     public PainelVendas(JFrame owner) {
         this.owner = owner;
-        setLayout(new BorderLayout(10, 10));
-        setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        // Modelo com colunas: ID, Data, Cliente, Total, Forma PG, Parc., Status,
-        // Detalhes
+        UiKit.applyPanelBase(this);
+        setLayout(new BorderLayout(12, 12));
+        setBorder(new EmptyBorder(12, 12, 12, 12));
+
         modelo = new DefaultTableModel(new String[] {
-                "ID", "Data", "Cliente", "Total Líquido", "Forma PG", "Parcelas", "Status", "Detalhes"
+                "ID", "Data", "Cliente", "Total Líquido", "Forma PG", "Parcelas", "Status", ""
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                // Apenas a coluna "Detalhes" será clicável
                 return col == 7;
             }
 
             @Override
             public Class<?> getColumnClass(int col) {
-                // Define tipos para correto sort/render
                 if (col == 0)
                     return Integer.class;
                 if (col == 3)
                     return Double.class;
+                if (col == 5)
+                    return Integer.class;
                 return String.class;
             }
         };
-        tabela = new JTable(modelo);
 
-        // Monta a UI
-        add(criarToolbar(), BorderLayout.NORTH);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        tabela = new JTable(modelo);
+        tabela.setRowHeight(34);
+        tabela.setFillsViewportHeight(true);
+        tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabela.setShowHorizontalLines(true);
+        tabela.setShowVerticalLines(false);
+        tabela.setIntercellSpacing(new Dimension(0, 0));
+
+        add(criarHeaderEFiltros(), BorderLayout.NORTH);
+
+        JScrollPane sp = UiKit.scroll(tabela);
+        sp.setBorder(null);
+        add(sp, BorderLayout.CENTER);
+
         add(criarRodape(), BorderLayout.SOUTH);
 
         personalizarTabela();
         configurarEventos();
 
-        carregarClientes(); // popula lista de clientes no combo
-        // define formato de exibição dos pickers
+        carregarClientes();
+
         inicioChooser.setDateFormatString("dd/MM/yyyy");
         fimChooser.setDateFormatString("dd/MM/yyyy");
-        // carrega vendas de hoje por padrão
+
         String hoje = LocalDate.now().format(SQL_DATE);
         carregarVendas(hoje, hoje, "Todos", "Todos");
     }
 
     // =========================
-    // Monta painel de filtros
+    // Header + Filtros (bonito e consistente)
     // =========================
-    private JComponent criarToolbar() {
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
+    private JComponent criarHeaderEFiltros() {
+        JPanel wrap = new JPanel(new BorderLayout(10, 10));
+        wrap.setOpaque(false);
 
-        toolbar.add(new JLabel("De:"));
-        toolbar.add(inicioChooser);
+        // Header (título + dica)
+        JPanel header = UiKit.card();
+        header.setLayout(new BorderLayout(12, 6));
 
-        toolbar.add(new JLabel("Até:"));
-        toolbar.add(fimChooser);
+        JPanel left = new JPanel(new GridLayout(2, 1, 0, 4));
+        left.setOpaque(false);
+        left.add(UiKit.title("Vendas"));
+        left.add(UiKit.hint("Filtre por período, cliente e status. Duplo-clique abre detalhes."));
+        header.add(left, BorderLayout.WEST);
 
-        toolbar.add(new JLabel("Cliente:"));
-        clienteCombo.setEditable(true); // permite digitar para buscar
-        toolbar.add(clienteCombo);
+        JButton btnNova = UiKit.primary("➕ Nova Venda");
+        btnNova.addActionListener(e -> new VendaNovaDialog(owner, this).setVisible(true));
+        header.add(btnNova, BorderLayout.EAST);
 
-        toolbar.add(new JLabel("Status:"));
-        toolbar.add(statusCombo);
+        wrap.add(header, BorderLayout.NORTH);
 
-        JButton filtrar = new JButton("🔍 Filtrar");
+        // Card de filtros
+        JPanel filtros = UiKit.card();
+        filtros.setLayout(new GridBagLayout());
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 8, 6, 8);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.gridy = 0;
+
+        // linha 0
+        g.gridx = 0;
+        g.weightx = 0;
+        filtros.add(new JLabel("De:"), g);
+        g.gridx = 1;
+        g.weightx = 0.3;
+        filtros.add(inicioChooser, g);
+
+        g.gridx = 2;
+        g.weightx = 0;
+        filtros.add(new JLabel("Até:"), g);
+        g.gridx = 3;
+        g.weightx = 0.3;
+        filtros.add(fimChooser, g);
+
+        g.gridx = 4;
+        g.weightx = 0;
+        filtros.add(new JLabel("Status:"), g);
+        g.gridx = 5;
+        g.weightx = 0.4;
+        filtros.add(statusCombo, g);
+
+        // linha 1
+        g.gridy = 1;
+        g.gridx = 0;
+        g.weightx = 0;
+        filtros.add(new JLabel("Cliente:"), g);
+
+        clienteCombo.setEditable(true);
+        g.gridx = 1;
+        g.gridwidth = 3;
+        g.weightx = 1.0;
+        filtros.add(clienteCombo, g);
+
+        g.gridwidth = 1;
+        JButton filtrar = UiKit.ghost("🔍 Filtrar");
         filtrar.addActionListener(e -> {
-            // lê valores dos filtros
             String d1 = formatarDataParaSQL(inicioChooser);
             String d2 = formatarDataParaSQL(fimChooser);
             String cli = (String) clienteCombo.getSelectedItem();
             String stat = (String) statusCombo.getSelectedItem();
             carregarVendas(d1, d2, cli, stat);
         });
-        toolbar.add(filtrar);
 
-        return toolbar;
+        JButton limpar = UiKit.ghost("🧹 Limpar");
+        limpar.addActionListener(e -> {
+            inicioChooser.setDate(null);
+            fimChooser.setDate(null);
+            clienteCombo.setSelectedItem("Todos");
+            statusCombo.setSelectedItem("Todos");
+            carregarVendas("", "", "Todos", "Todos");
+        });
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+        actions.add(limpar);
+        actions.add(filtrar);
+
+        g.gridx = 4;
+        g.weightx = 0;
+        filtros.add(new JLabel(""), g);
+        g.gridx = 5;
+        g.weightx = 0;
+        filtros.add(actions, g);
+
+        wrap.add(filtros, BorderLayout.CENTER);
+        return wrap;
     }
 
     // =========================
-    // Monta rodapé com resumo e botões
+    // Rodapé consistente (resumo + ações)
     // =========================
     private JComponent criarRodape() {
-        JPanel rodape = new JPanel(new BorderLayout());
+        JPanel rodape = UiKit.card();
+        rodape.setLayout(new BorderLayout(12, 0));
 
-        // --- Resumo à esquerda ---
-        resumoLbl.setFont(resumoLbl.getFont().deriveFont(Font.BOLD, 14f));
-        JPanel resumoPane = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        resumoPane.add(resumoLbl);
-        rodape.add(resumoPane, BorderLayout.WEST);
+        resumoLbl.setFont(resumoLbl.getFont().deriveFont(Font.BOLD, 13f));
+        rodape.add(resumoLbl, BorderLayout.WEST);
 
-        // --- Botões à direita ---
-        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        botoes.setOpaque(false);
 
-        // Nova Venda
-        JButton btnNova = new JButton("➕ Nova Venda");
-        btnNova.addActionListener(e -> new VendaNovaDialog(owner, this).setVisible(true));
-        botoes.add(btnNova);
+        JButton btnDetalhes = UiKit.ghost("🔎 Abrir Detalhes");
+        btnDetalhes.addActionListener(e -> abrirDetalhesSelecionado());
 
-        // Editar (abre detalhes por enquanto)
-        JButton btnEditar = new JButton("✏️ Editar");
-        btnEditar.addActionListener(e -> {
-            int row = tabela.getSelectedRow();
-            if (row < 0) {
-                AlertUtils.info("Selecione uma venda para editar.");
-                return;
-            }
-            int id = (int) modelo.getValueAt(row, 0);
+        JButton btnExcluir = UiKit.ghost("🗑️ Excluir");
+        btnExcluir.addActionListener(e -> excluirSelecionado());
 
-            new VendaDetalhesDialog(owner, id).setVisible(true);
-        });
-        botoes.add(btnEditar);
-
-        // Excluir
-        JButton btnExcluir = new JButton("🗑️ Excluir");
-        btnExcluir.addActionListener(e -> {
-            int row = tabela.getSelectedRow();
-            if (row < 0) {
-                AlertUtils.info("Selecione uma venda para excluir.");
-                return;
-            }
-            int id = (int) modelo.getValueAt(row, 0);
-            int op = JOptionPane.showConfirmDialog(owner,
-                    "Confirma exclusão da venda ID " + id + "?",
-                    "Confirmar",
-                    JOptionPane.YES_NO_OPTION);
-            if (op == JOptionPane.YES_OPTION) {
-                excluirVenda(id);
-                // recarrega mantendo filtros atuais
-                String d1 = formatarDataParaSQL(inicioChooser);
-                String d2 = formatarDataParaSQL(fimChooser);
-                carregarVendas(d1, d2,
-                        (String) clienteCombo.getSelectedItem(),
-                        (String) statusCombo.getSelectedItem());
-            }
-        });
+        botoes.add(btnDetalhes);
         botoes.add(btnExcluir);
 
         rodape.add(botoes, BorderLayout.EAST);
         return rodape;
     }
 
+    private void abrirDetalhesSelecionado() {
+        int row = tabela.getSelectedRow();
+        if (row < 0) {
+            AlertUtils.info("Selecione uma venda.");
+            return;
+        }
+        int modelRow = tabela.convertRowIndexToModel(row);
+        int id = (int) modelo.getValueAt(modelRow, 0);
+        new VendaDetalhesDialog(owner, id).setVisible(true);
+    }
+
+    private void excluirSelecionado() {
+        int row = tabela.getSelectedRow();
+        if (row < 0) {
+            AlertUtils.info("Selecione uma venda para excluir.");
+            return;
+        }
+        int modelRow = tabela.convertRowIndexToModel(row);
+        int id = (int) modelo.getValueAt(modelRow, 0);
+
+        int op = JOptionPane.showConfirmDialog(owner,
+                "Confirma exclusão da venda ID " + id + "?",
+                "Confirmar",
+                JOptionPane.YES_NO_OPTION);
+
+        if (op == JOptionPane.YES_OPTION) {
+            excluirVenda(id);
+            String d1 = formatarDataParaSQL(inicioChooser);
+            String d2 = formatarDataParaSQL(fimChooser);
+            carregarVendas(d1, d2,
+                    (String) clienteCombo.getSelectedItem(),
+                    (String) statusCombo.getSelectedItem());
+        }
+    }
+
     // =========================
-    // Configura double-click na tabela
+    // Eventos (duplo clique + enter)
     // =========================
     private void configurarEventos() {
         tabela.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    int row = tabela.rowAtPoint(e.getPoint());
-                    if (row >= 0) {
-                        int id = (int) modelo.getValueAt(row, 0);
-                        new VendaDetalhesDialog(owner, id).setVisible(true);
-                    }
+                if (e.getClickCount() == 2)
+                    abrirDetalhesSelecionado();
+            }
+        });
+
+        tabela.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    e.consume();
+                    abrirDetalhesSelecionado();
                 }
             }
         });
     }
 
     // =========================
-    // Render e estilo da tabela
+    // Estilo tabela (alinhamento, moeda, badge status, coluna ações)
     // =========================
     private void personalizarTabela() {
-        // centraliza coluna ID
+        tabela.setAutoCreateRowSorter(true);
+
+        TableColumnModel tcm = tabela.getColumnModel();
+
+        // larguras
+        tcm.getColumn(0).setPreferredWidth(60); // ID
+        tcm.getColumn(1).setPreferredWidth(90); // Data
+        tcm.getColumn(2).setPreferredWidth(260); // Cliente
+        tcm.getColumn(3).setPreferredWidth(120); // Total
+        tcm.getColumn(4).setPreferredWidth(110); // PG
+        tcm.getColumn(5).setPreferredWidth(80); // Parcelas
+        tcm.getColumn(6).setPreferredWidth(160); // Status
+        tcm.getColumn(7).setPreferredWidth(60); // botão
+
+        // ID/parcelas central
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
-        tabela.getColumnModel().getColumn(0).setCellRenderer(center);
+        tcm.getColumn(0).setCellRenderer(center);
+        tcm.getColumn(1).setCellRenderer(center);
+        tcm.getColumn(5).setCellRenderer(center);
 
-        // formata valores monetários à direita
+        // moeda alinhada direita
         NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-        tabela.getColumnModel().getColumn(3).setCellRenderer((tbl, val, isSel, hasFocus, row, col) -> {
-            JLabel l = new JLabel(cf.format((Double) val));
-            l.setHorizontalAlignment(SwingConstants.RIGHT);
-            return l;
-        });
-
-        // coloriza status
-        tabela.getColumnModel().getColumn(6).setCellRenderer((tbl, val, isSel, hasFocus, row, col) -> {
-            String s = val.toString();
-            JLabel l = new JLabel(s);
-            l.setOpaque(true);
-            l.setForeground(Color.WHITE);
-            l.setHorizontalAlignment(SwingConstants.CENTER);
-            switch (s.toLowerCase()) {
-                case "fechada":
-                    l.setBackground(new Color(46, 139, 87));
-                    break;
-                case "estornada":
-                    l.setBackground(new Color(178, 34, 34));
-                    break;
-                case "cancelada":
-                    l.setBackground(new Color(184, 134, 11));
-                    break;
-                default:
-                    l.setBackground(Color.GRAY);
-                    break;
-                case "pendente":
-                    l.setBackground(new Color(70, 130, 180));
-                    break; // azul
-                case "devolvida":
-                    l.setBackground(new Color(128, 0, 128));
-                    break; // roxo
-
+        DefaultTableCellRenderer money = new DefaultTableCellRenderer() {
+            @Override
+            protected void setValue(Object value) {
+                if (value instanceof Number)
+                    setText(cf.format(((Number) value).doubleValue()));
+                else
+                    setText(value != null ? value.toString() : "");
+                setHorizontalAlignment(SwingConstants.RIGHT);
             }
-            return l;
-        });
+        };
+        tcm.getColumn(3).setCellRenderer(money);
 
-        // botão "Detalhes"
-        TableColumnModel tcm = tabela.getColumnModel();
+        // status como “badge”
+        tcm.getColumn(6).setCellRenderer(new StatusBadgeRenderer());
+
+        // botão ação (coluna vazia "")
         tcm.getColumn(7).setCellRenderer(new ButtonRenderer());
         tcm.getColumn(7).setCellEditor(new ButtonEditor());
     }
 
+    private static class StatusBadgeRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            String s = value == null ? "" : value.toString().toLowerCase();
+
+            l.setHorizontalAlignment(SwingConstants.CENTER);
+            l.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+            l.setOpaque(true);
+
+            // mantém seleção do tema
+            if (isSelected) {
+                l.setBackground(table.getSelectionBackground());
+                l.setForeground(table.getSelectionForeground());
+                return l;
+            }
+
+            // cores (sim, badges precisam de cor)
+            l.setForeground(Color.WHITE);
+
+            switch (s) {
+                case "fechada" -> l.setBackground(new Color(46, 139, 87));
+                case "pendente" -> l.setBackground(new Color(70, 130, 180));
+                case "cancelada" -> l.setBackground(new Color(184, 134, 11));
+                case "estornada" -> l.setBackground(new Color(178, 34, 34));
+                case "devolvida" -> l.setBackground(new Color(128, 0, 128));
+                case "parcialmente devolvida" -> l.setBackground(new Color(123, 63, 0));
+                default -> {
+                    l.setBackground(new Color(120, 120, 120));
+                    l.setForeground(Color.WHITE);
+                }
+            }
+            return l;
+        }
+    }
+
     // =========================
-    // Carrega lista de clientes
+    // Clientes
     // =========================
     private void carregarClientes() {
         try {
@@ -278,9 +381,8 @@ public class PainelVendas extends JPanel {
             clienteCombo.addItem("Todos");
             List<ClienteModel> lista = new ClienteDAO().findAll();
             if (lista != null) {
-                for (ClienteModel c : lista) {
+                for (ClienteModel c : lista)
                     clienteCombo.addItem(c.getNome());
-                }
             }
         } catch (Exception ex) {
             AlertUtils.error("Erro ao carregar clientes:\n" + ex.getMessage());
@@ -288,53 +390,42 @@ public class PainelVendas extends JPanel {
     }
 
     // =========================
-    // Constrói e executa consulta com filtros
+    // Query (mantida) + resumo (corrigido)
     // =========================
     public void carregarVendas(String dataIni, String dataFim, String cliente, String status) {
         modelo.setRowCount(0);
-        double total = 0;
+
+        double total = 0; // ✅ agora soma de verdade
 
         try (Statement st = DB.get().createStatement()) {
 
-            // monta SQL dinamicamente
             StringBuilder sql = new StringBuilder(
                     "SELECT v.*, c.nome AS cliente_nome " +
                             "FROM vendas v JOIN clientes c ON v.cliente_id = c.id");
 
             StringJoiner where = new StringJoiner(" AND ");
 
-            // Filtro por data inicial
             if (dataIni != null && !dataIni.isEmpty())
                 where.add("date(v.data_venda) >= '" + dataIni + "'");
 
-            // Filtro por data final
             if (dataFim != null && !dataFim.isEmpty())
                 where.add("date(v.data_venda) <= '" + dataFim + "'");
 
-            // Filtro por cliente (nome parcial)
             if (cliente != null && !"Todos".equals(cliente))
                 where.add("c.nome LIKE '%" + cliente + "%'");
 
-            // Filtro por status (somente se for um status que realmente existe na tabela
-            // 'vendas')
-            // Os status 'devolvida', 'parcialmente devolvida' e 'pendente' são calculados,
-            // não estão na tabela
             if (status != null && !"Todos".equalsIgnoreCase(status)) {
                 boolean statusCalculado = status.equalsIgnoreCase("Devolvida") ||
                         status.equalsIgnoreCase("Parcialmente Devolvida") ||
                         status.equalsIgnoreCase("Pendente");
-
                 if (!statusCalculado) {
                     where.add("v.status = '" + status.toLowerCase() + "'");
                 }
             }
 
-            // Aplica cláusula WHERE se necessário
-            if (where.length() > 0) {
-                sql.append(" WHERE ").append(where.toString());
-            }
+            if (where.length() > 0)
+                sql.append(" WHERE ").append(where);
 
-            // Ordena por ID decrescente
             sql.append(" ORDER BY v.id DESC");
 
             try (ResultSet rs = st.executeQuery(sql.toString())) {
@@ -343,23 +434,18 @@ public class PainelVendas extends JPanel {
                     String rawDt = rs.getString("data_venda");
                     LocalDate dt = LocalDate.parse(rawDt.substring(0, 10));
                     String data = dt.format(BR_DATE);
+
                     String cliNome = rs.getString("cliente_nome");
                     double val = rs.getDouble("total_liquido");
                     String pg = rs.getString("forma_pagamento");
                     int parc = rs.getInt("parcelas");
                     String statusOriginal = rs.getString("status").toLowerCase();
 
-                    // Verifica se tem devolução
-                    boolean teveDevolucao = false;
-                    try (Statement stDev = DB.get().createStatement();
-                            ResultSet rsDev = stDev
-                                    .executeQuery("SELECT COUNT(*) FROM vendas_devolucoes WHERE venda_id = " + id)) {
-                        if (rsDev.next() && rsDev.getInt(1) > 0) {
-                            teveDevolucao = true;
-                        }
-                    }
+                    // devoluções
+                    java.util.List<model.VendaDevolucaoModel> devolucoes = new dao.VendaDevolucaoDAO()
+                            .listarPorVenda(id);
 
-                    // Verifica se há parcelas pendentes (status = 'aberto' em contas a receber)
+                    // parcelas pendentes
                     boolean temParcelasPendentes = false;
                     try (Statement stParc = DB.get().createStatement();
                             ResultSet rsParc = stParc.executeQuery(
@@ -367,15 +453,10 @@ public class PainelVendas extends JPanel {
                                             "  SELECT id FROM titulos_contas_receber WHERE codigo_selecao = 'venda-"
                                             + id + "'" +
                                             ") AND status = 'aberto'")) {
-                        if (rsParc.next() && rsParc.getInt(1) > 0) {
+                        if (rsParc.next() && rsParc.getInt(1) > 0)
                             temParcelasPendentes = true;
-                        }
                     }
 
-                    // Verifica devoluções associadas à venda
-                    List<model.VendaDevolucaoModel> devolucoes = new dao.VendaDevolucaoDAO().listarPorVenda(id);
-
-                    // Constrói objeto VendaModel para usar isDevolucaoParcial
                     model.VendaModel vendaTmp = new model.VendaModel(
                             id, rawDt, rs.getString("cliente_id"),
                             rs.getDouble("total_bruto"),
@@ -383,31 +464,25 @@ public class PainelVendas extends JPanel {
                             rs.getDouble("total_liquido"),
                             pg, parc, statusOriginal);
 
-                    // Carrega itens da venda para avaliar devoluções parciais
                     vendaTmp.setItens(new dao.VendaItemDAO().listarPorVenda(id));
 
-                    // Define status final com base nas regras
                     String statusFinal;
-                    if ("cancelada".equals(statusOriginal)) {
+                    if ("cancelada".equals(statusOriginal))
                         statusFinal = "cancelada";
-                    } else if (!devolucoes.isEmpty() && vendaTmp.isDevolucaoParcial(devolucoes)) {
+                    else if (!devolucoes.isEmpty() && vendaTmp.isDevolucaoParcial(devolucoes))
                         statusFinal = "parcialmente devolvida";
-                    } else if (!devolucoes.isEmpty()) {
+                    else if (!devolucoes.isEmpty())
                         statusFinal = "devolvida";
-                    } else if (temParcelasPendentes) {
+                    else if (temParcelasPendentes)
                         statusFinal = "pendente";
-                    } else {
+                    else
                         statusFinal = "fechada";
-                    }
 
-                    // Aplica filtro de status (para casos calculados dinamicamente)
-                    if (!"Todos".equals(status) && !status.equalsIgnoreCase(statusFinal)) {
-                        continue; // ignora se não corresponde ao filtro do usuário
-                    }
+                    if (!"Todos".equals(status) && !status.equalsIgnoreCase(statusFinal))
+                        continue;
 
-                    // Adiciona linha na tabela
-                    modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "Detalhes" });
-
+                    modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "↗" });
+                    total += val; // ✅ soma real
                 }
             }
 
@@ -415,19 +490,13 @@ public class PainelVendas extends JPanel {
             AlertUtils.error("Erro ao carregar vendas:\n" + ex.getMessage());
         }
 
-        // atualiza resumo: total, qtd e ticket médio
         int qtd = modelo.getRowCount();
         double ticket = qtd > 0 ? total / qtd : 0;
         NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         resumoLbl.setText(
-                "Total: " + cf.format(total)
-                        + " | Qtde: " + qtd
-                        + " | Ticket Médio: " + cf.format(ticket));
+                "Total: " + cf.format(total) + "  |  Qtde: " + qtd + "  |  Ticket Médio: " + cf.format(ticket));
     }
 
-    // =========================
-    // Exclui venda (itens + cabeçalho)
-    // =========================
     private void excluirVenda(int vendaId) {
         try (Statement st = DB.get().createStatement()) {
             st.executeUpdate("DELETE FROM vendas_itens WHERE venda_id = " + vendaId);
@@ -437,43 +506,45 @@ public class PainelVendas extends JPanel {
         }
     }
 
-    // =========================
-    // Formata data do chooser para string SQL
-    // =========================
     private String formatarDataParaSQL(JDateChooser chooser) {
         if (chooser.getDate() == null)
             return "";
         LocalDate ld = chooser.getDate().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+                .atZone(ZoneId.systemDefault()).toLocalDate();
         return ld.format(SQL_DATE);
     }
 
-    // Renderer para coluna de botão "Detalhes"
-    private class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
+    // ========= botão ação coluna final =========
+
+    private class ButtonRenderer extends JButton implements TableCellRenderer {
         ButtonRenderer() {
-            setText("Detalhes");
+            setText("↗");
             setFocusPainted(false);
+            setBorderPainted(false);
+            setOpaque(true);
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable tbl, Object val,
                 boolean sel, boolean foc,
                 int row, int col) {
+            setText(val != null ? val.toString() : "↗");
+            setBackground(sel ? tbl.getSelectionBackground() : tbl.getBackground());
+            setForeground(sel ? tbl.getSelectionForeground() : tbl.getForeground());
             return this;
         }
     }
 
-    // Editor para coluna de botão "Detalhes"
     private class ButtonEditor extends DefaultCellEditor {
-        private final JButton btn = new JButton("Detalhes");
+        private final JButton btn = new JButton("↗");
         private int row;
 
         ButtonEditor() {
             super(new JCheckBox());
             btn.setFocusPainted(false);
             btn.addActionListener(e -> {
-                int id = (int) modelo.getValueAt(row, 0);
+                int modelRow = tabela.convertRowIndexToModel(row);
+                int id = (int) modelo.getValueAt(modelRow, 0);
                 new VendaDetalhesDialog(owner, id).setVisible(true);
                 fireEditingStopped();
             });

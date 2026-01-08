@@ -8,7 +8,8 @@ import model.ProdutoModel;
 import model.VendaItemModel;
 import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
-import ui.clientes.dialog.*;
+import util.UiKit;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.CellEditorListener;
@@ -25,24 +26,22 @@ import java.util.Locale;
 import ui.clientes.dialog.ClienteCadastroDialog;
 import ui.dialog.SelectCartaDialog;
 
-/**
- * Carrinho de venda genérico (qualquer produto).
- */
 public class VendaNovaDialog extends JDialog {
 
     /* ---------- DAOs & Controller ---------- */
     private final ClienteDAO clienteDAO = new ClienteDAO();
-    private final ProdutoDAO produtoDAO = new ProdutoDAO();
+    private final ProdutoDAO produtoDAO = new ProdutoDAO(); // (mantido, mesmo que você não use aqui ainda)
     private final VendaController controller = new VendaController();
     private final PainelVendas painelPai;
 
     /* ---------- Combos e tabela ---------- */
     private final JComboBox<String> clienteCombo;
+
     private final DefaultTableModel carrinhoModel = new DefaultTableModel(
             new String[] { "Produto", "Qtd", "R$ Unit.", "% Desc", "R$ Total", "R$ Desc", "" }, 0) {
         @Override
         public boolean isCellEditable(int r, int c) {
-            return c >= 1 && c <= 3; // apenas qtd, unit e desconto são editáveis
+            return c >= 1 && c <= 3; // qtd, unit, desconto
         }
 
         @Override
@@ -54,85 +53,168 @@ public class VendaNovaDialog extends JDialog {
             };
         }
     };
+
     private final JTable carrinhoTable = new JTable(carrinhoModel);
 
-    // ⚠️ Adiciona o listener de atualização automática
+    /* ---------- Resumo ---------- */
+    private final JLabel resumoLbl = new JLabel();
+
+    // Listener automático de atualização
     {
         carrinhoModel.addTableModelListener(e -> {
             int col = e.getColumn();
-            // Só recalcula se for uma das colunas editáveis
             if (col >= 1 && col <= 3) {
                 atualizarTodosTotais();
             }
         });
     }
 
-    /* ---------- Resumo/rodapé ---------- */
-    private final JLabel resumoLbl = new JLabel();
-
     public VendaNovaDialog(JFrame owner, PainelVendas painelPai) {
         super(owner, "Nova Venda", true);
         this.painelPai = painelPai;
 
-        setSize(900, 650);
+        UiKit.applyDialogBase(this);
+
+        setSize(980, 680);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(10, 10));
-        ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        /* ===== TOP: Cliente + botões ===== */
-        JPanel clientePanel = new JPanel(new BorderLayout(5, 0));
+        /* ===================== TOP (CARD) ===================== */
+        JPanel topCard = UiKit.card();
+        topCard.setLayout(new BorderLayout(10, 10));
+
+        JPanel topLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        topLeft.setOpaque(false);
+
+        topLeft.add(UiKit.title("Nova Venda"));
+        topLeft.add(UiKit.hint("F2 Produto | F3 Cartas | DEL Remove | ENTER Finaliza"));
+
+        topCard.add(topLeft, BorderLayout.WEST);
+
+        // ===================== TOP ACTIONS (SEM BRIGA NO CABEÇALHO)
+        // =====================
+        JPanel topActions = new JPanel(new GridBagLayout());
+        topActions.setOpaque(false);
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(2, 6, 2, 6);
+        gc.anchor = GridBagConstraints.EAST;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Cliente combo + botão add cliente
         clienteCombo = new JComboBox<>(clienteDAO.listarTodosNomes().toArray(new String[0]));
         clienteCombo.setEditable(true);
-        clientePanel.add(clienteCombo, BorderLayout.CENTER);
+        clienteCombo.setPreferredSize(new Dimension(340, 30)); // maior por padrão
+        clienteCombo.setMinimumSize(new Dimension(220, 30)); // não deixa virar migalha
 
-        // Botão de adicionar cliente
-        JButton btnAddCliente = new JButton("➕");
-        btnAddCliente.setMargin(new Insets(2, 6, 2, 6)); // botão compacto
+        JButton btnAddCliente = UiKit.ghost("➕");
+        btnAddCliente.setMargin(new Insets(2, 8, 2, 8));
         btnAddCliente.setToolTipText("Cadastrar novo cliente");
         btnAddCliente.addActionListener(e -> abrirCadastroCliente());
-        clientePanel.add(btnAddCliente, BorderLayout.EAST);
 
-        JButton btnAddProd = new JButton("➕ Adicionar Produto");
+        // Linha 0: "Cliente:" | Combo (expande) | + (fixo)
+        gc.gridy = 0;
+
+        gc.gridx = 0;
+        gc.weightx = 0;
+        topActions.add(new JLabel("Cliente:"), gc);
+
+        gc.gridx = 1;
+        gc.weightx = 1; // combo ganha o espaço todo
+        topActions.add(clienteCombo, gc);
+
+        gc.gridx = 2;
+        gc.weightx = 0;
+        gc.fill = GridBagConstraints.NONE; // botão não estica
+        topActions.add(btnAddCliente, gc);
+
+        // Botões
+        JButton btnAddProd = UiKit.primary("➕ Produto (F2)");
         btnAddProd.addActionListener(e -> abrirSelectProduto());
 
-        JButton btnAddCarta = new JButton("🎴 Adicionar Cartas");
+        JButton btnAddCarta = UiKit.ghost("🎴 Cartas (F3)");
         btnAddCarta.addActionListener(e -> abrirSelectCarta());
 
-        JPanel topo = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        topo.add(new JLabel("Cliente:"));
-        topo.add(clientePanel);
+        // Linha 1: (vazio) | botões alinhados à direita
+        gc.gridy = 1;
+        gc.fill = GridBagConstraints.NONE;
 
-        topo.add(btnAddProd);
-        topo.add(btnAddCarta);
-        add(topo, BorderLayout.NORTH);
+        gc.gridx = 0;
+        gc.weightx = 1; // empurra pra direita
+        gc.gridwidth = 1;
+        topActions.add(Box.createHorizontalStrut(1), gc);
 
-        /* ===== Tabela ===== */
+        gc.gridx = 1;
+        gc.weightx = 0;
+        topActions.add(btnAddProd, gc);
+
+        gc.gridx = 2;
+        topActions.add(btnAddCarta, gc);
+
+        topCard.add(topActions, BorderLayout.EAST);
+
+        add(topCard, BorderLayout.NORTH);
+
+        /* ===================== CENTER (CARD + TABLE) ===================== */
+        JPanel centerCard = UiKit.card();
+        centerCard.setLayout(new BorderLayout(8, 8));
+
+        JPanel centerHeader = new JPanel(new BorderLayout());
+        centerHeader.setOpaque(false);
+        centerHeader.add(UiKit.title("Itens"), BorderLayout.WEST);
+        centerCard.add(centerHeader, BorderLayout.NORTH);
+
         personalizarTabela();
-        add(new JScrollPane(carrinhoTable), BorderLayout.CENTER);
+        UiKit.tableDefaults(carrinhoTable);
 
-        /* ===== Rodapé ===== */
-        JPanel rodape = new JPanel(new BorderLayout());
+        // Zebra em tudo (inclusive quando não selecionado)
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        for (int i = 0; i < carrinhoTable.getColumnCount(); i++) {
+            carrinhoTable.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
+        // Mas mantém moeda com alinhamento e formato nas colunas certas
+        carrinhoTable.getColumnModel().getColumn(4).setCellRenderer(moedaRendererZebra(zebra));
+        carrinhoTable.getColumnModel().getColumn(5).setCellRenderer(moedaRendererZebra(zebra));
+
+        // Coluna % desc com destaque (sem “pintar o mundo de amarelo”)
+        carrinhoTable.getColumnModel().getColumn(3).setCellRenderer(descRendererZebra(zebra));
+
+        carrinhoTable.setRowHeight(30);
+        carrinhoTable.setFillsViewportHeight(true);
+
+        centerCard.add(UiKit.scroll(carrinhoTable), BorderLayout.CENTER);
+
+        add(centerCard, BorderLayout.CENTER);
+
+        /* ===================== FOOTER (CARD) ===================== */
+        JPanel bottomCard = UiKit.card();
+        bottomCard.setLayout(new BorderLayout(10, 10));
 
         resumoLbl.setFont(resumoLbl.getFont().deriveFont(Font.BOLD, 14f));
-        rodape.add(resumoLbl, BorderLayout.WEST);
+        bottomCard.add(resumoLbl, BorderLayout.WEST);
 
-        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
-        JButton btnExcluir = new JButton("🗑️ Excluir Linha");
+        JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        botoes.setOpaque(false);
+
+        JButton btnExcluir = UiKit.ghost("🗑️ Remover (DEL)");
         btnExcluir.addActionListener(e -> excluirLinhaSelecionada());
-        JButton btnFinalizar = new JButton("✅ Finalizar");
+
+        JButton btnFinalizar = UiKit.primary("✅ Finalizar (ENTER)");
         btnFinalizar.addActionListener(e -> finalizarVenda());
 
         botoes.add(btnExcluir);
         botoes.add(btnFinalizar);
-        rodape.add(botoes, BorderLayout.EAST);
-        add(rodape, BorderLayout.SOUTH);
+
+        bottomCard.add(botoes, BorderLayout.EAST);
+
+        add(bottomCard, BorderLayout.SOUTH);
+
         atualizarResumo();
 
-        // Atalhos de teclado globais
+        // Atalhos
         InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = getRootPane().getActionMap();
 
-        // F2 - Adicionar Produto
         im.put(KeyStroke.getKeyStroke("F2"), "addProduto");
         am.put("addProduto", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -140,7 +222,6 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
-        // F3 - Adicionar Carta
         im.put(KeyStroke.getKeyStroke("F3"), "addCarta");
         am.put("addCarta", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -148,7 +229,6 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
-        // DELETE - Excluir linha
         im.put(KeyStroke.getKeyStroke("DELETE"), "excluirLinha");
         am.put("excluirLinha", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -156,31 +236,31 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
-        // ENTER - Finalizar
         im.put(KeyStroke.getKeyStroke("ENTER"), "finalizarVenda");
         am.put("finalizarVenda", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 btnFinalizar.doClick();
             }
         });
-
     }
 
     /* ==================================================================== */
-    /* ================ MÉTODOS AUXILIARES ================================= */
+    /* ========================== TABELA =================================== */
     /* ==================================================================== */
 
     private void personalizarTabela() {
         TableColumnModel tcm = carrinhoTable.getColumnModel();
 
-        // --------- Qtd (int) ---------
+        // Qtd (int)
         NumberFormatter intFmt = new NumberFormatter(new DecimalFormat("#0"));
         intFmt.setValueClass(Integer.class);
         intFmt.setAllowsInvalid(false);
+
         JFormattedTextField qtdField = new JFormattedTextField(intFmt);
         qtdField.setHorizontalAlignment(JTextField.RIGHT);
         qtdField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         qtdField.addFocusListener(selAll(qtdField));
+
         tcm.getColumn(1).setCellEditor(new DefaultCellEditor(qtdField) {
             @Override
             public Object getCellEditorValue() {
@@ -188,10 +268,11 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
-        // --------- Preço unitário ---------
+        // Preço unitário
         NumberFormat moneyFmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
         moneyFmt.setMinimumFractionDigits(2);
         moneyFmt.setMaximumFractionDigits(2);
+
         NumberFormatter moneyEditor = new NumberFormatter(moneyFmt);
         moneyEditor.setValueClass(Double.class);
         moneyEditor.setAllowsInvalid(false);
@@ -200,6 +281,7 @@ public class VendaNovaDialog extends JDialog {
         unitField.setHorizontalAlignment(JTextField.RIGHT);
         unitField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         unitField.addFocusListener(selAll(unitField));
+
         tcm.getColumn(2).setCellEditor(new DefaultCellEditor(unitField) {
             @Override
             public Object getCellEditorValue() {
@@ -207,18 +289,19 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
-        // --------- Desconto % ---------
+        // Desconto %
         NumberFormatter pctEditor = new NumberFormatter(NumberFormat.getNumberInstance(new Locale("pt", "BR")));
         pctEditor.setValueClass(Double.class);
         pctEditor.setMinimum(0.0);
         pctEditor.setMaximum(100.0);
         pctEditor.setAllowsInvalid(false);
-        pctEditor.setOverwriteMode(false); // permite digitação parcial
+        pctEditor.setOverwriteMode(false);
 
         JFormattedTextField pctField = new JFormattedTextField(pctEditor);
         pctField.setHorizontalAlignment(JTextField.RIGHT);
         pctField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         pctField.addFocusListener(selAll(pctField));
+
         tcm.getColumn(3).setCellEditor(new DefaultCellEditor(pctField) {
             @Override
             public Object getCellEditorValue() {
@@ -226,48 +309,31 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
-        tcm.getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                double desc = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
-                if (desc > 0) {
-                    c.setBackground(new Color(255, 240, 200)); // amarelo claro
-                } else {
-                    c.setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
-                }
-                return c;
-            }
-        });
-
-        /* Atualiza totais sempre que uma edição é concluída */
-        carrinhoTable.getDefaultEditor(Integer.class)
-                .addCellEditorListener(new CellEditorListener() {
-                    public void editingStopped(ChangeEvent e) {
-                        atualizarTodosTotais();
-                    }
-
-                    public void editingCanceled(ChangeEvent e) {
-                    }
-                });
-
-        carrinhoTable.getDefaultEditor(Double.class)
-                .addCellEditorListener(new CellEditorListener() {
-                    public void editingStopped(ChangeEvent e) {
-                        atualizarTodosTotais();
-                    }
-
-                    public void editingCanceled(ChangeEvent e) {
-                    }
-                });
-
-        // --------- Formatação de moeda nas colunas 4/5 ---------
+        // Moeda nas colunas 4/5
         tcm.getColumn(4).setCellRenderer(moedaRenderer());
         tcm.getColumn(5).setCellRenderer(moedaRenderer());
 
-        // --------- Coluna vazia (expansão) ----------
-        tcm.getColumn(6).setPreferredWidth(50);
+        // Coluna vazia (respiro)
+        tcm.getColumn(6).setPreferredWidth(40);
+
+        // Atualiza totais sempre que edição acaba
+        addStopListener(Integer.class);
+        addStopListener(Double.class);
+    }
+
+    private void addStopListener(Class<?> clazz) {
+        TableCellEditor ed = carrinhoTable.getDefaultEditor(clazz);
+        if (ed == null)
+            return;
+
+        ed.addCellEditorListener(new CellEditorListener() {
+            public void editingStopped(ChangeEvent e) {
+                atualizarTodosTotais();
+            }
+
+            public void editingCanceled(ChangeEvent e) {
+            }
+        });
     }
 
     private static DefaultTableCellRenderer moedaRenderer() {
@@ -276,8 +342,49 @@ public class VendaNovaDialog extends JDialog {
             @Override
             public void setValue(Object v) {
                 setHorizontalAlignment(SwingConstants.RIGHT);
-                super.setText(cf.format((Double) v));
+                double val = (v instanceof Number) ? ((Number) v).doubleValue() : 0.0;
+                super.setText(cf.format(val));
             }
+        };
+    }
+
+    /**
+     * Mantém zebra + formatação de moeda.
+     */
+    private static TableCellRenderer moedaRendererZebra(DefaultTableCellRenderer zebraBase) {
+        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        return (table, value, isSelected, hasFocus, row, column) -> {
+            Component c = zebraBase.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            JLabel l = (JLabel) c;
+            l.setHorizontalAlignment(SwingConstants.RIGHT);
+            double val = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
+            l.setText(cf.format(val));
+            return l;
+        };
+    }
+
+    /**
+     * Mantém zebra + destaca desconto > 0 sem destruir o tema.
+     */
+    private static TableCellRenderer descRendererZebra(DefaultTableCellRenderer zebraBase) {
+        return (table, value, isSelected, hasFocus, row, column) -> {
+            Component c = zebraBase.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            JLabel l = (JLabel) c;
+            l.setHorizontalAlignment(SwingConstants.RIGHT);
+
+            double desc = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
+            if (!isSelected && desc > 0.0) {
+                // sombra suave: reaproveita o fundo atual e dá um "shift"
+                Color bg = l.getBackground();
+                l.setBackground(new Color(
+                        Math.min(255, bg.getRed() + 10),
+                        Math.min(255, bg.getGreen() + 10),
+                        Math.max(0, bg.getBlue() - 10)));
+                l.setFont(l.getFont().deriveFont(Font.BOLD));
+            } else if (!isSelected) {
+                l.setFont(l.getFont().deriveFont(Font.PLAIN));
+            }
+            return l;
         };
     }
 
@@ -290,14 +397,17 @@ public class VendaNovaDialog extends JDialog {
         };
     }
 
-    /* ---------- Selecionar Produtos ---------- */
+    /* ==================================================================== */
+    /* ========================== AÇÕES ==================================== */
+    /* ==================================================================== */
+
     private void abrirSelectProduto() {
         SelectProdutoDialog dlg = new SelectProdutoDialog((JFrame) getOwner());
         dlg.setVisible(true);
+
         List<ProdutoModel> prod = dlg.getSelecionados();
         for (ProdutoModel p : prod) {
-            controller.adicionarItem(new VendaItemModel(
-                    p.getId(), 1, p.getPrecoVenda(), 0));
+            controller.adicionarItem(new VendaItemModel(p.getId(), 1, p.getPrecoVenda(), 0));
             carrinhoModel.addRow(new Object[] {
                     p.getNome(), 1, p.getPrecoVenda(), 0.0,
                     p.getPrecoVenda(), 0.0, ""
@@ -306,90 +416,125 @@ public class VendaNovaDialog extends JDialog {
         atualizarTodosTotais();
     }
 
-    /* ---------- Selecionar Cartas (dialog antigo) ---------- */
     private void abrirSelectCarta() {
         SelectCartaDialog dlg = new SelectCartaDialog((JFrame) getOwner());
         dlg.setVisible(true);
+
         dlg.getSelecionadas().forEach(c -> {
-            controller.adicionarItem(new VendaItemModel(
-                    c.getId(), 1, c.getPrecoLoja(), 0));
+            controller.adicionarItem(new VendaItemModel(c.getId(), 1, c.getPrecoLoja(), 0));
             carrinhoModel.addRow(new Object[] {
                     c.getNome(), 1, c.getPrecoLoja(), 0.0,
                     c.getPrecoLoja(), 0.0, ""
             });
         });
+
         atualizarTodosTotais();
     }
 
-    /* ---------- Recalcula totais linha a linha ---------- */
     private void atualizarTodosTotais() {
+        // Evita “metade commitada” quando ENTER finaliza durante edição
+        if (carrinhoTable.isEditing()) {
+            try {
+                carrinhoTable.getCellEditor().stopCellEditing();
+            } catch (Exception ignored) {
+            }
+        }
+
         double totalVenda = 0, totalDesc = 0;
+
         for (int r = 0; r < carrinhoModel.getRowCount(); r++) {
-            int qtd = (Integer) carrinhoModel.getValueAt(r, 1);
-            double unit = (Double) carrinhoModel.getValueAt(r, 2);
-            double pct = (Double) carrinhoModel.getValueAt(r, 3);
+            int qtd = safeInt(carrinhoModel.getValueAt(r, 1));
+            double unit = safeDouble(carrinhoModel.getValueAt(r, 2));
+            double pct = safeDouble(carrinhoModel.getValueAt(r, 3));
+
             double bruto = qtd * unit;
             double descV = bruto * pct / 100.0;
             double tot = bruto - descV;
+
             carrinhoModel.setValueAt(tot, r, 4);
             carrinhoModel.setValueAt(descV, r, 5);
+
             totalVenda += tot;
             totalDesc += descV;
-            // Atualiza model na lista do controller
-            VendaItemModel m = controller.getCarrinho().get(r);
-            m.setQtd(qtd);
-            m.setPreco(unit);
-            m.setDesconto(pct);
+
+            if (r < controller.getCarrinho().size()) {
+                VendaItemModel m = controller.getCarrinho().get(r);
+                m.setQtd(qtd);
+                m.setPreco(unit);
+                m.setDesconto(pct);
+            }
         }
-        resumoLbl.setText(String.format("Total: R$ %.2f | Desconto: R$ %.2f",
-                totalVenda, totalDesc));
+
+        NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        resumoLbl.setText("Total: " + cf.format(totalVenda) + " | Desconto: " + cf.format(totalDesc));
+    }
+
+    private int safeInt(Object o) {
+        if (o instanceof Number n)
+            return Math.max(0, n.intValue());
+        return 0;
+    }
+
+    private double safeDouble(Object o) {
+        if (o instanceof Number n) {
+            double v = n.doubleValue();
+            if (Double.isNaN(v) || Double.isInfinite(v) || v < 0)
+                return 0.0;
+            return v;
+        }
+        return 0.0;
     }
 
     private void atualizarResumo() {
         atualizarTodosTotais();
     }
 
-    /* ---------- Excluir linha ---------- */
     private void excluirLinhaSelecionada() {
         int r = carrinhoTable.getSelectedRow();
         if (r < 0) {
             AlertUtils.info("Selecione uma linha.");
             return;
         }
-        controller.getCarrinho().remove(r);
+        if (r < controller.getCarrinho().size()) {
+            controller.getCarrinho().remove(r);
+        }
         carrinhoModel.removeRow(r);
         atualizarResumo();
     }
 
-    /* ---------- Finalizar ---------- */
     private void finalizarVenda() {
+        if (carrinhoTable.isEditing()) {
+            try {
+                carrinhoTable.getCellEditor().stopCellEditing();
+            } catch (Exception ignored) {
+            }
+        }
+
         if (controller.getCarrinho().isEmpty()) {
             AlertUtils.error("Carrinho vazio!");
             return;
         }
+
         String nomeCliente = ((String) clienteCombo.getEditor().getItem()).trim();
         String clienteId = clienteDAO.obterIdPorNome(nomeCliente);
         if (clienteId == null) {
             AlertUtils.error("Cliente inválido.");
             return;
         }
-        new VendaFinalizarDialog(this, controller, clienteId, painelPai)
-                .setVisible(true);
+
+        new VendaFinalizarDialog(this, controller, clienteId, painelPai).setVisible(true);
     }
 
-    // Adicione no final da classe VendaNovaDialog
-private void abrirCadastroCliente() {
-    ClienteCadastroDialog dlg = new ClienteCadastroDialog(SwingUtilities.getWindowAncestor(this), null);
-    dlg.setVisible(true);
+    private void abrirCadastroCliente() {
+        Window w = SwingUtilities.getWindowAncestor(this);
+        ClienteCadastroDialog dlg = new ClienteCadastroDialog(w, null);
+        dlg.setVisible(true);
 
-    // Após fechamento, atualiza a lista de clientes
-    List<String> nomes = clienteDAO.listarTodosNomes();
-    clienteCombo.setModel(new DefaultComboBoxModel<>(nomes.toArray(new String[0])));
+        List<String> nomes = clienteDAO.listarTodosNomes();
+        clienteCombo.setModel(new DefaultComboBoxModel<>(nomes.toArray(new String[0])));
 
-    // Define como selecionado o último adicionado (por padrão)
-    if (!nomes.isEmpty()) {
-        clienteCombo.setSelectedItem(nomes.get(nomes.size() - 1));
+        if (!nomes.isEmpty()) {
+            clienteCombo.setSelectedItem(nomes.get(nomes.size() - 1));
+        }
     }
-}
-
 }

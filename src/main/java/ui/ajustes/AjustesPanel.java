@@ -1,25 +1,25 @@
 package ui.ajustes;
 
+import util.UiKit;
+
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 
 // Dialogs de configuração do sistema
 import ui.ajustes.dialog.ConfigLojaDialog;
 import ui.ajustes.dialog.ConfigImpressaoDialog;
-import ui.ajustes.dialog.ConfigFinanceiroDialog;
 import ui.ajustes.dialog.ConfigSistemaDialog;
 
-// CRUDs de cadastros gerais
+// CRUDs e painéis
 import ui.ajustes.painel.UsuarioPainel;
 import ui.ajustes.painel.FornecedorPainel;
 import ui.ajustes.painel.CategoriaProdutoPainel;
 import ui.ajustes.painel.NcmPainel;
-import ui.ajustes.painel.CondicaoPainel;
-import ui.ajustes.painel.IdiomaPainel;
 import ui.ajustes.painel.PlanoContaPainel;
-import ui.ajustes.painel.TipoCartaPainel;
 import ui.ajustes.painel.PromocaoPainel;
 import ui.ajustes.painel.ClienteVipPainel;
+
 import service.SessaoService;
 import ui.ajustes.dialog.CartaAtributosDialog;
 import ui.ajustes.dialog.TaxaCartaoDialog;
@@ -27,65 +27,139 @@ import ui.ajustes.dialog.TaxaCartaoDialog;
 public class AjustesPanel extends JPanel {
 
     public AjustesPanel() {
-        setLayout(new BorderLayout());
-        setBackground(new Color(43, 43, 43)); // fundo dark
+        setLayout(new BorderLayout(10, 10));
+        UiKit.applyPanelBase(this);
 
-        JLabel titulo = new JLabel("⚙️ Ajustes do Sistema", SwingConstants.CENTER);
-        titulo.setFont(new Font("Segoe UI Emoji", Font.BOLD, 22));
-        titulo.setForeground(Color.WHITE);
-        titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
-        add(titulo, BorderLayout.NORTH);
+        // ===== Header =====
+        JPanel headerCard = UiKit.card();
+        headerCard.setLayout(new BorderLayout(8, 4));
 
-        JPanel container = new JPanel(new GridLayout(0, 2, 16, 16));
-        container.setBorder(BorderFactory.createEmptyBorder(16, 32, 32, 32));
-        container.setBackground(new Color(43, 43, 43));
+        JLabel titulo = UiKit.title("⚙️ Ajustes do Sistema");
+        JLabel subtitulo = UiKit.hint("Configurações gerais, fiscal, impressão, usuários e cadastros.");
+
+        JPanel headerText = new JPanel(new GridLayout(0, 1, 0, 2));
+        headerText.setOpaque(false);
+        headerText.add(titulo);
+        headerText.add(subtitulo);
+
+        headerCard.add(headerText, BorderLayout.WEST);
+
+        add(headerCard, BorderLayout.NORTH);
+
+        // ===== Grid de ações =====
+        JPanel grid = new JPanel(new GridLayout(0, 2, 12, 12));
+        grid.setOpaque(false);
+        grid.setBorder(new EmptyBorder(2, 2, 2, 2));
 
         // ==== CONFIGURAÇÕES DO SISTEMA ====
-        container.add(criarBotao("🛍 Dados da Loja", () -> new ConfigLojaDialog(null).setVisible(true)));
-        container.add(criarBotao("🖨 Impressão e PDF", () -> new ConfigImpressaoDialog(null).setVisible(true)));
-        container.add(criarBotao("🧾 Plano de Contas", () -> new PlanoContaPainel().abrir()));
-        container.add(criarBotao("🗄 Backup e Sistema", () -> new ConfigSistemaDialog(null).setVisible(true)));
+        grid.add(tile("🛍 Dados da Loja", "Cadastro fiscal, CSC, certificado, endereço",
+                () -> new ConfigLojaDialog(null).setVisible(true)));
+
+        grid.add(tile("🖨 Impressão e PDF", "Impressoras, cupom/PDF, preferências",
+                () -> new ConfigImpressaoDialog(null).setVisible(true)));
+
+        grid.add(tile("🧾 Plano de Contas", "Categorias financeiras e estrutura contábil",
+                () -> new PlanoContaPainel().abrir()));
+
+        grid.add(tile("🗄 Backup e Sistema", "Backup, preferências e parâmetros do sistema",
+                () -> new ConfigSistemaDialog(null).setVisible(true)));
+
         if (SessaoService.isAdmin()) {
-            container.add(criarBotao("👥 Usuários e Permissões", () -> new UsuarioPainel().abrir()));
+            grid.add(tile("👥 Usuários e Permissões", "Acesso, permissões e administração",
+                    () -> new UsuarioPainel().abrir()));
+        } else {
+            // mantém a grade “cheia” e evita buraco visual quando não-admin
+            grid.add(tileDisabled("👥 Usuários e Permissões", "Disponível apenas para admin"));
         }
 
         // ==== CADASTROS GERAIS ====
-        container.add(criarBotao("🚚 Fornecedores", () -> {
-            // abre o painel de fornecedores
-            new ui.ajustes.painel.FornecedorPainel().abrir();
-        }));
-        container.add(criarBotao("📦 Temas de interface", () -> new CategoriaProdutoPainel().abrir()));
-        container.add(criarBotao("📑 Configuracao Fiscal", () -> new NcmPainel().abrir()));
-        container.add(criarBotao("💳 Taxas do Cartão", () -> new TaxaCartaoDialog(null).setVisible(true)));
-        container.add(criarBotao("🃏 Atributos da Carta", () -> new CartaAtributosDialog(null).setVisible(true)));
-        container.add(criarBotao("🏷 Promoções e Descontos", () -> new PromocaoPainel().abrir()));
-        container.add(criarBotao("⭐ Clientes VIP", () -> new ClienteVipPainel().abrir()));
+        grid.add(tile("🚚 Fornecedores", "Cadastro e gestão de fornecedores",
+                () -> new FornecedorPainel().abrir()));
 
-        add(new JScrollPane(container), BorderLayout.CENTER);
+        grid.add(tile("🎨 Categorias / Interface", "Categorias e organização visual",
+                () -> new CategoriaProdutoPainel().abrir()));
+
+        grid.add(tile("📑 Configuração Fiscal", "NCM/CFOP/CSOSN e cadastros fiscais",
+                () -> new NcmPainel().abrir()));
+
+        grid.add(tile("💳 Taxas do Cartão", "Taxas por bandeira, parcelas e mês",
+                () -> new TaxaCartaoDialog(null).setVisible(true)));
+
+        grid.add(tile("🃏 Atributos da Carta", "Tipos, raridades e atributos do catálogo",
+                () -> new CartaAtributosDialog(null).setVisible(true)));
+
+        grid.add(tile("🏷 Promoções e Descontos", "Regras de preço e promoções",
+                () -> new PromocaoPainel().abrir()));
+
+        grid.add(tile("⭐ Clientes VIP", "Regras e benefícios para clientes especiais",
+                () -> new ClienteVipPainel().abrir()));
+
+        // ===== Scroll do grid =====
+        JScrollPane sp = UiKit.scroll(grid);
+        sp.setBorder(null); // o card já “molda” o visual
+        add(sp, BorderLayout.CENTER);
     }
 
-    private JButton criarBotao(String texto, Runnable acao) {
-        JButton btn = new JButton(texto);
-        btn.setFocusPainted(false);
-        btn.setBackground(new Color(60, 63, 65));
-        btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 15));
-        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(200, 40));
-        btn.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+    private JComponent tile(String title, String desc, Runnable action) {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        btn.addActionListener(e -> acao.run());
+        JLabel t = new JLabel(title);
+        t.putClientProperty("FlatLaf.style", "font: +1;");
 
-        btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                btn.setBackground(new Color(75, 78, 80));
-            }
+        JLabel d = UiKit.hint(desc);
 
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                btn.setBackground(new Color(60, 63, 65));
+        JPanel text = new JPanel(new GridLayout(0, 1, 0, 2));
+        text.setOpaque(false);
+        text.add(t);
+        text.add(d);
+
+        JButton abrir = UiKit.primary("Abrir");
+        abrir.addActionListener(e -> action.run());
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        right.setOpaque(false);
+        right.add(abrir);
+
+        card.add(text, BorderLayout.CENTER);
+        card.add(right, BorderLayout.EAST);
+
+        // Clicar no card também abre
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                action.run();
             }
         });
 
-        return btn;
+        return card;
+    }
+
+    private JComponent tileDisabled(String title, String desc) {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JLabel t = new JLabel(title);
+        t.putClientProperty("FlatLaf.style", "font: +1;");
+
+        JLabel d = UiKit.hint(desc);
+
+        JButton abrir = UiKit.ghost("Bloqueado");
+        abrir.setEnabled(false);
+
+        JPanel text = new JPanel(new GridLayout(0, 1, 0, 2));
+        text.setOpaque(false);
+        text.add(t);
+        text.add(d);
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        right.setOpaque(false);
+        right.add(abrir);
+
+        card.setEnabled(false);
+        card.add(text, BorderLayout.CENTER);
+        card.add(right, BorderLayout.EAST);
+        return card;
     }
 }

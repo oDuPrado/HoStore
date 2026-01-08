@@ -1,144 +1,182 @@
-// ui/ajustes/dialog/LoginDialog.java
 package ui.ajustes.dialog;
 
 import dao.UsuarioDAO;
 import model.UsuarioModel;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.Arrays;
 
 public class LoginDialog extends JDialog {
-    private final JTextField tfUsuario = new JTextField(15);
-    private final JPasswordField pfSenha = new JPasswordField(15);
+    private final JTextField tfUsuario = new JTextField(18);
+    private final JPasswordField pfSenha = new JPasswordField(18);
     private final UsuarioDAO dao = new UsuarioDAO();
     private UsuarioModel usuarioLogado;
 
     public LoginDialog(Frame owner) {
         super(owner, "Login - HoStore", true);
-        // 👉 Define cor de fundo geral como branca
-        getContentPane().setBackground(Color.WHITE);
 
-        // ============ Painel principal (container) ============
-        JPanel container = new JPanel(new GridBagLayout());
-        container.setBackground(Color.WHITE); // 👉 fundo branco
-        container.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // 👉 padding externo
+        UiKit.applyDialogBase(this);
 
-        GridBagConstraints gbcContainer = new GridBagConstraints();
-        gbcContainer.insets = new Insets(5, 5, 5, 5);
-        gbcContainer.anchor = GridBagConstraints.CENTER;
-        gbcContainer.fill = GridBagConstraints.HORIZONTAL;
-        gbcContainer.gridx = 0;
-        gbcContainer.gridy = 0;
+        setLayout(new BorderLayout(10, 10));
+        ((JComponent) getContentPane()).setBorder(new EmptyBorder(16, 16, 16, 16));
 
-        // ============ Cabeçalho (título) ============
-        JLabel lblTitle = new JLabel("Bem-vindo ao HoStore");
-        lblTitle.setFont(new Font("SansSerif", Font.BOLD, 18)); // 👉 fonte maior e em negrito
-        lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTitle.setForeground(new Color(50, 50, 50));
+        // ===================== CARD =====================
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(12, 12));
+        add(card, BorderLayout.CENTER);
 
-        gbcContainer.gridy = 0;
-        gbcContainer.gridwidth = 2;
-        container.add(lblTitle, gbcContainer);
+        // ===================== HEADER =====================
+        JPanel header = new JPanel(new GridLayout(0, 1, 0, 2));
+        header.setOpaque(false);
+        header.add(UiKit.title("Bem-vindo ao HoStore"));
+        header.add(UiKit.hint("Faça login para continuar"));
+        card.add(header, BorderLayout.NORTH);
 
-        // ============ Painel interno com borda ============
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE); // 👉 fundo branco
-        formPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-            "Faça login para continuar",
-            TitledBorder.LEADING,
-            TitledBorder.TOP,
-            new Font("SansSerif", Font.PLAIN, 12),
-            Color.DARK_GRAY
-        )); // 👉 borda leve com título
+        // ===================== FORM =====================
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+        card.add(form, BorderLayout.CENTER);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(6, 6, 6, 6);
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // ===== Linha 1: Label "Usuário" =====
-        gbc.gridy = 0;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
+        // Labels alinhados (largura fixa)
+        Dimension labelSize = new Dimension(90, 26);
         JLabel lblUsuario = new JLabel("Usuário:");
-        lblUsuario.setFont(new Font("SansSerif", Font.BOLD, 12)); // 👉 negrito
-        lblUsuario.setForeground(new Color(60, 60, 60));
-        formPanel.add(lblUsuario, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 1;
-        formPanel.add(tfUsuario, gbc);
-
-        // ===== Linha 2: Label "Senha" =====
-        gbc.gridy = 1;
-        gbc.gridx = 0;
-        gbc.weightx = 0;
         JLabel lblSenha = new JLabel("Senha:");
-        lblSenha.setFont(new Font("SansSerif", Font.BOLD, 12)); // 👉 negrito
-        lblSenha.setForeground(new Color(60, 60, 60));
-        formPanel.add(lblSenha, gbc);
+        lblUsuario.setPreferredSize(labelSize);
+        lblSenha.setPreferredSize(labelSize);
+
+        // Campos consistentes
+        Dimension fieldSize = new Dimension(280, 30);
+        tfUsuario.setPreferredSize(fieldSize);
+        tfUsuario.setMinimumSize(fieldSize);
+        pfSenha.setPreferredSize(fieldSize);
+        pfSenha.setMinimumSize(fieldSize);
+
+        // Linha 0 - Usuário
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0;
+        form.add(lblUsuario, gbc);
 
         gbc.gridx = 1;
         gbc.weightx = 1;
-        formPanel.add(pfSenha, gbc);
+        form.add(tfUsuario, gbc);
 
-        // --- Não insira mais o btnEntrar aqui! ---
+        // Linha 1 - Senha
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        form.add(lblSenha, gbc);
 
-        // ============ Adiciona formPanel dentro do container ============
-        gbcContainer.gridy = 1;
-        gbcContainer.gridwidth = 2;
-        container.add(formPanel, gbcContainer);
+        gbc.gridx = 1;
+        gbc.weightx = 1;
+        form.add(pfSenha, gbc);
 
-        // ============ Painel de rodapé (Entrar + Cancelar) ============
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
-        rodape.setBackground(Color.WHITE); // mantém fundo branco
+        // Hint
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 1;
+        gbc.insets = new Insets(0, 6, 2, 6);
+        form.add(UiKit.hint("ENTER para entrar • ESC para cancelar"), gbc);
 
-        // 👉 Botão “Cancelar”
-        JButton btnCancelar = new JButton("Cancelar");
-        btnCancelar.setPreferredSize(new Dimension(100, 30));
-        btnCancelar.addActionListener(e -> dispose());
-        rodape.add(btnCancelar);
+        // ===================== FOOTER BUTTONS =====================
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        footer.setOpaque(false);
+        card.add(footer, BorderLayout.SOUTH);
 
-        // 👉 Botão “Entrar”
-        JButton btnEntrar = new JButton("Entrar");
-        btnEntrar.setPreferredSize(new Dimension(100, 30));
-        // define “Entrar” como botão default (tecla Enter)
+        JButton btnCancelar = UiKit.ghost("Cancelar");
+        JButton btnEntrar = UiKit.primary("Entrar");
+
+        btnCancelar.setPreferredSize(new Dimension(110, 32));
+        btnEntrar.setPreferredSize(new Dimension(110, 32));
+
+        // Default button (ENTER)
         getRootPane().setDefaultButton(btnEntrar);
-        btnEntrar.addActionListener(e -> {
-            try {
-                String usr = tfUsuario.getText().trim();
-                String pwd = new String(pfSenha.getPassword());
-                // Atenção: verifique depois se DAO compara hash corretamente
-                usuarioLogado = dao.buscarPorUsuarioESenha(usr, pwd);
-                if (usuarioLogado != null) {
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                        "Usuário ou senha inválidos",
-                        "Erro", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                JOptionPane.showMessageDialog(this,
-                    "Erro ao conectar ao banco",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
-            }
+
+        // ESC para fechar
+        bindEscapeToClose();
+
+        btnCancelar.addActionListener(e -> dispose());
+        btnEntrar.addActionListener(e -> autenticar());
+
+        footer.add(btnCancelar);
+        footer.add(btnEntrar);
+
+        // UX: foco inicial
+        SwingUtilities.invokeLater(() -> {
+            tfUsuario.requestFocusInWindow();
+            tfUsuario.selectAll();
         });
-        rodape.add(btnEntrar);
 
-        // ============ Adiciona rodape ao container ============
-        gbcContainer.gridy = 2;
-        gbcContainer.gridwidth = 2;
-        container.add(rodape, gbcContainer);
-
-        // ============ Configurações finais do Dialog ============
-        add(container);
         pack();
         setResizable(false);
         setLocationRelativeTo(owner);
+    }
+
+    private void bindEscapeToClose() {
+        JRootPane root = getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke("ESCAPE"), "close");
+        am.put("close", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+    }
+
+    private void autenticar() {
+        String usr = tfUsuario.getText().trim();
+        char[] pwdChars = pfSenha.getPassword();
+
+        try {
+            if (usr.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Informe o usuário.",
+                        "Login", JOptionPane.WARNING_MESSAGE);
+                tfUsuario.requestFocusInWindow();
+                return;
+            }
+            if (pwdChars.length == 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Informe a senha.",
+                        "Login", JOptionPane.WARNING_MESSAGE);
+                pfSenha.requestFocusInWindow();
+                return;
+            }
+
+            String pwd = new String(pwdChars); // DAO ainda exige String (vida triste)
+            usuarioLogado = dao.buscarPorUsuarioESenha(usr, pwd);
+
+            if (usuarioLogado != null) {
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Usuário ou senha inválidos.",
+                        "Login", JOptionPane.ERROR_MESSAGE);
+                pfSenha.requestFocusInWindow();
+                pfSenha.selectAll();
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao autenticar:\n" + ex.getMessage(),
+                    "Login", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            // limpa senha da memória (não é magia, mas é melhor que nada)
+            Arrays.fill(pwdChars, '\0');
+        }
     }
 
     public UsuarioModel getUsuarioLogado() {
