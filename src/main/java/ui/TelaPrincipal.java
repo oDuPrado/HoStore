@@ -26,7 +26,7 @@ import ui.comandas.painel.PainelComandas;
 
 public class TelaPrincipal extends JFrame {
 
-    private static final String VERSION = "1.0.0";
+    private static final String VERSION = "1.1.23";
 
     private JPanel painelHeader;
     private JPanel painelTabs;
