@@ -2,23 +2,20 @@ package ui.clientes.dialog;
 
 import model.ClienteModel;
 import service.ClienteService;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * ClienteCadastroDialog (versão definitiva ajustada para FlatLaf)
- *
- * - Não força cores fixas em painéis ou botões.
- * - Deixa o FlatLaf (claro/escuro) aplicar o estilo nativo.
- * - Mantém posicional (null layout) para reproduzir o layout original.
+ * ClienteCadastroDialog (visual alinhado ao UiKit)
+ * - Remove null layout/undecorated/fade
+ * - Mantém a mesma lógica de salvar/validar
  */
 public class ClienteCadastroDialog extends JDialog {
 
@@ -35,144 +32,189 @@ public class ClienteCadastroDialog extends JDialog {
     private boolean salvou;
     private ClienteModel clienteModel;
 
-    /* ----------------- CONSTRUTOR ----------------- */
     public ClienteCadastroDialog(Window parent, ClienteModel existente) {
         super(parent, "Cadastro de Cliente", ModalityType.APPLICATION_MODAL);
 
-        // Deixa a janela sem decoração (só ficará a borda que definimos abaixo)
-        setUndecorated(true);
-        setSize(500, 520);
+        UiKit.applyDialogBase(this);
+
+        setSize(760, 560);
         setLocationRelativeTo(parent);
+        setLayout(new BorderLayout(10, 10));
+        setResizable(false);
 
-        // Coloca uma borda cinza clara ao redor da janela para destacar no tema escuro/claro
-        getRootPane().setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180)));
-
-        // O setBackground abaixo era usado para tornar o dialog transparente, 
-        // mas não vamos forçar cores. Comentado para herdar tema:
-        // setBackground(new Color(0, 0, 0, 0));
-
-        // Vamos usar um painel com layout null (posicional) para reproduzir o layout original,
-        // mas NÃO definiremos cor de fundo: o FlatLaf decidirá.
-        JPanel content = new JPanel(null);
-        // Removido: content.setBackground(Color.WHITE);
-        add(content);
-
-        /* ----- Carrega ou cria o model ----- */
         clienteModel = (existente == null) ? novoModelo() : existente;
 
-        /* ----- Variáveis de posição e tamanhofixo ----- */
-        int h = 30;   // altura padrão dos campos
-        int y = 20;   // posição Y inicial
-        int dy = 10;  // espaçamento vertical entre campos
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildForm(), BorderLayout.CENTER);
+        add(buildFooter(), BorderLayout.SOUTH);
 
-        int lx = 20;  // posição X de labels
-        int cx = 150; // posição X de campos
-        int lw = 120; // largura dos labels
-        int cw = 300; // largura dos campos
+        preencherCamposDoModel();
 
-        /* ------------------ CAMPO NOME ------------------ */
-        content.add(label("Nome:", lx, y, lw, h));
-        txtNome = new JTextField(clienteModel.getNome());
-        txtNome.setBounds(cx, y, cw, h);
-        content.add(txtNome);
-        y += h + dy;
-
-        /* ------------------ CAMPO TELEFONE ------------------ */
-        content.add(label("Telefone:", lx, y, lw, h));
-        txtTelefone = campoMascara("(##) #####-####", clienteModel.getTelefone());
-        txtTelefone.setBounds(cx, y, cw, h);
-        content.add(txtTelefone);
-        y += h + dy;
-
-        /* ------------------ CAMPO CPF ------------------ */
-        content.add(label("CPF:", lx, y, lw, h));
-        txtCPF = campoMascara("###.###.###-##", clienteModel.getCpf());
-        txtCPF.setBounds(cx, y, cw, h);
-        content.add(txtCPF);
-        y += h + dy;
-
-        /* ------------------ CAMPO DATA NASCIMENTO ------------------ */
-        content.add(label("Data Nasc.:", lx, y, lw, h));
-        txtDataNasc = campoMascara("##/##/####", clienteModel.getDataNasc());
-        txtDataNasc.setBounds(cx, y, cw, h);
-        content.add(txtDataNasc);
-        y += h + dy;
-
-        /* ------------------ CAMPO TIPO ------------------ */
-        content.add(label("Tipo:", lx, y, lw, h));
-        comboTipo = new JComboBox<>(new String[] { "Colecionador", "Jogador", "Ambos" });
-        comboTipo.setSelectedItem(clienteModel.getTipo());
-        comboTipo.setBounds(cx, y, cw, h);
-        content.add(comboTipo);
-        y += h + dy;
-
-        /* ------------------ CAMPO ENDEREÇO ------------------ */
-        content.add(label("Endereço:", lx, y, lw, h));
-        txtEndereco = new JTextField(clienteModel.getEndereco());
-        txtEndereco.setBounds(cx, y, cw, h);
-        content.add(txtEndereco);
-        y += h + dy;
-
-        /* ------------------ CAMPO CIDADE ------------------ */
-        content.add(label("Cidade:", lx, y, lw, h));
-        txtCidade = new JTextField(clienteModel.getCidade());
-        txtCidade.setBounds(cx, y, cw, h);
-        content.add(txtCidade);
-        y += h + dy;
-
-        /* ------------------ CAMPO ESTADO ------------------ */
-        content.add(label("Estado:", lx, y, lw, h));
-        comboEstado = new JComboBox<>(UF);
-        comboEstado.setSelectedItem(clienteModel.getEstado());
-        comboEstado.setBounds(cx, y, cw, h);
-        content.add(comboEstado);
-        y += h + dy;
-
-        /* ------------------ CAMPO OBSERVAÇÕES ------------------ */
-        content.add(label("Observações:", lx, y, lw, h));
-        txtObservacoes = new JTextArea(clienteModel.getObservacoes());
-        txtObservacoes.setLineWrap(true);
-        txtObservacoes.setWrapStyleWord(true);
-        JScrollPane scObs = new JScrollPane(txtObservacoes);
-        // Removido: scObs.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        scObs.setBounds(cx, y, cw, 60);
-        content.add(scObs);
-
-        /* --------- PAINEL DE BOTÕES (RODAPÉ) --------- */
-        JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        rodape.setBounds(0, 420, 500, 50);
-        // Removido: rodape.setBackground(Color.WHITE);
-        content.add(rodape);
-
-        // Botões agora usam método criarBotao para herdar estilo do tema
-        rodape.add(criarBotao("Salvar", e -> salvar(false)));
-        rodape.add(criarBotao("Salvar + Novo", e -> salvar(true)));
-        rodape.add(criarBotao("Cancelar", e -> {
-            salvou = false;
-            dispose();
-        }));
-
-        /* --------- Efeito de Fade‐In --------- */
-        Timer t = new Timer(30, null);
-        final float[] opacidade = { 0f };
-        t.addActionListener(e -> {
-            opacidade[0] += 0.08f;
-            if (opacidade[0] >= 1f) {
-                opacidade[0] = 1f;
-                t.stop();
-            }
-            setOpacity(opacidade[0]);
-        });
-        setOpacity(0f);
-        t.start();
+        bindKeys();
+        SwingUtilities.invokeLater(() -> txtNome.requestFocusInWindow());
     }
 
-    /* ----------------- SALVAR (CRIAR OU ATUALIZAR) ----------------- */
+    private JComponent buildHeader() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        left.setOpaque(false);
+
+        String titulo = (clienteModel != null && clienteModel.getId() != null)
+                ? "👤 Cliente"
+                : "👤 Cadastro de Cliente";
+
+        left.add(UiKit.title(titulo));
+        left.add(UiKit.hint("Preencha os dados e salve. CPF não pode duplicar."));
+        card.add(left, BorderLayout.WEST);
+
+        JLabel right = UiKit.hint("Enter salva | Esc cancela");
+        card.add(right, BorderLayout.EAST);
+
+        return card;
+    }
+
+    private JComponent buildForm() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setOpaque(false);
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6, 6, 6, 6);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+
+        txtNome = new JTextField();
+        txtTelefone = campoMascara("(##) #####-####", "");
+        txtCPF = campoMascara("###.###.###-##", "");
+        txtDataNasc = campoMascara("##/##/####", "");
+        comboTipo = new JComboBox<>(new String[] { "Colecionador", "Jogador", "Ambos" });
+        txtEndereco = new JTextField();
+        txtCidade = new JTextField();
+        comboEstado = new JComboBox<>(UF);
+
+        txtObservacoes = new JTextArea(5, 34);
+        txtObservacoes.setLineWrap(true);
+        txtObservacoes.setWrapStyleWord(true);
+        JScrollPane spObs = UiKit.scroll(txtObservacoes);
+        spObs.setPreferredSize(new Dimension(520, 140));
+
+        // placeholders (FlatLaf)
+        txtNome.putClientProperty("JTextField.placeholderText", "Nome completo");
+        txtTelefone.putClientProperty("JTextField.placeholderText", "(##) #####-####");
+        txtCPF.putClientProperty("JTextField.placeholderText", "###.###.###-##");
+        txtDataNasc.putClientProperty("JTextField.placeholderText", "dd/mm/aaaa");
+        txtEndereco.putClientProperty("JTextField.placeholderText", "Rua, número, bairro");
+        txtCidade.putClientProperty("JTextField.placeholderText", "Cidade");
+
+        // Linha 1: Nome (full)
+        addRow(form, g, 0, "Nome:", txtNome, true);
+
+        // Linha 2: Telefone | CPF
+        addRow2(form, g, 1, "Telefone:", txtTelefone, "CPF:", txtCPF);
+
+        // Linha 3: Data nasc | Tipo
+        addRow2(form, g, 2, "Data Nasc.:", txtDataNasc, "Tipo:", comboTipo);
+
+        // Linha 4: Endereço (full)
+        addRow(form, g, 3, "Endereço:", txtEndereco, true);
+
+        // Linha 5: Cidade | Estado
+        addRow2(form, g, 4, "Cidade:", txtCidade, "Estado:", comboEstado);
+
+        // Linha 6: Observações
+        g.gridy = 5;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        g.anchor = GridBagConstraints.NORTHWEST;
+        form.add(new JLabel("Observações:"), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.gridwidth = 3;
+        g.fill = GridBagConstraints.BOTH;
+        g.weighty = 1;
+        form.add(spObs, g);
+
+        card.add(form, BorderLayout.CENTER);
+        card.add(UiKit.hint("Dica: cliente “Ambos” é o padrão bom para quem joga e coleciona."), BorderLayout.SOUTH);
+
+        return card;
+    }
+
+    private JComponent buildFooter() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        actions.setOpaque(false);
+
+        JButton btnCancelar = UiKit.ghost("Cancelar (ESC)");
+        btnCancelar.addActionListener(e -> {
+            salvou = false;
+            dispose();
+        });
+
+        JButton btnSalvarNovo = UiKit.ghost("Salvar + Novo");
+        btnSalvarNovo.addActionListener(e -> salvar(true));
+
+        JButton btnSalvar = UiKit.primary("Salvar (ENTER)");
+        btnSalvar.addActionListener(e -> salvar(false));
+
+        actions.add(btnCancelar);
+        actions.add(btnSalvarNovo);
+        actions.add(btnSalvar);
+
+        card.add(actions, BorderLayout.EAST);
+
+        // default button
+        getRootPane().setDefaultButton(btnSalvar);
+
+        return card;
+    }
+
+    private void bindKeys() {
+        InputMap im = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = getRootPane().getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancelar");
+        am.put("cancelar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                salvou = false;
+                dispose();
+            }
+        });
+    }
+
+    private void preencherCamposDoModel() {
+        txtNome.setText(nvl(clienteModel.getNome()));
+        txtTelefone.setText(nvl(clienteModel.getTelefone()));
+        txtCPF.setText(nvl(clienteModel.getCpf()));
+        txtDataNasc.setText(nvl(clienteModel.getDataNasc()));
+        comboTipo.setSelectedItem(clienteModel.getTipo() != null ? clienteModel.getTipo() : "Ambos");
+        txtEndereco.setText(nvl(clienteModel.getEndereco()));
+        txtCidade.setText(nvl(clienteModel.getCidade()));
+        comboEstado.setSelectedItem(clienteModel.getEstado() != null ? clienteModel.getEstado() : "MS");
+        txtObservacoes.setText(nvl(clienteModel.getObservacoes()));
+    }
+
+    private static String nvl(String s) {
+        return s == null ? "" : s;
+    }
+
+    /* ===================== SALVAR (LÓGICA ORIGINAL) ===================== */
+
     private void salvar(boolean novoApos) {
         String nome = txtNome.getText().trim();
         String cpf = txtCPF.getText().replaceAll("\\D", "");
 
-        // Validações básicas
         if (nome.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nome é obrigatório!");
             return;
@@ -181,7 +223,7 @@ public class ClienteCadastroDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "CPF inválido.");
             return;
         }
-        // Verifica duplicidade de CPF em outro cliente
+
         List<ClienteModel> todos = ClienteService.loadAll();
         boolean duplicado = todos.stream()
                 .anyMatch(c -> c.getCpf().replaceAll("\\D", "").equals(cpf)
@@ -191,7 +233,6 @@ public class ClienteCadastroDialog extends JDialog {
             return;
         }
 
-        // Preenche o model com os valores dos campos
         clienteModel.setNome(nome);
         clienteModel.setCpf(txtCPF.getText());
         clienteModel.setTelefone(txtTelefone.getText());
@@ -201,33 +242,25 @@ public class ClienteCadastroDialog extends JDialog {
         clienteModel.setCidade(txtCidade.getText());
         clienteModel.setEstado((String) comboEstado.getSelectedItem());
         clienteModel.setObservacoes(txtObservacoes.getText());
-        // Exemplo de preenchimento de metadata (data/hora fixa)
+
         clienteModel.setAlteradoEm("2025-04-16 10:10");
         clienteModel.setAlteradoPor("admin");
 
-        // Persiste no serviço/DAO
         ClienteService.upsert(clienteModel);
         salvou = true;
 
         if (novoApos) {
-            // Fecha este e abre outro novo
             dispose();
             new ClienteCadastroDialog(
-                    SwingUtilities.getWindowAncestor(getParent()), null
-            ).setVisible(true);
+                    SwingUtilities.getWindowAncestor(getParent()),
+                    null).setVisible(true);
         } else {
             dispose();
         }
     }
 
-    /* ----------------- HELPER: cria JLabel posicionado ----------------- */
-    private JLabel label(String texto, int x, int y, int w, int h) {
-        JLabel l = new JLabel(texto);
-        l.setBounds(x, y, w, h);
-        return l;
-    }
+    /* ===================== HELPERS UI ===================== */
 
-    /* ----------------- HELPER: cria JFormattedTextField com máscara ----------------- */
     private JFormattedTextField campoMascara(String mask, String valorInicial) {
         try {
             MaskFormatter mf = new MaskFormatter(mask);
@@ -236,23 +269,56 @@ public class ClienteCadastroDialog extends JDialog {
             f.setText(valorInicial == null ? "" : valorInicial);
             return f;
         } catch (ParseException e) {
-            // Se der erro na máscara, retorna um campo genérico
             return new JFormattedTextField(valorInicial);
         }
     }
 
-    /* ----------------- HELPER: cria JButton neutro (herdando estilo do tema) ----------------- */
-    private JButton criarBotao(String texto, ActionListener acao) {
-        JButton b = new JButton(texto);
-        b.setFocusPainted(false);
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.addActionListener(acao);
-        // Não definimos setBackground nem setForeground:
-        // → o FlatLaf aplicará automaticamente o estilo correto (claro/escuro).
-        return b;
+    private void addRow(JPanel p, GridBagConstraints g, int row, String label, JComponent field, boolean full) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        p.add(new JLabel(label), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.gridwidth = full ? 3 : 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        p.add(field, g);
     }
 
-    /* ----------------- AUXILIAR: cria um novo model vazio ----------------- */
+    private void addRow2(JPanel p, GridBagConstraints g, int row,
+            String l1, JComponent f1,
+            String l2, JComponent f2) {
+        g.gridy = row;
+
+        g.gridx = 0;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        p.add(new JLabel(l1), g);
+
+        g.gridx = 1;
+        g.weightx = 1;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        p.add(f1, g);
+
+        g.gridx = 2;
+        g.weightx = 0;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.NONE;
+        p.add(new JLabel(l2), g);
+
+        g.gridx = 3;
+        g.weightx = 1;
+        g.gridwidth = 1;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        p.add(f2, g);
+    }
+
     private ClienteModel novoModelo() {
         ClienteModel m = new ClienteModel();
         m.setId("C-" + UUID.randomUUID().toString().substring(0, 5));
@@ -269,10 +335,9 @@ public class ClienteCadastroDialog extends JDialog {
         return clienteModel;
     }
 
-    /* ----------------- LISTA DE UNIDADES FEDERATIVAS ----------------- */
     private static final String[] UF = {
-        "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS",
-        "MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC",
-        "SE","SP","TO"
+            "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS",
+            "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC",
+            "SE", "SP", "TO"
     };
 }

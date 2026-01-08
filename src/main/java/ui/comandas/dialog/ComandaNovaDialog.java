@@ -5,9 +5,9 @@ import service.ComandaService;
 import service.SessaoService;
 import ui.clientes.dialog.ClienteCadastroDialog;
 import util.AlertUtils;
+import util.UiKit;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class ComandaNovaDialog extends JDialog {
     // UI
     private final JCheckBox cbAvulso = new JCheckBox("Sem cadastro (Avulso)");
     private final JComboBox<String> cbClientes = new JComboBox<>();
-    private final JButton btnAddCliente = new JButton("➕");
+    private final JButton btnAddCliente = UiKit.ghost("➕");
 
     private final JTextField tfNomeAvulso = new JTextField(25);
     private final JTextField tfMesa = new JTextField(12);
@@ -30,50 +30,50 @@ public class ComandaNovaDialog extends JDialog {
     public ComandaNovaDialog(Window owner) {
         super(owner, "Nova Comanda", ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(640, 420);
+
+        UiKit.applyDialogBase(this);
+
+        setSize(740, 500);
         setLocationRelativeTo(owner);
-
-        ((JComponent) getContentPane()).setBorder(new EmptyBorder(12, 12, 12, 12));
         setLayout(new BorderLayout(10, 10));
+        setResizable(false);
 
-        add(buildHeader(), BorderLayout.NORTH);
-        add(buildForm(), BorderLayout.CENTER);
-        add(buildBottom(), BorderLayout.SOUTH);
+        add(buildHeaderCard(), BorderLayout.NORTH);
+        add(buildFormCard(), BorderLayout.CENTER);
+        add(buildBottomCard(), BorderLayout.SOUTH);
 
         carregarClientesNoCombo();
         configurarComportamento();
 
-        // estado inicial
         atualizarModoCliente();
 
         SwingUtilities.invokeLater(() -> {
-            if (cbClientes.isEnabled()) cbClientes.requestFocusInWindow();
-            else tfNomeAvulso.requestFocusInWindow();
+            if (cbClientes.isEnabled())
+                cbClientes.requestFocusInWindow();
+            else
+                tfNomeAvulso.requestFocusInWindow();
         });
     }
 
-    private JComponent buildHeader() {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
+    private JComponent buildHeaderCard() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
 
-        JLabel title = new JLabel("🧾 Abrir Comanda");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-
-        JLabel sub = new JLabel("Vincule um cliente cadastrado ou abra como avulso.");
-        sub.setForeground(UIManager.getColor("Label.disabledForeground"));
-
-        JPanel left = new JPanel(new GridLayout(2, 1, 0, 2));
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
         left.setOpaque(false);
-        left.add(title);
-        left.add(sub);
+        left.add(UiKit.title("🧾 Abrir Comanda"));
+        left.add(UiKit.hint("Vincule um cliente cadastrado ou abra como avulso"));
+        card.add(left, BorderLayout.WEST);
 
-        p.add(left, BorderLayout.WEST);
-        return p;
+        JLabel right = UiKit.hint("Enter cria | Esc cancela");
+        card.add(right, BorderLayout.EAST);
+
+        return card;
     }
 
-    private JComponent buildForm() {
-        JPanel wrap = new JPanel(new BorderLayout(10, 10));
-        wrap.setOpaque(false);
+    private JComponent buildFormCard() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
@@ -82,18 +82,30 @@ public class ComandaNovaDialog extends JDialog {
         g.insets = new Insets(6, 6, 6, 6);
         g.anchor = GridBagConstraints.WEST;
         g.fill = GridBagConstraints.HORIZONTAL;
-        g.weightx = 1;
+
+        // consistência de altura
+        enforceFieldSize(cbClientes, 420);
+        enforceFieldSize(tfNomeAvulso, 420);
+        enforceFieldSize(tfMesa, 200);
+        btnAddCliente.setToolTipText("Cadastrar novo cliente");
+        btnAddCliente.setMargin(new Insets(2, 8, 2, 8));
+
+        taObs.setLineWrap(true);
+        taObs.setWrapStyleWord(true);
 
         int y = 0;
 
         // Linha: modo (cadastrado/avulso)
-        g.gridx = 0; g.gridy = y; g.gridwidth = 2;
+        g.gridx = 0;
+        g.gridy = y;
+        g.gridwidth = 2;
         form.add(cbAvulso, g);
         y++;
 
         // Linha: cliente cadastrado (combo + botão)
         g.gridwidth = 1;
-        g.gridx = 0; g.gridy = y;
+        g.gridx = 0;
+        g.gridy = y;
         form.add(new JLabel("Cliente:"), g);
 
         JPanel clienteRow = new JPanel(new BorderLayout(6, 0));
@@ -102,17 +114,15 @@ public class ComandaNovaDialog extends JDialog {
         cbClientes.setEditable(true);
         cbClientes.setPrototypeDisplayValue("Nome bem grande só pra manter o layout estável");
         clienteRow.add(cbClientes, BorderLayout.CENTER);
-
-        btnAddCliente.setToolTipText("Cadastrar novo cliente");
-        btnAddCliente.setMargin(new Insets(2, 8, 2, 8));
         clienteRow.add(btnAddCliente, BorderLayout.EAST);
 
         g.gridx = 1;
         form.add(clienteRow, g);
         y++;
 
-        // Linha: nome avulso (só aparece quando avulso marcado)
-        g.gridx = 0; g.gridy = y;
+        // Linha: nome avulso
+        g.gridx = 0;
+        g.gridy = y;
         form.add(new JLabel("Nome (avulso):"), g);
 
         g.gridx = 1;
@@ -120,7 +130,8 @@ public class ComandaNovaDialog extends JDialog {
         y++;
 
         // Linha: mesa
-        g.gridx = 0; g.gridy = y;
+        g.gridx = 0;
+        g.gridy = y;
         form.add(new JLabel("Mesa:"), g);
 
         g.gridx = 1;
@@ -128,54 +139,47 @@ public class ComandaNovaDialog extends JDialog {
         y++;
 
         // Linha: observações
-        g.gridx = 0; g.gridy = y;
+        g.gridx = 0;
+        g.gridy = y;
         g.anchor = GridBagConstraints.NORTHWEST;
         form.add(new JLabel("Observações:"), g);
 
-        taObs.setLineWrap(true);
-        taObs.setWrapStyleWord(true);
-
-        JScrollPane sp = new JScrollPane(taObs);
-        sp.setPreferredSize(new Dimension(420, 140));
-
         g.gridx = 1;
-        form.add(sp, g);
+        g.weightx = 1;
+        g.weighty = 1;
+        g.fill = GridBagConstraints.BOTH;
 
-        wrap.add(form, BorderLayout.NORTH);
+        JScrollPane spObs = UiKit.scroll(taObs);
+        spObs.setPreferredSize(new Dimension(520, 160));
+        form.add(spObs, g);
 
-        // dica visual
+        card.add(form, BorderLayout.CENTER);
+
         JPanel tip = new JPanel(new BorderLayout());
         tip.setOpaque(false);
-        JLabel hint = new JLabel("Dica: você pode digitar no campo de cliente pra buscar rápido.");
-        hint.setForeground(UIManager.getColor("Label.disabledForeground"));
-        tip.add(hint, BorderLayout.WEST);
+        tip.add(UiKit.hint("Dica: digite no campo de cliente para buscar rápido (combo editável)."), BorderLayout.WEST);
+        card.add(tip, BorderLayout.SOUTH);
 
-        wrap.add(tip, BorderLayout.SOUTH);
-
-        return wrap;
+        return card;
     }
 
-    private JComponent buildBottom() {
-        JPanel bottom = new JPanel(new BorderLayout());
-        bottom.setOpaque(false);
+    private JComponent buildBottomCard() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
 
-        JLabel info = new JLabel("Enter cria | Esc cancela");
-        info.setForeground(UIManager.getColor("Label.disabledForeground"));
-        bottom.add(info, BorderLayout.WEST);
-
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
         actions.setOpaque(false);
 
-        JButton btnCancelar = new JButton("Cancelar");
+        JButton btnCancelar = UiKit.ghost("Cancelar (ESC)");
         btnCancelar.addActionListener(e -> dispose());
 
-        JButton btnCriar = new JButton("✅ Criar Comanda");
+        JButton btnCriar = UiKit.primary("✅ Criar Comanda (ENTER)");
         btnCriar.addActionListener(e -> criar());
 
         actions.add(btnCancelar);
         actions.add(btnCriar);
 
-        bottom.add(actions, BorderLayout.EAST);
+        card.add(actions, BorderLayout.EAST);
 
         // atalhos
         getRootPane().setDefaultButton(btnCriar);
@@ -185,12 +189,13 @@ public class ComandaNovaDialog extends JDialog {
 
         im.put(KeyStroke.getKeyStroke("ESCAPE"), "cancelar");
         am.put("cancelar", new AbstractAction() {
-            @Override public void actionPerformed(java.awt.event.ActionEvent e) {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 btnCancelar.doClick();
             }
         });
 
-        return bottom;
+        return card;
     }
 
     private void configurarComportamento() {
@@ -198,7 +203,7 @@ public class ComandaNovaDialog extends JDialog {
 
         btnAddCliente.addActionListener(e -> abrirCadastroCliente());
 
-        // Enter no campo mesa cria (porque humano gosta de ser rápido)
+        // Enter no campo mesa cria
         tfMesa.addActionListener(e -> criar());
     }
 
@@ -210,7 +215,6 @@ public class ComandaNovaDialog extends JDialog {
 
         tfNomeAvulso.setEnabled(avulso);
 
-        // “limpeza” de UX
         if (avulso) {
             cbClientes.setSelectedItem(null);
             tfNomeAvulso.requestFocusInWindow();
@@ -218,9 +222,6 @@ public class ComandaNovaDialog extends JDialog {
             tfNomeAvulso.setText("");
             cbClientes.requestFocusInWindow();
         }
-
-        // se quiser esconder visualmente, dá pra usar setVisible,
-        // mas aqui só desabilitar já resolve sem bagunçar layout.
     }
 
     private void carregarClientesNoCombo() {
@@ -228,16 +229,14 @@ public class ComandaNovaDialog extends JDialog {
             List<String> nomes = clienteDAO.listarTodosNomes();
             DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
 
-            // opcional: deixa “Avulso” explícito pra quem não quer cadastrar
             m.addElement("AVULSO");
-
-            for (String n : nomes) m.addElement(n);
+            for (String n : nomes)
+                m.addElement(n);
 
             cbClientes.setModel(m);
             cbClientes.setSelectedItem(nomes.isEmpty() ? "AVULSO" : nomes.get(0));
         } catch (Exception e) {
-            // sem drama, mas avisa
-            cbClientes.setModel(new DefaultComboBoxModel<>(new String[]{"AVULSO"}));
+            cbClientes.setModel(new DefaultComboBoxModel<>(new String[] { "AVULSO" }));
         }
     }
 
@@ -247,20 +246,18 @@ public class ComandaNovaDialog extends JDialog {
             ClienteCadastroDialog dlg = new ClienteCadastroDialog(w, null);
             dlg.setVisible(true);
 
-            // atualiza lista depois do cadastro
             List<String> nomes = clienteDAO.listarTodosNomes();
             DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
             m.addElement("AVULSO");
-            for (String n : nomes) m.addElement(n);
+            for (String n : nomes)
+                m.addElement(n);
 
             cbClientes.setModel(m);
 
-            // seleciona o último cadastrado por padrão
-            if (!nomes.isEmpty()) {
+            if (!nomes.isEmpty())
                 cbClientes.setSelectedItem(nomes.get(nomes.size() - 1));
-            } else {
+            else
                 cbClientes.setSelectedItem("AVULSO");
-            }
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -277,12 +274,13 @@ public class ComandaNovaDialog extends JDialog {
             String nomeCliente;
 
             if (avulso) {
-                clienteId = "AVULSO"; // pra não estourar FK
+                clienteId = "AVULSO";
                 nomeCliente = trimOrNull(tfNomeAvulso.getText());
             } else {
                 String nomeSelecionado = null;
                 Object item = cbClientes.getEditor().getItem();
-                if (item != null) nomeSelecionado = item.toString();
+                if (item != null)
+                    nomeSelecionado = item.toString();
 
                 nomeSelecionado = trimOrNull(nomeSelecionado);
 
@@ -300,7 +298,7 @@ public class ComandaNovaDialog extends JDialog {
                         AlertUtils.error("Cliente inválido. Cadastre o cliente ou selecione outro.");
                         return;
                     }
-                    nomeCliente = nomeSelecionado; // opcional, mas ajuda no histórico
+                    nomeCliente = nomeSelecionado;
                 }
             }
 
@@ -312,8 +310,7 @@ public class ComandaNovaDialog extends JDialog {
                     nomeCliente,
                     mesa,
                     obs,
-                    usuario
-            );
+                    usuario);
 
             this.comandaIdCriada = id;
             dispose();
@@ -324,12 +321,19 @@ public class ComandaNovaDialog extends JDialog {
     }
 
     private static String trimOrNull(String s) {
-        if (s == null) return null;
+        if (s == null)
+            return null;
         String v = s.trim();
         return v.isEmpty() ? null : v;
     }
 
     public Integer getComandaIdCriada() {
         return comandaIdCriada;
+    }
+
+    private void enforceFieldSize(JComponent c, int prefWidth) {
+        Dimension d = c.getPreferredSize();
+        c.setPreferredSize(new Dimension(Math.max(d.width, prefWidth), 30));
+        c.setMinimumSize(new Dimension(140, 30));
     }
 }

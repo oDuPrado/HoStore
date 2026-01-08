@@ -9,13 +9,18 @@ import model.VendaItemModel;
 import service.ComandaService;
 import service.SessaoService;
 import ui.venda.dialog.VendaFinalizarDialog;
+import util.UiKit;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 
 import controller.VendaController;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.util.List;
 
 public class ComandaDetalhesDialog extends JDialog {
@@ -48,66 +53,200 @@ public class ComandaDetalhesDialog extends JDialog {
         super(owner, "Comanda #" + comandaId, ModalityType.APPLICATION_MODAL);
         this.comandaId = comandaId;
 
-        setSize(900, 600);
+        UiKit.applyDialogBase(this);
+
+        setSize(980, 660);
         setLocationRelativeTo(owner);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
 
-        itensTable.setRowHeight(26);
-        pagTable.setRowHeight(26);
+        configurarTabelas();
 
-        JPanel top = new JPanel(new BorderLayout());
-        lblTopo.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        top.add(lblTopo, BorderLayout.WEST);
-        top.add(lblTotais, BorderLayout.EAST);
+        add(buildTopCard(), BorderLayout.NORTH);
+        add(buildCenterCard(), BorderLayout.CENTER);
+        add(buildBottomCard(), BorderLayout.SOUTH);
 
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                new JScrollPane(itensTable),
-                new JScrollPane(pagTable));
-        split.setResizeWeight(0.65);
-
-        add(top, BorderLayout.NORTH);
-        add(split, BorderLayout.CENTER);
-        add(buildBottom(), BorderLayout.SOUTH);
+        bindKeys();
 
         carregarTudo();
     }
 
-    private JPanel buildBottom() {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+    /* ===================== VISUAL ===================== */
 
-        JButton btnAddItem = new JButton("➕ Item");
+    private JComponent buildTopCard() {
+        JPanel topCard = UiKit.card();
+        topCard.setLayout(new BorderLayout(10, 10));
+
+        // Esquerda: título + hint
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        left.setOpaque(false);
+
+        lblTopo.setFont(lblTopo.getFont().deriveFont(Font.BOLD, 15f));
+        left.add(lblTopo);
+        left.add(UiKit.hint("Itens em cima | Pagamentos embaixo | Se fechar como venda, vira venda normal"));
+
+        topCard.add(left, BorderLayout.WEST);
+
+        // Direita: totais
+        lblTotais.setFont(lblTotais.getFont().deriveFont(Font.BOLD, 13f));
+        topCard.add(lblTotais, BorderLayout.EAST);
+
+        return topCard;
+    }
+
+    private JComponent buildCenterCard() {
+        JPanel centerCard = UiKit.card();
+        centerCard.setLayout(new BorderLayout(8, 8));
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(UiKit.title("Detalhes"), BorderLayout.WEST);
+        centerCard.add(header, BorderLayout.NORTH);
+
+        JSplitPane split = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                UiKit.scroll(itensTable),
+                UiKit.scroll(pagTable));
+        split.setResizeWeight(0.65);
+        split.setBorder(null);
+        split.setOpaque(false);
+
+        centerCard.add(split, BorderLayout.CENTER);
+        return centerCard;
+    }
+
+    private JComponent buildBottomCard() {
+        JPanel bottomCard = UiKit.card();
+        bottomCard.setLayout(new BorderLayout(10, 10));
+
+        // Grupo esquerda (itens)
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+        left.setOpaque(false);
+
+        JButton btnAddItem = UiKit.primary("➕ Item");
         btnAddItem.addActionListener(e -> {
             new ComandaItemDialog(this, comandaId).setVisible(true);
             carregarTudo();
         });
 
-        JButton btnRemItem = new JButton("🗑 Remover Item");
+        JButton btnRemItem = UiKit.ghost("🗑 Remover Item");
         btnRemItem.addActionListener(e -> removerItemSelecionado());
 
-        JButton btnFechar = new JButton("✅ Fechar");
-        btnFechar.addActionListener(e -> fechar(false));
+        left.add(btnAddItem);
+        left.add(btnRemItem);
 
-        JButton btnFecharPendente = new JButton("🕒 Fechar Pendente");
-        btnFecharPendente.addActionListener(e -> fechar(true));
+        // Grupo direita (fechamento)
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        right.setOpaque(false);
 
-        JButton btnPagamento = new JButton("💳 Fechar Comanda");
+        JButton btnPagamento = UiKit.primary("💳 Fechar como Venda");
         btnPagamento.addActionListener(e -> abrirPagamento());
 
-        JButton btnCancelar = new JButton("⛔ Cancelar");
+        JButton btnFechar = UiKit.ghost("✅ Fechar");
+        btnFechar.addActionListener(e -> fechar(false));
+
+        JButton btnFecharPendente = UiKit.ghost("🕒 Fechar Pendente");
+        btnFecharPendente.addActionListener(e -> fechar(true));
+
+        JButton btnCancelar = UiKit.ghost("⛔ Cancelar");
         btnCancelar.addActionListener(e -> cancelarComanda());
 
-        JButton btnSair = new JButton("Sair");
+        JButton btnSair = UiKit.ghost("Sair (ESC)");
         btnSair.addActionListener(e -> dispose());
 
-        p.add(btnAddItem);
-        p.add(btnRemItem);
-        p.add(btnPagamento);
-        p.add(btnFechar);
-        p.add(btnFecharPendente);
-        p.add(btnCancelar);
-        p.add(btnSair);
-        return p;
+        right.add(btnPagamento);
+        right.add(btnFechar);
+        right.add(btnFecharPendente);
+        right.add(btnCancelar);
+        right.add(btnSair);
+
+        bottomCard.add(left, BorderLayout.WEST);
+        bottomCard.add(right, BorderLayout.EAST);
+
+        return bottomCard;
     }
+
+    private void configurarTabelas() {
+        UiKit.tableDefaults(itensTable);
+        UiKit.tableDefaults(pagTable);
+
+        // Zebra em tudo
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        for (int i = 0; i < itensTable.getColumnCount(); i++) {
+            itensTable.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
+        for (int i = 0; i < pagTable.getColumnCount(); i++) {
+            pagTable.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
+
+        // Alinhamento: Qtd e valores à direita (sem mudar conteúdo)
+        DefaultTableCellRenderer zebraRight = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean sel, boolean focus, int row,
+                    int col) {
+                JLabel l = (JLabel) zebra.getTableCellRendererComponent(t, v, sel, focus, row, col);
+                l.setHorizontalAlignment(SwingConstants.RIGHT);
+                return l;
+            }
+        };
+
+        // Itens: Qtd + colunas monetárias à direita
+        itensTable.getColumnModel().getColumn(2).setCellRenderer(zebraRight);
+        itensTable.getColumnModel().getColumn(3).setCellRenderer(zebraRight);
+        itensTable.getColumnModel().getColumn(4).setCellRenderer(zebraRight);
+        itensTable.getColumnModel().getColumn(5).setCellRenderer(zebraRight);
+        itensTable.getColumnModel().getColumn(6).setCellRenderer(zebraRight);
+
+        // Pagamentos: Valor à direita
+        pagTable.getColumnModel().getColumn(2).setCellRenderer(zebraRight);
+
+        // Ajuste de larguras (só estética)
+        TableColumnModel it = itensTable.getColumnModel();
+        it.getColumn(0).setPreferredWidth(60); // ItemID
+        it.getColumn(1).setPreferredWidth(320); // Produto
+        it.getColumn(2).setPreferredWidth(60); // Qtd
+        it.getColumn(3).setPreferredWidth(90); // Preço
+        it.getColumn(4).setPreferredWidth(90); // Desc
+        it.getColumn(5).setPreferredWidth(90); // Acr
+        it.getColumn(6).setPreferredWidth(90); // Total
+
+        TableColumnModel pg = pagTable.getColumnModel();
+        pg.getColumn(0).setPreferredWidth(60); // PgID
+        pg.getColumn(1).setPreferredWidth(140); // Tipo
+        pg.getColumn(2).setPreferredWidth(110); // Valor
+        pg.getColumn(3).setPreferredWidth(190); // Data
+        pg.getColumn(4).setPreferredWidth(180); // Usuário
+
+        itensTable.setRowHeight(30);
+        pagTable.setRowHeight(30);
+
+        itensTable.setAutoCreateRowSorter(true);
+        pagTable.setAutoCreateRowSorter(true);
+    }
+
+    private void bindKeys() {
+        JRootPane root = getRootPane();
+        InputMap im = root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap am = root.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "sair");
+        am.put("sair", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "refresh");
+        am.put("refresh", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                carregarTudo();
+            }
+        });
+    }
+
+    /* ===================== LÓGICA (INTACTA) ===================== */
 
     private void carregarTudo() {
         try {
@@ -123,7 +262,8 @@ public class ComandaDetalhesDialog extends JDialog {
                     + (c.getMesa() == null ? "—" : c.getMesa())
                     + " | Status: " + c.getStatus());
 
-            lblTotais.setText("Total: " + money(c.getTotalLiquido()) + " | Pago: " + money(c.getTotalPago())
+            lblTotais.setText("Total: " + money(c.getTotalLiquido())
+                    + " | Pago: " + money(c.getTotalPago())
                     + " | Saldo: " + money(c.getSaldo()));
 
             itensModel.setRowCount(0);
@@ -171,7 +311,8 @@ public class ComandaDetalhesDialog extends JDialog {
         if (row < 0)
             return;
 
-        int itemId = (int) itensModel.getValueAt(row, 0);
+        int modelRow = itensTable.convertRowIndexToModel(row);
+        int itemId = (int) itensModel.getValueAt(modelRow, 0);
 
         int ok = JOptionPane.showConfirmDialog(this,
                 "Remover item " + itemId + " da comanda?",
@@ -196,14 +337,14 @@ public class ComandaDetalhesDialog extends JDialog {
                 return;
 
             if ("cancelada".equalsIgnoreCase(c.getStatus())) {
-                JOptionPane.showMessageDialog(this, "Comanda cancelada não pode ser fechada como venda.", "Aviso",
-                        JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this,
+                        "Comanda cancelada não pode ser fechada como venda.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             String usuario = (SessaoService.get() != null) ? SessaoService.get().getNome() : "sistema";
 
-            // 1) Pega itens da comanda (usando o método REAL: listarItens(comandaId, conn))
             List<ComandaItemModel> itensComanda;
             try (var conn = util.DB.get()) {
                 itensComanda = service.listarItens(comandaId, conn);
@@ -214,7 +355,6 @@ public class ComandaDetalhesDialog extends JDialog {
                 return;
             }
 
-            // 2) Monta controller de venda com carrinho carregado
             VendaController vendaController = new VendaController();
 
             for (ComandaItemModel ci : itensComanda) {
@@ -222,13 +362,8 @@ public class ComandaDetalhesDialog extends JDialog {
                 vi.setProdutoId(ci.getProdutoId());
                 vi.setQtd(ci.getQtd());
 
-                // Preço base do item (unitário)
                 double precoUnit = ci.getPreco();
 
-                // Se a comanda usa desconto/acréscimo como VALOR (e não %), convertemos para
-                // efetivo.
-                // Total item = qtd*preco - desconto + acrescimo.
-                // Então preço efetivo unitário = (total_item / qtd).
                 int qtd = ci.getQtd();
                 if (qtd > 0) {
                     double totalEfetivo = ci.getTotalItem();
@@ -238,19 +373,12 @@ public class ComandaDetalhesDialog extends JDialog {
                     vi.setPreco(precoUnit);
                 }
 
-                // VendaFinalizarDialog trata desconto como %, então aqui não faz sentido jogar
-                // valor.
-                // Como a comanda já “embutiu” desconto/acréscimo no total efetivo, deixamos % =
-                // 0.
                 vi.setDesconto(0.0);
-
                 vendaController.adicionarItem(vi);
             }
 
-            // 3) Cliente da comanda (fallback AVULSO)
             String clienteId = (c.getClienteId() == null || c.getClienteId().isBlank()) ? "AVULSO" : c.getClienteId();
 
-            // 4) Abre finalizar venda (painelPai = null)
             VendaFinalizarDialog dlg = new VendaFinalizarDialog(
                     this,
                     vendaController,
@@ -258,7 +386,6 @@ public class ComandaDetalhesDialog extends JDialog {
                     null);
             dlg.setVisible(true);
 
-            // 5) Se gerou venda, fecha comanda e vincula venda
             Integer vendaId = dlg.getVendaIdGerada();
             if (vendaId != null) {
                 service.fecharComandaComVenda(comandaId, vendaId, usuario);

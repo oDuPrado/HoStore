@@ -5,11 +5,13 @@ import service.ClienteService;
 import service.CreditoLojaService;
 import ui.clientes.dialog.ClienteCadastroDialog;
 import ui.clientes.dialog.CreditoLojaDialog;
+import util.UiKit;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -17,9 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * PainelClientes (versão definitiva ajustada para FlatLaf)
+ * PainelClientes (visual alinhado ao UiKit)
  *
- * Inclui agora coluna "Crédito" e botão para gerenciar crédito de loja.
+ * Mantém a lógica original. Só muda layout/estilo.
  */
 public class PainelClientes extends JPanel {
 
@@ -27,33 +29,42 @@ public class PainelClientes extends JPanel {
     private JTextField txtCpf;
     private JTextField txtCidade;
     private JComboBox<String> comboTipo;
+
     private JTable tabela;
     private DefaultTableModel modelo;
     private List<ClienteModel> lista;
+
     private final CreditoLojaService creditoService = new CreditoLojaService();
 
     public PainelClientes() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
+        UiKit.applyPanelBase(this);
 
-        // Carrega lista inicial de clientes
+        // Carrega lista inicial
         lista = ClienteService.loadAll();
 
-        // Adiciona painel de filtros (com placeholders) no topo
-        add(criarPainelFiltro(), BorderLayout.NORTH);
-        // Adiciona painel de tabela no centro
-        add(criarPainelTabela(), BorderLayout.CENTER);
+        add(criarTopo(), BorderLayout.NORTH);
+        add(criarCentro(), BorderLayout.CENTER);
+        add(criarRodape(), BorderLayout.SOUTH);
 
-        // Popula tabela inicialmente
         atualizarTabela();
     }
 
-    /* ---------- PAINEL DE FILTRO COM GRIDBAGLAYOUT ---------- */
-    private JPanel criarPainelFiltro() {
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder("Filtros de Busca"),
-                new EmptyBorder(8, 8, 8, 8)));
-        
+    /* ===================== TOP (FILTROS) ===================== */
+
+    private JComponent criarTopo() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        left.setOpaque(false);
+        left.add(UiKit.title("👥 Clientes"));
+        left.add(UiKit.hint("Filtre por nome/CPF/cidade/tipo. Crédito aparece na listagem."));
+        card.add(left, BorderLayout.WEST);
+
+        JPanel filtros = new JPanel(new GridBagLayout());
+        filtros.setOpaque(false);
+
         GridBagConstraints gc = new GridBagConstraints();
         gc.insets = new Insets(4, 6, 4, 6);
         gc.fill = GridBagConstraints.HORIZONTAL;
@@ -61,115 +72,185 @@ public class PainelClientes extends JPanel {
 
         txtNome = new JTextField(12);
         txtNome.putClientProperty("JTextField.placeholderText", "Nome do cliente");
-        gc.gridx = 0; gc.weightx = 0; p.add(new JLabel("Nome:"), gc);
-        gc.gridx = 1; gc.weightx = 0.25; p.add(txtNome, gc);
 
         txtCpf = new JTextField(12);
         txtCpf.putClientProperty("JTextField.placeholderText", "CPF");
-        gc.gridx = 2; gc.weightx = 0; p.add(new JLabel("CPF:"), gc);
-        gc.gridx = 3; gc.weightx = 0.2; p.add(txtCpf, gc);
 
         txtCidade = new JTextField(12);
         txtCidade.putClientProperty("JTextField.placeholderText", "Cidade");
-        gc.gridx = 4; gc.weightx = 0; p.add(new JLabel("Cidade:"), gc);
-        gc.gridx = 5; gc.weightx = 0.2; p.add(txtCidade, gc);
 
         comboTipo = new JComboBox<>(new String[] { "Todos", "Colecionador", "Jogador", "Ambos" });
-        gc.gridx = 6; gc.weightx = 0; p.add(new JLabel("Tipo:"), gc);
-        gc.gridx = 7; gc.weightx = 0.15; p.add(comboTipo, gc);
 
-        JButton filtrar = criarBotao("🔍 Filtrar", e -> atualizarTabela());
-        gc.gridx = 8; gc.weightx = 0; p.add(filtrar, gc);
+        JButton filtrar = UiKit.primary("🔍 Filtrar");
+        filtrar.addActionListener(e -> atualizarTabela());
 
-        return p;
+        // Linha única, com pesos equilibrados
+        gc.gridx = 0;
+        gc.weightx = 0;
+        filtros.add(new JLabel("Nome:"), gc);
+        gc.gridx = 1;
+        gc.weightx = 0.30;
+        filtros.add(txtNome, gc);
+
+        gc.gridx = 2;
+        gc.weightx = 0;
+        filtros.add(new JLabel("CPF:"), gc);
+        gc.gridx = 3;
+        gc.weightx = 0.18;
+        filtros.add(txtCpf, gc);
+
+        gc.gridx = 4;
+        gc.weightx = 0;
+        filtros.add(new JLabel("Cidade:"), gc);
+        gc.gridx = 5;
+        gc.weightx = 0.18;
+        filtros.add(txtCidade, gc);
+
+        gc.gridx = 6;
+        gc.weightx = 0;
+        filtros.add(new JLabel("Tipo:"), gc);
+        gc.gridx = 7;
+        gc.weightx = 0.16;
+        filtros.add(comboTipo, gc);
+
+        gc.gridx = 8;
+        gc.weightx = 0;
+        filtros.add(filtrar, gc);
+
+        card.add(filtros, BorderLayout.SOUTH);
+
+        // UX: Enter em qualquer campo aciona filtro
+        ActionListener act = e -> atualizarTabela();
+        txtNome.addActionListener(act);
+        txtCpf.addActionListener(act);
+        txtCidade.addActionListener(act);
+
+        return card;
     }
 
-    /* ---------- PAINEL DA TABELA DE CLIENTES ---------- */
-    private JPanel criarPainelTabela() {
+    /* ===================== CENTER (TABELA) ===================== */
+
+    private JComponent criarCentro() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(8, 8));
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(UiKit.title("Lista de Clientes"), BorderLayout.WEST);
+        header.add(UiKit.hint("Clique em ✏️ para editar, 🗑️ para excluir"), BorderLayout.EAST);
+
+        card.add(header, BorderLayout.NORTH);
+
         // Agora com coluna "Crédito" antes de Editar/Excluir
         modelo = new DefaultTableModel(
                 new String[] { "Nome", "CPF", "Cidade", "Tipo", "Crédito", "Editar", "Excluir" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                // Só as colunas de Editar(5) e Excluir(6) são editáveis (botões)
                 return col >= 5;
             }
         };
 
         tabela = new JTable(modelo);
-        tabela.setRowHeight(24);
-        tabela.setShowHorizontalLines(true);
-        tabela.setShowVerticalLines(false);
-        tabela.setFont(tabela.getFont().deriveFont(10f));
-        tabela.setGridColor(new Color(200, 200, 200));
-        
-        // Renderer para coluna de Crédito (alinhado à direita e formatado)
+        UiKit.tableDefaults(tabela);
+
+        // Zebra geral
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        for (int i = 0; i < tabela.getColumnCount(); i++) {
+            tabela.getColumnModel().getColumn(i).setCellRenderer(zebra);
+        }
+
+        // Renderer Crédito (direita, bold) mantendo zebra
         DefaultTableCellRenderer creditoRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
-                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                setHorizontalAlignment(SwingConstants.RIGHT);
-                setFont(getFont().deriveFont(Font.BOLD));
-                return this;
+                JLabel l = (JLabel) zebra.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                        column);
+                l.setHorizontalAlignment(SwingConstants.RIGHT);
+                l.setFont(l.getFont().deriveFont(Font.BOLD));
+                return l;
             }
         };
         tabela.getColumn("Crédito").setCellRenderer(creditoRenderer);
 
-        // Renderizadores e editores para os botões
+        // Botões
         tabela.getColumn("Editar").setCellRenderer(new BtnRenderer("✏️"));
         tabela.getColumn("Excluir").setCellRenderer(new BtnRenderer("🗑️"));
         tabela.getColumn("Editar").setCellEditor(new BtnEditor(true));
         tabela.getColumn("Excluir").setCellEditor(new BtnEditor(false));
-        
-        // Redimensionar colunas de botões
-        tabela.getColumn("Editar").setMaxWidth(50);
-        tabela.getColumn("Editar").setMinWidth(50);
-        tabela.getColumn("Excluir").setMaxWidth(50);
-        tabela.getColumn("Excluir").setMinWidth(50);
 
-        JScrollPane sp = new JScrollPane(tabela);
-        sp.setBorder(BorderFactory.createTitledBorder("Clientes Cadastrados"));
+        // Larguras
+        TableColumnModel tcm = tabela.getColumnModel();
+        tcm.getColumn(0).setPreferredWidth(220); // Nome
+        tcm.getColumn(1).setPreferredWidth(120); // CPF
+        tcm.getColumn(2).setPreferredWidth(140); // Cidade
+        tcm.getColumn(3).setPreferredWidth(120); // Tipo
+        tcm.getColumn(4).setPreferredWidth(110); // Crédito
+        tcm.getColumn(5).setMaxWidth(60);
+        tcm.getColumn(5).setMinWidth(60);
+        tcm.getColumn(6).setMaxWidth(60);
+        tcm.getColumn(6).setMinWidth(60);
 
-        // Botões organizados em grid
-        JButton novo = criarBotao("➕ Novo Cliente", e -> abrirDialog(null));
-        JButton importarCsv = criarBotao("📥 Importar CSV", e -> importarClientes());
-        JButton importarJson = criarBotao("📥 Importar JSON", e -> importarJson());
-        JButton exportarCsv = criarBotao("📤 Exportar CSV", e -> exportarCsv());
-        JButton exportarJson = criarBotao("📤 Exportar JSON", e -> exportarJson());
-        JButton btnCredito = criarBotao("💰 Gerenciar Crédito", e -> abrirCredito());
+        tabela.setRowHeight(30);
+        tabela.setAutoCreateRowSorter(true);
 
-        JPanel rodape = new JPanel(new GridBagLayout());
-        rodape.setBorder(new EmptyBorder(10, 10, 10, 10));
-        GridBagConstraints gc = new GridBagConstraints();
-        gc.insets = new Insets(4, 4, 4, 4);
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.gridy = 0;
-        gc.weightx = 0.16;
+        card.add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
-        gc.gridx = 0; rodape.add(novo, gc);
-        gc.gridx = 1; rodape.add(importarCsv, gc);
-        gc.gridx = 2; rodape.add(importarJson, gc);
-        gc.gridx = 3; rodape.add(exportarCsv, gc);
-        gc.gridx = 4; rodape.add(exportarJson, gc);
-        gc.gridx = 5; rodape.add(btnCredito, gc);
-
-        JPanel painel = new JPanel(new BorderLayout(8, 8));
-        painel.setBorder(new EmptyBorder(8, 8, 8, 8));
-        painel.add(sp, BorderLayout.CENTER);
-        painel.add(rodape, BorderLayout.SOUTH);
-
-        return painel;
+        return card;
     }
 
-    /* ---------- ATUALIZAÇÃO DA TABELA ---------- */
+    /* ===================== BOTTOM (AÇÕES) ===================== */
+
+    private JComponent criarRodape() {
+        JPanel card = UiKit.card();
+        card.setLayout(new BorderLayout(10, 10));
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 6));
+        actions.setOpaque(false);
+
+        JButton novo = UiKit.primary("➕ Novo Cliente");
+        novo.addActionListener(e -> abrirDialog(null));
+
+        JButton btnCredito = UiKit.ghost("💰 Gerenciar Crédito");
+        btnCredito.addActionListener(e -> abrirCredito());
+
+        JButton importarCsv = UiKit.ghost("📥 Importar CSV");
+        importarCsv.addActionListener(e -> importarClientes());
+
+        JButton importarJson = UiKit.ghost("📥 Importar JSON");
+        importarJson.addActionListener(e -> importarJson());
+
+        JButton exportarCsv = UiKit.ghost("📤 Exportar CSV");
+        exportarCsv.addActionListener(e -> exportarCsv());
+
+        JButton exportarJson = UiKit.ghost("📤 Exportar JSON");
+        exportarJson.addActionListener(e -> exportarJson());
+
+        actions.add(novo);
+        actions.add(btnCredito);
+        actions.add(importarCsv);
+        actions.add(importarJson);
+        actions.add(exportarCsv);
+        actions.add(exportarJson);
+
+        card.add(actions, BorderLayout.EAST);
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 6));
+        left.setOpaque(false);
+        left.add(UiKit.hint("Dica: selecione um cliente para gerenciar crédito."));
+        card.add(left, BorderLayout.WEST);
+
+        return card;
+    }
+
+    /* ===================== LÓGICA (IGUAL) ===================== */
+
     private void atualizarTabela() {
         String fNome = txtNome.getText().toLowerCase();
         String fCpf = txtCpf.getText().toLowerCase();
         String fCid = txtCidade.getText().toLowerCase();
         String fTipo = (String) comboTipo.getSelectedItem();
 
-        // Filtra a lista
         List<ClienteModel> filtrados = lista.stream().filter(c -> {
             boolean okNome = c.getNome().toLowerCase().contains(fNome);
             boolean okCpf = c.getCpf().toLowerCase().contains(fCpf);
@@ -186,14 +267,13 @@ public class PainelClientes extends JPanel {
                     c.getCpf(),
                     c.getCidade(),
                     c.getTipo(),
-                    String.format("R$ %.2f", saldo), // coluna Crédito
+                    String.format("R$ %.2f", saldo),
                     "✏️",
                     "🗑️"
             });
         }
     }
 
-    /* ---------- DIÁLOGOS ---------- */
     private void abrirDialog(ClienteModel existente) {
         ClienteCadastroDialog d = new ClienteCadastroDialog(
                 SwingUtilities.getWindowAncestor(this), existente);
@@ -213,20 +293,22 @@ public class PainelClientes extends JPanel {
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String cpf = (String) tabela.getValueAt(row, 1);
+
+        int modelRow = tabela.convertRowIndexToModel(row);
+        String cpf = (String) tabela.getValueAt(modelRow, 1);
+
         ClienteModel cli = lista.stream()
                 .filter(c -> c.getCpf().equals(cpf))
                 .findFirst().orElse(null);
+
         if (cli != null) {
             new CreditoLojaDialog(
                     SwingUtilities.getWindowAncestor(this),
                     cli).setVisible(true);
-            // Atualiza a tabela para refletir novo saldo
             atualizarTabela();
         }
     }
 
-    /* ---------- AÇÕES DE IMPORTAR/EXPORTAR ---------- */
     private void importarClientes() {
         JFileChooser fc = new JFileChooser();
         fc.setDialogTitle("Importar clientes CSV");
@@ -285,28 +367,19 @@ public class PainelClientes extends JPanel {
         }
     }
 
-    /* ---------- CRIADOR DE BOTÃO ESTILIZADO ---------- */
-    private JButton criarBotao(String texto, ActionListener acao) {
-        JButton b = new JButton(texto);
-        b.setBackground(new Color(60, 63, 65));
-        b.setForeground(Color.WHITE);
-        b.setFocusPainted(false);
-        b.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
-        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.setFont(b.getFont().deriveFont(11f));
-        b.addActionListener(acao);
-        return b;
-    }
+    /*
+     * ===================== BOTÕES NA TABELA (MESMA LÓGICA) =====================
+     */
 
-    /* ---------- RENDERER PARA BOTÕES ---------- */
     private class BtnRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         BtnRenderer(String emoji) {
             setText(emoji);
-            setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+            setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
             setFocusPainted(false);
             setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
             setHorizontalAlignment(SwingConstants.CENTER);
             putClientProperty("JButton.buttonType", "square");
+            setOpaque(false);
         }
 
         @Override
@@ -317,7 +390,6 @@ public class PainelClientes extends JPanel {
         }
     }
 
-    /* ---------- EDITOR PARA BOTÕES ---------- */
     private class BtnEditor extends DefaultCellEditor {
         private final boolean editar;
         private final JButton editorComponent;
@@ -325,10 +397,13 @@ public class PainelClientes extends JPanel {
         BtnEditor(boolean editar) {
             super(new JCheckBox());
             this.editar = editar;
+
             JButton btn = new JButton(editar ? "✏️" : "🗑️");
-            btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
+            btn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
             btn.setFocusPainted(false);
-            putClientProperty("JButton.buttonType", "square");
+            btn.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+            btn.putClientProperty("JButton.buttonType", "square");
+
             editorComponent = btn;
             btn.addActionListener(delegate);
         }
@@ -339,12 +414,17 @@ public class PainelClientes extends JPanel {
                 int row = tabela.getSelectedRow();
                 if (row < 0)
                     return;
-                String cpf = (String) tabela.getValueAt(row, 1);
+
+                int modelRow = tabela.convertRowIndexToModel(row);
+                String cpf = (String) tabela.getValueAt(modelRow, 1);
+
                 ClienteModel cli = lista.stream()
                         .filter(c -> c.getCpf().equals(cpf))
                         .findFirst().orElse(null);
+
                 if (cli == null)
                     return;
+
                 if (editar) {
                     abrirDialog(cli);
                 } else {
@@ -358,6 +438,8 @@ public class PainelClientes extends JPanel {
                         atualizarTabela();
                     }
                 }
+
+                fireEditingStopped();
             }
         };
 
@@ -375,9 +457,7 @@ public class PainelClientes extends JPanel {
 
     // ATUALIZAÇÃO EXTERNA
     public void atualizarCliente(String clienteId) {
-        // Recarrega todos os clientes da base (ou poderia otimizar para só esse)
         this.lista = ClienteService.loadAll();
         atualizarTabela();
     }
-
 }
