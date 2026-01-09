@@ -11,7 +11,6 @@ import util.AlertUtils;
 import util.UiKit;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.*;
@@ -59,12 +58,16 @@ public class VendaNovaDialog extends JDialog {
     /* ---------- Resumo ---------- */
     private final JLabel resumoLbl = new JLabel();
 
+    /* ---------- Botão (vira atributo pra bind do ENTER) ---------- */
+    private JButton btnFinalizar;
+
     // Listener automático de atualização
     {
         carrinhoModel.addTableModelListener(e -> {
             int col = e.getColumn();
             if (col >= 1 && col <= 3) {
-                atualizarTodosTotais();
+                // evita recalcular dentro do mesmo "ciclo" de stopCellEditing
+                SwingUtilities.invokeLater(this::atualizarTodosTotais);
             }
         });
     }
@@ -91,8 +94,7 @@ public class VendaNovaDialog extends JDialog {
 
         topCard.add(topLeft, BorderLayout.WEST);
 
-        // ===================== TOP ACTIONS (SEM BRIGA NO CABEÇALHO)
-        // =====================
+        // ===================== TOP ACTIONS =====================
         JPanel topActions = new JPanel(new GridBagLayout());
         topActions.setOpaque(false);
 
@@ -167,6 +169,10 @@ public class VendaNovaDialog extends JDialog {
         personalizarTabela();
         UiKit.tableDefaults(carrinhoTable);
 
+        // IMPORTANTES: evitam ficar preso em edição
+        carrinhoTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        carrinhoTable.setSurrendersFocusOnKeystroke(true);
+
         // Zebra em tudo (inclusive quando não selecionado)
         DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
         for (int i = 0; i < carrinhoTable.getColumnCount(); i++) {
@@ -176,7 +182,7 @@ public class VendaNovaDialog extends JDialog {
         carrinhoTable.getColumnModel().getColumn(4).setCellRenderer(moedaRendererZebra(zebra));
         carrinhoTable.getColumnModel().getColumn(5).setCellRenderer(moedaRendererZebra(zebra));
 
-        // Coluna % desc com destaque (sem “pintar o mundo de amarelo”)
+        // Coluna % desc com destaque
         carrinhoTable.getColumnModel().getColumn(3).setCellRenderer(descRendererZebra(zebra));
 
         carrinhoTable.setRowHeight(30);
@@ -199,7 +205,7 @@ public class VendaNovaDialog extends JDialog {
         JButton btnExcluir = UiKit.ghost("🗑️ Remover (DEL)");
         btnExcluir.addActionListener(e -> excluirLinhaSelecionada());
 
-        JButton btnFinalizar = UiKit.primary("✅ Finalizar (ENTER)");
+        btnFinalizar = UiKit.primary("✅ Finalizar (ENTER)");
         btnFinalizar.addActionListener(e -> finalizarVenda());
 
         botoes.add(btnExcluir);
@@ -239,6 +245,13 @@ public class VendaNovaDialog extends JDialog {
         im.put(KeyStroke.getKeyStroke("ENTER"), "finalizarVenda");
         am.put("finalizarVenda", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
+                // Se estiver editando, tenta parar a edição antes
+                if (carrinhoTable.isEditing()) {
+                    try {
+                        carrinhoTable.getCellEditor().stopCellEditing();
+                    } catch (Exception ignored) {
+                    }
+                }
                 btnFinalizar.doClick();
             }
         });
@@ -261,7 +274,19 @@ public class VendaNovaDialog extends JDialog {
         qtdField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         qtdField.addFocusListener(selAll(qtdField));
 
+        // ENTER no editor: commit + stop + finalizar
+        bindEnterCommitAndFinalize(qtdField);
+
         tcm.getColumn(1).setCellEditor(new DefaultCellEditor(qtdField) {
+            @Override
+            public boolean stopCellEditing() {
+                try {
+                    qtdField.commitEdit();
+                } catch (Exception ignored) {
+                }
+                return super.stopCellEditing();
+            }
+
             @Override
             public Object getCellEditorValue() {
                 return qtdField.getValue();
@@ -282,7 +307,18 @@ public class VendaNovaDialog extends JDialog {
         unitField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         unitField.addFocusListener(selAll(unitField));
 
+        bindEnterCommitAndFinalize(unitField);
+
         tcm.getColumn(2).setCellEditor(new DefaultCellEditor(unitField) {
+            @Override
+            public boolean stopCellEditing() {
+                try {
+                    unitField.commitEdit();
+                } catch (Exception ignored) {
+                }
+                return super.stopCellEditing();
+            }
+
             @Override
             public Object getCellEditorValue() {
                 return unitField.getValue();
@@ -302,7 +338,18 @@ public class VendaNovaDialog extends JDialog {
         pctField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         pctField.addFocusListener(selAll(pctField));
 
+        bindEnterCommitAndFinalize(pctField);
+
         tcm.getColumn(3).setCellEditor(new DefaultCellEditor(pctField) {
+            @Override
+            public boolean stopCellEditing() {
+                try {
+                    pctField.commitEdit();
+                } catch (Exception ignored) {
+                }
+                return super.stopCellEditing();
+            }
+
             @Override
             public Object getCellEditorValue() {
                 return pctField.getValue();
@@ -321,6 +368,37 @@ public class VendaNovaDialog extends JDialog {
         addStopListener(Double.class);
     }
 
+    private void bindEnterCommitAndFinalize(JFormattedTextField field) {
+        InputMap im = field.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap am = field.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "commitAndFinalize");
+        am.put("commitAndFinalize", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    field.commitEdit();
+                } catch (Exception ignored) {
+                }
+
+                // encerra edição do JTable
+                if (carrinhoTable.isEditing()) {
+                    try {
+                        carrinhoTable.getCellEditor().stopCellEditing();
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                // e finaliza (conforme o hint)
+                if (btnFinalizar != null) {
+                    btnFinalizar.doClick();
+                } else {
+                    finalizarVenda();
+                }
+            }
+        });
+    }
+
     private void addStopListener(Class<?> clazz) {
         TableCellEditor ed = carrinhoTable.getDefaultEditor(clazz);
         if (ed == null)
@@ -328,7 +406,7 @@ public class VendaNovaDialog extends JDialog {
 
         ed.addCellEditorListener(new CellEditorListener() {
             public void editingStopped(ChangeEvent e) {
-                atualizarTodosTotais();
+                SwingUtilities.invokeLater(() -> atualizarTodosTotais());
             }
 
             public void editingCanceled(ChangeEvent e) {
@@ -374,7 +452,6 @@ public class VendaNovaDialog extends JDialog {
 
             double desc = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
             if (!isSelected && desc > 0.0) {
-                // sombra suave: reaproveita o fundo atual e dá um "shift"
                 Color bg = l.getBackground();
                 l.setBackground(new Color(
                         Math.min(255, bg.getRed() + 10),
@@ -432,14 +509,6 @@ public class VendaNovaDialog extends JDialog {
     }
 
     private void atualizarTodosTotais() {
-        // Evita “metade commitada” quando ENTER finaliza durante edição
-        if (carrinhoTable.isEditing()) {
-            try {
-                carrinhoTable.getCellEditor().stopCellEditing();
-            } catch (Exception ignored) {
-            }
-        }
-
         double totalVenda = 0, totalDesc = 0;
 
         for (int r = 0; r < carrinhoModel.getRowCount(); r++) {

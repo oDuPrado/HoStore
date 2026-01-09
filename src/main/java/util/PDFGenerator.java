@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import util.CupomFiscalFormatter;
+import javax.swing.table.TableModel;
 
 // Imports necessários do PDFBox
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -432,4 +434,111 @@ public class PDFGenerator {
         }
     }
 
+    // Helper pra normalizar o id (String/int/Integer)
+    private static int getVendaIdAsInt(VendaModel venda) {
+        Object id = venda.getId();
+        if (id == null)
+            return 0;
+        if (id instanceof Number n)
+            return n.intValue();
+        try {
+            return Integer.parseInt(id.toString().trim());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static void gerarComprovanteVenda(
+            VendaModel venda,
+            List<VendaItemModel> itens,
+            TableModel pagamentos,
+            CupomFiscalFormatter.ParcelamentoInfo parcelamento,
+            String caminhoCompleto) throws Exception {
+
+        int vendaId = getVendaIdAsInt(venda);
+
+        String texto = CupomFiscalFormatter.gerarTextoCupom(
+                vendaId,
+                itens,
+                CupomFiscalFormatter.fromTableModel(pagamentos),
+                parcelamento);
+
+        PDDocument doc = new PDDocument();
+        PDPage page = new PDPage(PDRectangle.A4);
+        doc.addPage(page);
+
+        PDType0Font font = PDType0Font.load(doc, new java.io.File(FONT_DIR, "Roboto-Regular.ttf"));
+
+        PDPageContentStream content = new PDPageContentStream(doc, page);
+        content.setFont(font, 10);
+        content.beginText();
+        content.setLeading(14f);
+        content.newLineAtOffset(40, page.getMediaBox().getHeight() - 50);
+
+        for (String line : texto.split("\n")) {
+            content.showText(line);
+            content.newLine();
+        }
+
+        content.endText();
+        content.close();
+
+        doc.save(caminhoCompleto);
+        doc.close();
+    }
+
+public static void imprimirCupomFiscal(
+        VendaModel venda,
+        List<VendaItemModel> itens,
+        TableModel pagamentos,
+        CupomFiscalFormatter.ParcelamentoInfo parcelamento) {
+    try {
+        int vendaId = getVendaIdAsInt(venda);
+
+        String texto = CupomFiscalFormatter.gerarTextoCupom(
+                vendaId,
+                itens,
+                CupomFiscalFormatter.fromTableModel(pagamentos),
+                parcelamento
+        );
+
+        ByteArrayInputStream stream = new ByteArrayInputStream(texto.getBytes(StandardCharsets.UTF_8));
+        DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
+        Doc doc = new SimpleDoc(stream, flavor, null);
+
+        PrinterConfigModel config = new PrinterConfigDAO().loadConfig();
+        String nomeImpressora = config != null ? config.getDefaultPrinterName() : null;
+        if (nomeImpressora == null || nomeImpressora.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nenhuma impressora configurada.",
+                    "Erro de Impressão", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        PrintService[] services = PrintServiceLookup.lookupPrintServices(null, null);
+        PrintService selecionada = null;
+        for (PrintService ps : services) {
+            if (ps.getName().equalsIgnoreCase(nomeImpressora)) {
+                selecionada = ps;
+                break;
+            }
+        }
+        if (selecionada == null) {
+            JOptionPane.showMessageDialog(null, "Impressora \"" + nomeImpressora + "\" não encontrada.",
+                    "Erro de Impressão", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        DocPrintJob job = selecionada.createPrintJob();
+        PrintRequestAttributeSet attrs = new HashPrintRequestAttributeSet();
+        attrs.add(new JobName("Cupom Venda #" + vendaId, null));
+        attrs.add(new Copies(1));
+        job.print(doc, attrs);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null,
+                "Erro ao imprimir cupom:\n" + e.getMessage(),
+                "Erro", JOptionPane.ERROR_MESSAGE);
+    }
+}
 }
