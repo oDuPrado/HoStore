@@ -428,6 +428,11 @@ public class DB {
                                                         "criado_em TEXT, " +
                                                         "alterado_em TEXT, " +
                                                         "fornecedor_id TEXT, " +
+
+                                                        // ✅ SOFT DELETE
+                                                        "ativo INTEGER NOT NULL DEFAULT 1, " +
+                                                        "inativado_em TEXT, " +
+                                                        "inativado_por TEXT, " +
                                                         "FOREIGN KEY (fornecedor_id) REFERENCES fornecedores(id), " +
                                                         "FOREIGN KEY (ncm) REFERENCES ncm(codigo), " +
                                                         "FOREIGN KEY (cfop) REFERENCES cfop(codigo), " +

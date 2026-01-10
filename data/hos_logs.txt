@@ -1222,3 +1222,11 @@ java.lang.Exception: Estoque insuficiente para o produto a64e2f78-442d-41c6-b221
 	at java.desktop/java.awt.EventDispatchThread.pumpEvents(Unknown Source)
 	at java.desktop/java.awt.EventDispatchThread.run(Unknown Source)
 
+jan. 09, 2026 3:48:00 PM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+jan. 09, 2026 3:48:00 PM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=35.0 parcelas=0 venc=2026-01-09 intervaloDias=0
+jan. 09, 2026 3:48:00 PM util.LogService info
+INFORMAÇÕES: Venda 4 finalizada com sucesso
+jan. 09, 2026 3:48:00 PM util.LogService info
+INFORMAÇÕES: Contas a receber não gerado: formaPagamento='MULTI' (norm='MULTI') e dados de parcelamento incompletos.
