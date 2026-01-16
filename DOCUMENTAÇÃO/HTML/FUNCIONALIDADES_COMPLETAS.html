@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>FUNCIONALIDADES_COMPLETAS.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%93%8B-cat%C3%A1logo-completo-de-fun%C3%A7%C3%B5es-e-recursos---hostore">📋 Catálogo Completo de Funções e Recursos - HoStore</h1>
+<p><strong>Data</strong>: Janeiro 2026 | <strong>Versão</strong>: 1.0.0 | <strong>Linguagem</strong>: Java 17+</p>
+<hr>
+<h2 id="%F0%9F%93%91-%C3%ADndice">📑 Índice</h2>
+<ol>
+<li><a href="#funcionalidades-por-m%C3%B3dulo">Funcionalidades por Módulo</a></li>
+<li><a href="#fun%C3%A7%C3%B5es-principais-por-classe">Funções Principais por Classe</a></li>
+<li><a href="#fluxos-de-neg%C3%B3cio">Fluxos de Negócio</a></li>
+<li><a href="#integra%C3%A7%C3%A3o-com-apis">Integração com APIs</a></li>
+<li><a href="#valida%C3%A7%C3%B5es-e-regras">Validações e Regras</a></li>
+<li><a href="#performance-e-escalabilidade">Performance e Escalabilidade</a></li>
+</ol>
+<hr>
+<h2 id="%F0%9F%8E%AF-funcionalidades-por-m%C3%B3dulo">🎯 Funcionalidades por Módulo</h2>
+<h3 id="1%EF%B8%8F%E2%83%A3-m%C3%B3dulo-de-vendas-vendaservice-vendacontroller">1️⃣ MÓDULO DE VENDAS (VendaService, VendaController)</h3>
+<h4 id="11-criar-e-gerenciar-vendas">1.1 Criar e Gerenciar Vendas</h4>
+<ul>
+<li>✅ Criar nova venda (status: &quot;aberta&quot;)</li>
+<li>✅ Associar cliente obrigatoriamente</li>
+<li>✅ Adicionar produtos ao carrinho dinamicamente</li>
+<li>✅ Remover itens do carrinho</li>
+<li>✅ Editar quantidade e preço antes de finalizar</li>
+<li>✅ Aplicar desconto (percentual ou fixo)</li>
+<li>✅ Consultar subtotal em tempo real</li>
+<li>✅ Validar estoque disponível</li>
+</ul>
+<h4 id="12-finalizar-venda">1.2 Finalizar Venda</h4>
+<ul>
+<li>✅ Confirmar itens e valores</li>
+<li>✅ Selecionar forma de pagamento</li>
+<li>✅ Configurar parcelamento (1-12x)</li>
+<li>✅ Calcular juros automáticos</li>
+<li>✅ Gerar comprovante PDF com QR code</li>
+<li>✅ Imprimir comprovante direto</li>
+<li>✅ Marcar status como &quot;fechada&quot;</li>
+<li>✅ Atualizar estoque automaticamente</li>
+</ul>
+<h4 id="13-devolu%C3%A7%C3%B5es">1.3 Devoluções</h4>
+<ul>
+<li>✅ Processar devolução de produtos</li>
+<li>✅ Reintegrar quantidade ao estoque</li>
+<li>✅ Registrar motivo da devolução</li>
+<li>✅ Manter histórico de devoluções</li>
+<li>✅ Gerar nota de devolução</li>
+</ul>
+<h4 id="14-estornos">1.4 Estornos</h4>
+<ul>
+<li>✅ Estornar venda inteira (requer admin)</li>
+<li>✅ Gerar venda negativa para auditoria</li>
+<li>✅ Reverter movimentação de estoque</li>
+<li>✅ Manter rastreamento completo</li>
+<li>✅ Notificar auditoria</li>
+</ul>
+<h4 id="15-reabertura">1.5 Reabertura</h4>
+<ul>
+<li>✅ Permitir reabertura apenas para admin</li>
+<li>✅ Reverter status de &quot;fechada&quot; para &quot;aberta&quot;</li>
+<li>✅ Manter histórico de modificações</li>
+<li>✅ Exigir autenticação adicional</li>
+</ul>
+<h4 id="16-consulta-e-filtros">1.6 Consulta e Filtros</h4>
+<ul>
+<li>✅ Listar todas as vendas</li>
+<li>✅ Filtrar por cliente</li>
+<li>✅ Filtrar por período (data início/fim)</li>
+<li>✅ Filtrar por valor total</li>
+<li>✅ Filtrar por método de pagamento</li>
+<li>✅ Filtrar por status (aberta/fechada/estornada)</li>
+<li>✅ Busca textual integrada</li>
+<li>✅ Paginação de resultados</li>
+</ul>
+<h4 id="17-an%C3%A1lise-e-relat%C3%B3rios">1.7 Análise e Relatórios</h4>
+<ul>
+<li>✅ Total de vendas por período</li>
+<li>✅ Ticket médio (valor total/quantidade)</li>
+<li>✅ Vendas por cliente (ranking)</li>
+<li>✅ Produtos mais vendidos</li>
+<li>✅ Análise de margem</li>
+<li>✅ Comparativo período anterior</li>
+<li>✅ Exportar em PDF/Excel</li>
+</ul>
+<hr>
+<h3 id="2%EF%B8%8F%E2%83%A3-m%C3%B3dulo-de-estoque-estoqueservice-estoquedao">2️⃣ MÓDULO DE ESTOQUE (EstoqueService, EstoqueDAO)</h3>
+<h4 id="21-cadastro-de-produtos-m%C3%BAltiplas-categorias">2.1 Cadastro de Produtos (Múltiplas Categorias)</h4>
+<p><strong>Cartas Individuais</strong></p>
+<ul>
+<li>✅ Nome da carta</li>
+<li>✅ Set/Coleção</li>
+<li>✅ Número da carta</li>
+<li>✅ Raridade</li>
+<li>✅ Condição (Mint, NearMint, Excellent, etc.)</li>
+<li>✅ Preço de custo</li>
+<li>✅ Preço de venda</li>
+<li>✅ Quantidade em estoque</li>
+<li>✅ Imagem (opcional)</li>
+</ul>
+<p><strong>Boosters</strong></p>
+<ul>
+<li>✅ Nome do booster</li>
+<li>✅ Set relacionado</li>
+<li>✅ Quantidade de packs (1x, 3x, booster box)</li>
+<li>✅ Preço unitário</li>
+<li>✅ Quantidade em estoque</li>
+</ul>
+<p><strong>Decks</strong></p>
+<ul>
+<li>✅ Nome do deck</li>
+<li>✅ Descrição/estratégia</li>
+<li>✅ Lista completa de cartas (com link)</li>
+<li>✅ Preço (montado)</li>
+<li>✅ Quantidade em estoque</li>
+</ul>
+<p><strong>ETBs (Elite Trainer Boxes)</strong></p>
+<ul>
+<li>✅ Nome do produto</li>
+<li>✅ Set específico</li>
+<li>✅ Conteúdo descrito</li>
+<li>✅ Preço</li>
+<li>✅ Quantidade em estoque</li>
+</ul>
+<p><strong>Acessórios</strong></p>
+<ul>
+<li>✅ Nome do produto</li>
+<li>✅ Marca</li>
+<li>✅ Tipo (Sleeves, Playmat, dados, etc.)</li>
+<li>✅ Cor/Variação</li>
+<li>✅ Quantidade</li>
+<li>✅ Preço</li>
+</ul>
+<p><strong>Produtos Alimentícios</strong></p>
+<ul>
+<li>✅ Nome</li>
+<li>✅ Marca</li>
+<li>✅ Categoria</li>
+<li>✅ Data de validade</li>
+<li>✅ Temperatura de armazenamento</li>
+<li>✅ Preço</li>
+<li>✅ Quantidade</li>
+</ul>
+<h4 id="22-consultas-e-buscas">2.2 Consultas e Buscas</h4>
+<ul>
+<li>✅ Busca por nome (autocomplete)</li>
+<li>✅ Busca por categoria</li>
+<li>✅ Busca por set/coleção</li>
+<li>✅ Filtro por faixa de preço</li>
+<li>✅ Filtro por estoque (tem/não tem/baixo)</li>
+<li>✅ Busca combinada (múltiplos filtros)</li>
+<li>✅ Ordenação por: nome, preço, estoque, data</li>
+</ul>
+<h4 id="23-alertas-autom%C3%A1ticos">2.3 Alertas Automáticos</h4>
+<ul>
+<li>✅ Estoque baixo (&lt; 5 unidades)</li>
+<li>✅ Sem estoque (0 unidades)</li>
+<li>✅ Produtos próximos do vencimento (15 dias)</li>
+<li>✅ Notificação em tempo real no dashboard</li>
+<li>✅ Email opcional para admin</li>
+</ul>
+<h4 id="24-movimenta%C3%A7%C3%A3o-de-estoque">2.4 Movimentação de Estoque</h4>
+<ul>
+<li>✅ Entrada: Recebimento de compra</li>
+<li>✅ Saída: Venda (automática)</li>
+<li>✅ Ajuste: Perda/quebra manual</li>
+<li>✅ Devolução: Produto devolvido</li>
+<li>✅ Histórico completo com data/hora/usuário</li>
+<li>✅ Rastreamento por número de série (opcional)</li>
+</ul>
+<h4 id="25-pedidos-de-compra">2.5 Pedidos de Compra</h4>
+<ul>
+<li>✅ Criar novo pedido</li>
+<li>✅ Adicionar itens com quantidade e preço</li>
+<li>✅ Selecionar fornecedor</li>
+<li>✅ Acompanhar status (pendente/recebido/atrasado)</li>
+<li>✅ Vincular com nota fiscal</li>
+<li>✅ Registro de entrada automática</li>
+</ul>
+<h4 id="26-dashboard-de-estoque">2.6 Dashboard de Estoque</h4>
+<ul>
+<li>✅ Total em unidades</li>
+<li>✅ Total em valor (custo/venda)</li>
+<li>✅ Quantidade de produtos cadastrados</li>
+<li>✅ Produtos com estoque baixo (lista)</li>
+<li>✅ PMZ (Preço Médio Ponderado)</li>
+<li>✅ Valor de estoque por categoria</li>
+<li>✅ Curva ABC</li>
+</ul>
+<h4 id="27-exclus%C3%A3o-e-auditoria">2.7 Exclusão e Auditoria</h4>
+<ul>
+<li>✅ Exclusão lógica (nunca apaga, marca como deletado)</li>
+<li>✅ Registro de motivo de exclusão</li>
+<li>✅ Histórico de todas as alterações</li>
+<li>✅ Quem criou, quando, quem editou, quando</li>
+</ul>
+<hr>
+<h3 id="3%EF%B8%8F%E2%83%A3-m%C3%B3dulo-financeiro">3️⃣ MÓDULO FINANCEIRO</h3>
+<h4 id="31-contas-a-pagar-contapagarservice">3.1 Contas a Pagar (ContaPagarService)</h4>
+<ul>
+<li>✅ Registrar novo pagamento pendente</li>
+<li>✅ Associar com fornecedor</li>
+<li>✅ Data de vencimento</li>
+<li>✅ Valor total</li>
+<li>✅ Parcelar em múltiplas parcelas</li>
+<li>✅ Juros e multa por atraso</li>
+<li>✅ Registrar pagamento</li>
+<li>✅ Gerar boleto (integração)</li>
+<li>✅ Consultar por período</li>
+<li>✅ Filtrar por status (pendente/pago/vencido)</li>
+<li>✅ Relatório de fluxo</li>
+</ul>
+<h4 id="32-contas-a-receber-contareceberservice">3.2 Contas a Receber (ContaReceberService)</h4>
+<ul>
+<li>✅ Criação automática de parcelas da venda</li>
+<li>✅ Acompanhamento de recebiveis</li>
+<li>✅ Simular recebimento antecipado</li>
+<li>✅ Gerar cobrança automática</li>
+<li>✅ Registrar cancelamento de parcela</li>
+<li>✅ Consultar por cliente</li>
+<li>✅ Filtrar por status (aberto/pago/vencido)</li>
+<li>✅ Relatório de receivables</li>
+</ul>
+<h4 id="33-cr%C3%A9dito-de-loja-creditolojaservice">3.3 Crédito de Loja (CreditoLojaService)</h4>
+<ul>
+<li>✅ Gerenciar saldo de crédito por cliente</li>
+<li>✅ Usar crédito para abater venda</li>
+<li>✅ Recarregar crédito</li>
+<li>✅ Histórico de movimentação</li>
+<li>✅ Consultar saldo disponível</li>
+<li>✅ Relatório de créditos em uso</li>
+</ul>
+<h4 id="34-plano-de-contas-planocontaservice">3.4 Plano de Contas (PlanoContaService)</h4>
+<ul>
+<li>✅ Classificação de operações</li>
+<li>✅ Integração com código NCM</li>
+<li>✅ CSOSN (Código de Situação)</li>
+<li>✅ CFOP (Código Fiscal de Operação)</li>
+<li>✅ Natureza de operação</li>
+<li>✅ Histórico de contas</li>
+</ul>
+<h4 id="35-relat%C3%B3rios-financeiros">3.5 Relatórios Financeiros</h4>
+<ul>
+<li>✅ Fluxo de caixa (projeção)</li>
+<li>✅ Resultado do período (receita - despesa)</li>
+<li>✅ Análise de pagamentos</li>
+<li>✅ Contas a pagar por fornecedor</li>
+<li>✅ Contas a receber por cliente</li>
+<li>✅ Saldo de caixa</li>
+<li>✅ Exportação em Excel/PDF</li>
+</ul>
+<hr>
+<h3 id="4%EF%B8%8F%E2%83%A3-m%C3%B3dulo-de-clientes-clienteservice">4️⃣ MÓDULO DE CLIENTES (ClienteService)</h3>
+<h4 id="41-cadastro-de-clientes">4.1 Cadastro de Clientes</h4>
+<ul>
+<li>✅ Nome/Razão Social</li>
+<li>✅ CPF/CNPJ</li>
+<li>✅ Email</li>
+<li>✅ Telefone</li>
+<li>✅ Data de nascimento</li>
+<li>✅ Endereço completo</li>
+<li>✅ Preferências de contato</li>
+<li>✅ Limite de crédito</li>
+</ul>
+<h4 id="42-hist%C3%B3rico-de-compras">4.2 Histórico de Compras</h4>
+<ul>
+<li>✅ Listar todas as vendas do cliente</li>
+<li>✅ Total gasto (acumulado)</li>
+<li>✅ Última compra</li>
+<li>✅ Frequência de compras</li>
+<li>✅ Produtos favoritos</li>
+</ul>
+<h4 id="43-gest%C3%A3o-de-cr%C3%A9dito">4.3 Gestão de Crédito</h4>
+<ul>
+<li>✅ Saldo atual</li>
+<li>✅ Movimentações</li>
+<li>✅ Débitos pendentes</li>
+<li>✅ Histórico de pagamentos</li>
+</ul>
+<h4 id="44-filtros-e-busca">4.4 Filtros e Busca</h4>
+<ul>
+<li>✅ Buscar por nome</li>
+<li>✅ Buscar por CPF/CNPJ</li>
+<li>✅ Filtrar por data de cadastro</li>
+<li>✅ Filtrar por última compra</li>
+<li>✅ Listar inativos</li>
+</ul>
+<h4 id="45-relat%C3%B3rios">4.5 Relatórios</h4>
+<ul>
+<li>✅ Clientes com mais compras</li>
+<li>✅ Novo clientes (mês/ano)</li>
+<li>✅ Clientes em dia/atrasados</li>
+<li>✅ Top 10 clientes</li>
+<li>✅ Clientes inativos (&gt; 90 dias)</li>
+</ul>
+<hr>
+<h3 id="5%EF%B8%8F%E2%83%A3-m%C3%B3dulo-fiscal-documentofiscalservice">5️⃣ MÓDULO FISCAL (DocumentoFiscalService)</h3>
+<h4 id="51-tipos-de-documentos">5.1 Tipos de Documentos</h4>
+<ul>
+<li>✅ NFC-e (Nota Fiscal ao Consumidor)</li>
+<li>✅ NFe (Nota Fiscal Eletrônica)</li>
+<li>✅ CF (Cupom Fiscal)</li>
+<li>✅ Nota de Devolução</li>
+</ul>
+<h4 id="52-configura%C3%A7%C3%B5es-fiscais">5.2 Configurações Fiscais</h4>
+<ul>
+<li>✅ CNPJ da loja</li>
+<li>✅ Inscrição Estadual</li>
+<li>✅ Regime tributário</li>
+<li>✅ Série da nota</li>
+<li>✅ Numeração sequencial</li>
+<li>✅ Certificado digital (se NFe)</li>
+</ul>
+<h4 id="53-campos-autom%C3%A1ticos">5.3 Campos Automáticos</h4>
+<ul>
+<li>✅ Preenchimento de impostos (ICMS, IPI, PIS, COFINS)</li>
+<li>✅ Cálculo de base tributária</li>
+<li>✅ Código NCM (classificação)</li>
+<li>✅ CSOSN (situação tributária)</li>
+<li>✅ CFOP (operação)</li>
+</ul>
+<h4 id="54-gera%C3%A7%C3%A3o-de-documentos">5.4 Geração de Documentos</h4>
+<ul>
+<li>✅ Gerar XML compatível NF-e</li>
+<li>✅ Assinar digitalmente (integração)</li>
+<li>✅ Enviar para SEFAZ</li>
+<li>✅ Registrar número de protocolo</li>
+<li>✅ Armazenar XML para auditoria</li>
+</ul>
+<h4 id="55-comprovantes">5.5 Comprovantes</h4>
+<ul>
+<li>✅ PDF com dados completos</li>
+<li>✅ QR code de validade</li>
+<li>✅ Impressão térmica (80mm)</li>
+<li>✅ Impressão A4</li>
+<li>✅ Email para cliente</li>
+</ul>
+<hr>
+<h3 id="6%EF%B8%8F%E2%83%A3-m%C3%B3dulo-de-relat%C3%B3rios-relatoriosservice">6️⃣ MÓDULO DE RELATÓRIOS (RelatoriosService)</h3>
+<h4 id="61-dashboard-principal">6.1 Dashboard Principal</h4>
+<ul>
+<li>✅ Vendas do dia</li>
+<li>✅ Estoque total (itens/valor)</li>
+<li>✅ Clientes ativos</li>
+<li>✅ Saldo de caixa</li>
+<li>✅ Contas vencidas</li>
+<li>✅ KPIs em tempo real</li>
+</ul>
+<h4 id="62-relat%C3%B3rios-de-vendas">6.2 Relatórios de Vendas</h4>
+<ul>
+<li>✅ Vendas por dia/mês/ano/período</li>
+<li>✅ Vendas por cliente</li>
+<li>✅ Vendas por produto/categoria</li>
+<li>✅ Ticket médio</li>
+<li>✅ Produtos mais vendidos</li>
+<li>✅ Análise de margem</li>
+<li>✅ Comparativo com período anterior</li>
+<li>✅ Variação (%)</li>
+</ul>
+<h4 id="63-relat%C3%B3rios-de-estoque">6.3 Relatórios de Estoque</h4>
+<ul>
+<li>✅ Produtos em estoque</li>
+<li>✅ Estoque por categoria</li>
+<li>✅ Produtos baixos</li>
+<li>✅ Produtos vencidos</li>
+<li>✅ Movimentação (entrada/saída)</li>
+<li>✅ Curva ABC</li>
+<li>✅ Valor de estoque (custo/venda)</li>
+<li>✅ PMZ por categoria</li>
+</ul>
+<h4 id="64-relat%C3%B3rios-financeiros">6.4 Relatórios Financeiros</h4>
+<ul>
+<li>✅ Fluxo de caixa</li>
+<li>✅ Resultado do período</li>
+<li>✅ Contas a pagar (por vencer/vencidas)</li>
+<li>✅ Contas a receber (por vencer/vencidas)</li>
+<li>✅ Saldo por cliente</li>
+<li>✅ Análise de crédito</li>
+<li>✅ Despesas por categoria</li>
+</ul>
+<h4 id="65-exporta%C3%A7%C3%A3o">6.5 Exportação</h4>
+<ul>
+<li>✅ PDF com logo/cores</li>
+<li>✅ Excel formatado (gráficos, tabelas)</li>
+<li>✅ CSV para importação</li>
+<li>✅ Impressão direta</li>
+<li>✅ Envio por email</li>
+</ul>
+<hr>
+<h3 id="7%EF%B8%8F%E2%83%A3-m%C3%B3dulo-de-sistema">7️⃣ MÓDULO DE SISTEMA</h3>
+<h4 id="71-usu%C3%A1rios-e-autentica%C3%A7%C3%A3o">7.1 Usuários e Autenticação</h4>
+<ul>
+<li>✅ Login com CPF/Email</li>
+<li>✅ Senha encriptada (bcrypt)</li>
+<li>✅ Recuperação de senha</li>
+<li>✅ Alteração de senha</li>
+<li>✅ Bloqueio após 3 tentativas</li>
+<li>✅ Sessão com timeout</li>
+</ul>
+<h4 id="72-permiss%C3%B5es-e-fun%C3%A7%C3%B5es">7.2 Permissões e Funções</h4>
+<ul>
+<li>✅ Admin: Acesso total</li>
+<li>✅ Gerente: Vendas + Estoque + Relatórios</li>
+<li>✅ Vendedor: Apenas vendas</li>
+<li>✅ Estoquista: Apenas estoque</li>
+<li>✅ Fiscal: Apenas documentos</li>
+<li>✅ Roles customizáveis</li>
+</ul>
+<h4 id="73-backup-e-restaura%C3%A7%C3%A3o">7.3 Backup e Restauração</h4>
+<ul>
+<li>✅ Backup automático diário</li>
+<li>✅ Backup manual sob demanda</li>
+<li>✅ Compressão de dados (ZIP)</li>
+<li>✅ Armazenamento em ./data/backup/</li>
+<li>✅ Restauração completa</li>
+<li>✅ Restauração parcial (por tabela)</li>
+<li>✅ Sincronização em nuvem (futuro)</li>
+</ul>
+<h4 id="74-auditoria-e-logs">7.4 Auditoria e Logs</h4>
+<ul>
+<li>✅ Registra: QUEM fez QUÊ e QUANDO</li>
+<li>✅ Log de login/logout</li>
+<li>✅ Log de alterações em dados críticos</li>
+<li>✅ Log de relatórios acessados</li>
+<li>✅ Log de estornos/devoluções</li>
+<li>✅ Exportar logs para análise</li>
+<li>✅ Retenção por período configurável</li>
+</ul>
+<h4 id="75-configura%C3%A7%C3%B5es">7.5 Configurações</h4>
+<ul>
+<li>✅ Dados da loja (CNPJ, nome, endereço)</li>
+<li>✅ Configurações de estoque (estoque mínimo, máximo)</li>
+<li>✅ Configurações fiscais</li>
+<li>✅ Configurações de pagamento</li>
+<li>✅ Tema visual (light/dark)</li>
+<li>✅ Impressora padrão</li>
+<li>✅ Proxy para APIs</li>
+</ul>
+<h4 id="76-sincroniza%C3%A7%C3%A3o-de-apis">7.6 Sincronização de APIs</h4>
+<ul>
+<li>✅ Sincronizar Pokémon TCG</li>
+<li>✅ Sincronizar Magic</li>
+<li>✅ Sincronizar Yu-Gi-Oh!</li>
+<li>✅ Sincronizar Digimon</li>
+<li>✅ Sincronizar One Piece</li>
+<li>✅ Agendamento automático</li>
+<li>✅ Status da sincronização</li>
+<li>✅ Cache local (offline)</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%94%A7-fun%C3%A7%C3%B5es-principais-por-classe">🔧 Funções Principais por Classe</h2>
+<h3 id="vendaservice">VendaService</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">VendaService</span> </span>{
+    <span class="hljs-comment">// Criar e finalizar vendas</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">finalizarVenda</span><span class="hljs-params">(VendaModel venda, List&lt;VendaItemModel&gt; itens)</span>
+    <span class="hljs-keyword">public</span> VendaModel <span class="hljs-title">obterVenda</span><span class="hljs-params">(String vendaId)</span>
+    <span class="hljs-keyword">public</span> List&lt;VendaModel&gt; <span class="hljs-title">listarVendas</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    
+    <span class="hljs-comment">// Descontos</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">aplicarDesconto</span><span class="hljs-params">(String vendaId, <span class="hljs-keyword">double</span> desconto)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">calcularTotalComDesconto</span><span class="hljs-params">(VendaModel venda)</span>
+    
+    <span class="hljs-comment">// Devoluções</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processarDevolucao</span><span class="hljs-params">(String vendaId, String motivo)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">reintegrarEstoque</span><span class="hljs-params">(String vendaId)</span>
+    
+    <span class="hljs-comment">// Estornos</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">estornarVenda</span><span class="hljs-params">(String vendaId, String motivo)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">reverterMovimentacao</span><span class="hljs-params">(String vendaId)</span>
+    
+    <span class="hljs-comment">// Relatórios</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTotalVendasPeriodo</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    <span class="hljs-keyword">public</span> List&lt;VendaModel&gt; <span class="hljs-title">getVendasPorCliente</span><span class="hljs-params">(String clienteId)</span>
+    <span class="hljs-keyword">public</span> Map&lt;String, Integer&gt; <span class="hljs-title">getTopProdutos</span><span class="hljs-params">(<span class="hljs-keyword">int</span> quantidade)</span>
+}
+</span></div></code></pre>
+<h3 id="estoqueservice">EstoqueService</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EstoqueService</span> </span>{
+    <span class="hljs-comment">// Consultas</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">listarTodos</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> ProdutoEstoqueDTO <span class="hljs-title">buscarPorId</span><span class="hljs-params">(String id)</span>
+    <span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">buscarPorNome</span><span class="hljs-params">(String nome)</span>
+    <span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">filtrarPorCategoria</span><span class="hljs-params">(String categoria)</span>
+    
+    <span class="hljs-comment">// Cadastro</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cadastrarProduto</span><span class="hljs-params">(ProdutoModel produto)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">atualizarProduto</span><span class="hljs-params">(ProdutoModel produto)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">deletarProduto</span><span class="hljs-params">(String id)</span>
+    
+    <span class="hljs-comment">// Movimentação</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">entrada</span><span class="hljs-params">(String produtoId, <span class="hljs-keyword">int</span> quantidade)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">saida</span><span class="hljs-params">(String produtoId, <span class="hljs-keyword">int</span> quantidade)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">ajuste</span><span class="hljs-params">(String produtoId, <span class="hljs-keyword">int</span> quantidade, String motivo)</span>
+    
+    <span class="hljs-comment">// Alertas</span>
+    <span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">getEstoqueBaixo</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">getVencidos</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">getProximoVencimento</span><span class="hljs-params">(<span class="hljs-keyword">int</span> dias)</span>
+    
+    <span class="hljs-comment">// Dashboard</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTotalEstoqueValor</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> Map&lt;String, Double&gt; <span class="hljs-title">getEstoquesPorCategoria</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getPMZ</span><span class="hljs-params">()</span>
+}
+</span></div></code></pre>
+<h3 id="clienteservice">ClienteService</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ClienteService</span> </span>{
+    <span class="hljs-comment">// CRUD</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cadastrarCliente</span><span class="hljs-params">(ClienteModel cliente)</span>
+    <span class="hljs-keyword">public</span> ClienteModel <span class="hljs-title">obterCliente</span><span class="hljs-params">(String id)</span>
+    <span class="hljs-keyword">public</span> List&lt;ClienteModel&gt; <span class="hljs-title">listarTodos</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">atualizarCliente</span><span class="hljs-params">(ClienteModel cliente)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">deletarCliente</span><span class="hljs-params">(String id)</span>
+    
+    <span class="hljs-comment">// Busca</span>
+    <span class="hljs-keyword">public</span> ClienteModel <span class="hljs-title">buscarPorCpf</span><span class="hljs-params">(String cpf)</span>
+    <span class="hljs-keyword">public</span> ClienteModel <span class="hljs-title">buscarPorEmail</span><span class="hljs-params">(String email)</span>
+    <span class="hljs-keyword">public</span> List&lt;ClienteModel&gt; <span class="hljs-title">buscarPorNome</span><span class="hljs-params">(String nome)</span>
+    
+    <span class="hljs-comment">// Histórico</span>
+    <span class="hljs-keyword">public</span> List&lt;VendaModel&gt; <span class="hljs-title">getHistoricoCompras</span><span class="hljs-params">(String clienteId)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTotalGasto</span><span class="hljs-params">(String clienteId)</span>
+    <span class="hljs-keyword">public</span> LocalDate <span class="hljs-title">getUltimaCompra</span><span class="hljs-params">(String clienteId)</span>
+    
+    <span class="hljs-comment">// Crédito</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getSaldoCredito</span><span class="hljs-params">(String clienteId)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">adicionarCredito</span><span class="hljs-params">(String clienteId, <span class="hljs-keyword">double</span> valor)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">deduzirCredito</span><span class="hljs-params">(String clienteId, <span class="hljs-keyword">double</span> valor)</span>
+}
+</span></div></code></pre>
+<h3 id="documentofiscalservice">DocumentoFiscalService</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DocumentoFiscalService</span> </span>{
+    <span class="hljs-comment">// Emissão</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">emitirNFCe</span><span class="hljs-params">(VendaModel venda)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">emitirNFe</span><span class="hljs-params">(VendaModel venda)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">emitirNotaDevolucao</span><span class="hljs-params">(VendaDevolucaoModel devolucao)</span>
+    
+    <span class="hljs-comment">// Validação</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">validarDadosFiscais</span><span class="hljs-params">(VendaModel venda)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">validarNCM</span><span class="hljs-params">(String ncm)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">validarCFOP</span><span class="hljs-params">(String cfop)</span>
+    
+    <span class="hljs-comment">// Geração</span>
+    <span class="hljs-keyword">public</span> String <span class="hljs-title">gerarXML</span><span class="hljs-params">(VendaModel venda)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">assinarDigitalmente</span><span class="hljs-params">(String xmlPath)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">enviarParaSEFAZ</span><span class="hljs-params">(String xml)</span>
+    
+    <span class="hljs-comment">// Comprovante</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">gerarPDF</span><span class="hljs-params">(VendaModel venda, String caminho)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">imprimirComprovante</span><span class="hljs-params">(VendaModel venda)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">enviarPorEmail</span><span class="hljs-params">(VendaModel venda, String email)</span>
+}
+</span></div></code></pre>
+<h3 id="relatoriosservice">RelatoriosService</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">RelatoriosService</span> </span>{
+    <span class="hljs-comment">// Dashboard</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> DashboardHomeModel <span class="hljs-title">getDashboardPrincipal</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> DashboardKpisModel <span class="hljs-title">getKPIs</span><span class="hljs-params">()</span>
+    
+    <span class="hljs-comment">// Vendas</span>
+    <span class="hljs-keyword">public</span> List&lt;VendaModel&gt; <span class="hljs-title">getRelatorioVendas</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    <span class="hljs-keyword">public</span> Map&lt;String, Double&gt; <span class="hljs-title">getVendasPorCliente</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    <span class="hljs-keyword">public</span> Map&lt;String, Integer&gt; <span class="hljs-title">getVendasPorProduto</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTicketMedio</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    
+    <span class="hljs-comment">// Estoque</span>
+    <span class="hljs-keyword">public</span> List&lt;EstoqueModel&gt; <span class="hljs-title">getRelatorioEstoque</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">getEstoqueBaixo</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> Map&lt;String, Double&gt; <span class="hljs-title">getEstoquesPorCategoria</span><span class="hljs-params">()</span>
+    
+    <span class="hljs-comment">// Financeiro</span>
+    <span class="hljs-keyword">public</span> FluxoCaixaModel <span class="hljs-title">getFluxoCaixa</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    <span class="hljs-keyword">public</span> ResultadoModel <span class="hljs-title">getResultadoPeriodo</span><span class="hljs-params">(LocalDate inicio, LocalDate fim)</span>
+    
+    <span class="hljs-comment">// Exportação</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">exportarPDF</span><span class="hljs-params">(RelatorioModel relatorio, String caminho)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">exportarExcel</span><span class="hljs-params">(RelatorioModel relatorio, String caminho)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">exportarCSV</span><span class="hljs-params">(RelatorioModel relatorio, String caminho)</span>
+}
+</span></div></code></pre>
+<hr>
+<h2 id="%F0%9F%93%8A-fluxos-de-neg%C3%B3cio">📊 Fluxos de Negócio</h2>
+<h3 id="fluxo-1-nova-venda-passo-a-passo">Fluxo 1: Nova Venda (Passo a Passo)</h3>
+<pre class="hljs"><code><div>1. PainelVendas.java (UI)
+   └─ Botão &quot;Nova Venda&quot;
+      └─ VendaNovaDialog.java abre
+         
+2. VendaNovaDialog (Carrinho)
+   ├─ SelectClienteDialog (Seleciona cliente)
+   ├─ SelectProdutoDialog (Busca produto)
+   │  └─ EstoqueService.buscarPorNome()
+   ├─ Adicionar ao carrinho (VendaItemModel)
+   ├─ Aplicar desconto
+   │  └─ VendaController.aplicarDesconto()
+   └─ Botão &quot;Finalizar&quot;
+
+3. VendaFinalizarDialog (Confirmação)
+   ├─ Revisar itens
+   ├─ ParcelamentoDialog
+   │  └─ Configura 1-12x
+   ├─ SelectPagamento (dinheiro/cartão/PIX)
+   └─ Botão &quot;Confirmar&quot;
+
+4. VendaService.finalizarVenda()
+   ├─ Validar dados
+   ├─ Criar registro VendaModel
+   ├─ Inserir itens (VendaItemModel)
+   ├─ Baixar estoque automaticamente
+   │  └─ EstoqueService.saida()
+   ├─ Registrar pagamento
+   │  └─ DocumentoFiscalService.emitirNFCe()
+   └─ Gerar comprovante PDF
+      └─ PDFGenerator.gerarPDF()
+
+5. ComprovanteFiscalDialog
+   ├─ Exibir PDF
+   ├─ Opção Imprimir
+   └─ Venda finalizada ✅
+</div></code></pre>
+<h3 id="fluxo-2-novo-produto-no-estoque">Fluxo 2: Novo Produto no Estoque</h3>
+<pre class="hljs"><code><div>1. PainelEstoque.java
+   └─ Botão &quot;Novo Item&quot;
+      └─ SelecionarCategoriaDialog
+
+2. SelecionarCategoriaDialog
+   ├─ Carta
+   │  └─ CadastroCartaDialog
+   │     ├─ Nome, Set, Número, Raridade, Condição
+   │     └─ Preço custo/venda
+   ├─ Booster
+   │  └─ CadastroBoosterDialog
+   ├─ Deck
+   │  └─ CadastroDeckDialog
+   ├─ ETB
+   │  └─ CadastroEtbDialog
+   ├─ Acessório
+   │  └─ CadastroAcessorioDialog
+   └─ Alimentício
+      └─ CadastroProdutoAlimenticioDialog
+
+3. Cada Dialog
+   ├─ Preenche dados específicos
+   ├─ Validação obrigatória
+   └─ Salva no banco
+
+4. EstoqueService.cadastrarProduto()
+   ├─ Criar registro com ID único
+   ├─ Inserir em tabela específica
+   ├─ Atualizar tabela estoque (view)
+   └─ Registrar em auditoria
+
+5. PainelEstoque atualiza
+   └─ Produto aparece na lista ✅
+</div></code></pre>
+<h3 id="fluxo-3-entrada-de-produtos-recebimento-de-compra">Fluxo 3: Entrada de Produtos (Recebimento de Compra)</h3>
+<pre class="hljs"><code><div>1. PainelEstoque
+   └─ Botão &quot;Entrada de Produtos&quot;
+      └─ EntradaProdutosDialog
+
+2. EntradaProdutosDialog
+   ├─ Selecionar Pedido de Compra (ou novo)
+   │  └─ NovoPedidoEstoqueDialog
+   ├─ Listar produtos do pedido
+   ├─ Confirmar quantidades
+   └─ Vincular Nota Fiscal (arquivo PDF/XML)
+
+3. Validação
+   ├─ Verificar produto existe
+   ├─ Verificar quantidade
+   └─ Verificar nota fiscal
+
+4. MovimentacaoEstoqueService
+   ├─ Registrar entrada
+   │  └─ MovimentacaoEstoqueDAO.insert()
+   ├─ Atualizar quantidade
+   │  └─ EstoqueDAO.update()
+   └─ Atualizar tabela estoque (view)
+
+5. Banco de Dados
+   ├─ INSERT movimentacao_estoque
+   ├─ UPDATE estoque
+   └─ Auditoria registrada
+
+6. Painel atualiza
+   └─ Estoque reflete entrada ✅
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%8C%90-integra%C3%A7%C3%A3o-com-apis">🌐 Integração com APIs</h2>
+<h3 id="1-pok%C3%A9mon-tcg-api">1. Pokémon TCG API</h3>
+<pre class="hljs"><code><div><span class="hljs-comment">// PokeTcgApi.java</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarSetsPokemon</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// GET https://api.pokemontcg.io/v2/sets</span>
+    <span class="hljs-comment">// Cache: ./data/cache/pokemontcg_sets.json</span>
+    <span class="hljs-comment">// Retorna: JSON com todos os sets disponíveis</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarCardsPorSet</span><span class="hljs-params">(String setId)</span> </span>{
+    <span class="hljs-comment">// GET https://api.pokemontcg.io/v2/cards?q=set.id:sv01</span>
+    <span class="hljs-comment">// Cache: ./data/cache/pokemontcg_cards_[setId].json</span>
+    <span class="hljs-comment">// Retorna: JSON com cartas do set</span>
+}
+</div></code></pre>
+<p><strong>Sincronização</strong>:</p>
+<ul>
+<li>Agendada diariamente (02:00 AM)</li>
+<li>Ou manual via Menu → Ajustes → Sincronizar TCG</li>
+<li>Fallback automático (cache) se offline</li>
+</ul>
+<h3 id="2-magic-the-gathering-scryfall">2. Magic: The Gathering (Scryfall)</h3>
+<pre class="hljs"><code><div><span class="hljs-comment">// CardGamesApi.java</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarSetsMagic</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// GET https://api.scryfall.com/sets</span>
+    <span class="hljs-comment">// Cache: ./data/cache/magic_sets.json</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarCardsMagicPorSet</span><span class="hljs-params">(String setCode)</span> </span>{
+    <span class="hljs-comment">// GET https://api.scryfall.com/cards/search?q=set:[code]</span>
+    <span class="hljs-comment">// Paginação: 175 cartas por página</span>
+}
+</div></code></pre>
+<h3 id="3-yu-gi-oh-ygoprodeck">3. Yu-Gi-Oh! (YGOPRODeck)</h3>
+<pre class="hljs"><code><div><span class="hljs-comment">// CardGamesApi.java</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarSetsYgo</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// GET https://db.ygoprodeck.com/api/v7/cardsets.php</span>
+    <span class="hljs-comment">// Cache: ./data/cache/yugioh_sets.json</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarCardsYgoPorSet</span><span class="hljs-params">(String setName)</span> </span>{
+    <span class="hljs-comment">// GET https://db.ygoprodeck.com/api/v7/cardinfo.php?set=[name]</span>
+}
+</div></code></pre>
+<h3 id="4-digimon-card-game">4. Digimon Card Game</h3>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarCardsDigi</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// GET https://digimoncard.io/api-public/getAllCards</span>
+    <span class="hljs-comment">// Cache: ./data/cache/digimon_all_cards.json</span>
+    <span class="hljs-comment">// Retorna: Lista completa de cartas</span>
+}
+</div></code></pre>
+<h3 id="5-one-piece-tcg">5. One Piece TCG</h3>
+<pre class="hljs"><code><div><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarSetsOnepiece</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-comment">// GET https://optcgapi.com/api/allSets/</span>
+    <span class="hljs-comment">// Cache: ./data/cache/onepiece_sets.json</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">listarCardsOnepiecePorSet</span><span class="hljs-params">(String setCode)</span> </span>{
+    <span class="hljs-comment">// GET https://optcgapi.com/api/allSetCards/[code]/</span>
+}
+</div></code></pre>
+<p><strong>Rate Limiting</strong>:</p>
+<ul>
+<li>Max 30 requisições por minuto</li>
+<li>Timeout: 15 segundos por request</li>
+<li>Retry: 3 tentativas automáticas</li>
+<li>Backoff exponencial se limite atingido</li>
+</ul>
+<hr>
+<h2 id="%E2%9C%85-valida%C3%A7%C3%B5es-e-regras">✅ Validações e Regras</h2>
+<h3 id="vendas">Vendas</h3>
+<table>
+<thead>
+<tr>
+<th>Regra</th>
+<th>Status</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cliente obrigatório</td>
+<td>✅ Ativo</td>
+<td>Não finalizando venda sem cliente</td>
+</tr>
+<tr>
+<td>Mínimo 1 item</td>
+<td>✅ Ativo</td>
+<td>Não permitir venda vazia</td>
+</tr>
+<tr>
+<td>Estoque disponível</td>
+<td>✅ Ativo</td>
+<td>Validar quantidade antes de vender</td>
+</tr>
+<tr>
+<td>Preço &gt; 0</td>
+<td>✅ Ativo</td>
+<td>Preço não pode ser negativo</td>
+</tr>
+<tr>
+<td>Total &gt; 0</td>
+<td>✅ Ativo</td>
+<td>Total deve ser positivo</td>
+</tr>
+<tr>
+<td>Desconto ≤ 100%</td>
+<td>✅ Ativo</td>
+<td>Desconto não pode exceder 100%</td>
+</tr>
+<tr>
+<td>Imprimir comprovante</td>
+<td>✅ Ativo</td>
+<td>Obrigatório gerar comprovante</td>
+</tr>
+<tr>
+<td>Auditoria</td>
+<td>✅ Ativo</td>
+<td>Registrar quem, quando, o quê</td>
+</tr>
+</tbody>
+</table>
+<h3 id="estoque">Estoque</h3>
+<table>
+<thead>
+<tr>
+<th>Regra</th>
+<th>Status</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Produto único</td>
+<td>✅ Ativo</td>
+<td>Não permitir duplicação</td>
+</tr>
+<tr>
+<td>Nome obrigatório</td>
+<td>✅ Ativo</td>
+<td>Campo nome não pode ser vazio</td>
+</tr>
+<tr>
+<td>Preço ≥ 0</td>
+<td>✅ Ativo</td>
+<td>Preço não negativo</td>
+</tr>
+<tr>
+<td>Quantidade ≥ 0</td>
+<td>✅ Ativo</td>
+<td>Quantidade não negativa</td>
+</tr>
+<tr>
+<td>Categoria válida</td>
+<td>✅ Ativo</td>
+<td>Apenas categorias pré-definidas</td>
+</tr>
+<tr>
+<td>Alertas automáticos</td>
+<td>✅ Ativo</td>
+<td>Estoque baixo (&lt;5), vencidos</td>
+</tr>
+<tr>
+<td>Histórico completo</td>
+<td>✅ Ativo</td>
+<td>Rastrear todas as mudanças</td>
+</tr>
+</tbody>
+</table>
+<h3 id="financeiro">Financeiro</h3>
+<table>
+<thead>
+<tr>
+<th>Regra</th>
+<th>Status</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vencimento válido</td>
+<td>✅ Ativo</td>
+<td>Data deve ser no futuro</td>
+</tr>
+<tr>
+<td>Valor &gt; 0</td>
+<td>✅ Ativo</td>
+<td>Valores negativos não permitidos</td>
+</tr>
+<tr>
+<td>Juros ≥ 0</td>
+<td>✅ Ativo</td>
+<td>Juros não podem ser negativos</td>
+</tr>
+<tr>
+<td>Parcelas 1-12</td>
+<td>✅ Ativo</td>
+<td>Limitar parcelamento</td>
+</tr>
+<tr>
+<td>Intervalo mínimo</td>
+<td>✅ Ativo</td>
+<td>30 dias entre parcelas</td>
+</tr>
+<tr>
+<td>Saldo válido</td>
+<td>✅ Ativo</td>
+<td>Não usar crédito maior que saldo</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fiscal">Fiscal</h3>
+<table>
+<thead>
+<tr>
+<th>Regra</th>
+<th>Status</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CNPJ válido</td>
+<td>✅ Ativo</td>
+<td>Formato XX.XXX.XXX/XXXX-XX</td>
+</tr>
+<tr>
+<td>CPF válido</td>
+<td>✅ Ativo</td>
+<td>Validar dígitos verificadores</td>
+</tr>
+<tr>
+<td>NCM válido</td>
+<td>✅ Ativo</td>
+<td>8 dígitos numéricos</td>
+</tr>
+<tr>
+<td>CFOP válido</td>
+<td>✅ Ativo</td>
+<td>Código fiscal válido</td>
+</tr>
+<tr>
+<td>CSOSN válido</td>
+<td>✅ Ativo</td>
+<td>Situação tributária</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%E2%9A%A1-performance-e-escalabilidade">⚡ Performance e Escalabilidade</h2>
+<h3 id="%C3%ADndices-de-banco-de-dados">Índices de Banco de Dados</h3>
+<pre class="hljs"><code><div><span class="hljs-comment">-- Tabelas críticas</span>
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_vendas_cliente <span class="hljs-keyword">ON</span> vendas(cliente_id);
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_vendas_data <span class="hljs-keyword">ON</span> vendas(data_venda);
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_vendas_status <span class="hljs-keyword">ON</span> vendas(<span class="hljs-keyword">status</span>);
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_estoque_categoria <span class="hljs-keyword">ON</span> estoque(categoria);
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_estoque_nome <span class="hljs-keyword">ON</span> estoque(nome);
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_clientes_cpf <span class="hljs-keyword">ON</span> clientes(cpf);
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_clientes_nome <span class="hljs-keyword">ON</span> clientes(nome);
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_movimentacao_data <span class="hljs-keyword">ON</span> movimentacao_estoque(<span class="hljs-keyword">data</span>);
+</div></code></pre>
+<h3 id="cache-strategy">Cache Strategy</h3>
+<ul>
+<li><strong>L1 Cache</strong>: Memória (HashMap) - sesão do usuário</li>
+<li><strong>L2 Cache</strong>: SQLite com índices - banco local</li>
+<li><strong>L3 Cache</strong>: Arquivo JSON - APIs externas</li>
+<li><strong>TTL</strong>: 24 horas para dados de API</li>
+</ul>
+<h3 id="limite-de-dados">Limite de Dados</h3>
+<table>
+<thead>
+<tr>
+<th>Conceito</th>
+<th>Limite</th>
+<th>Sugestão</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Produtos</td>
+<td>Sem limite</td>
+<td>~50k testado</td>
+</tr>
+<tr>
+<td>Vendas</td>
+<td>Sem limite</td>
+<td>Arquivar &gt;1 ano</td>
+</tr>
+<tr>
+<td>Clientes</td>
+<td>Sem limite</td>
+<td>~10k ideal</td>
+</tr>
+<tr>
+<td>Usuários</td>
+<td>100</td>
+<td>Ideal 5-20</td>
+</tr>
+<tr>
+<td>Relatórios</td>
+<td>Períodos de 90 dias</td>
+<td>Quebrar em trimestres</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Documentação atualizada</strong>: Janeiro 2026 | <strong>Versão</strong>: 1.0.0</p>
+<hr>
+<h2 id="%F0%9F%94%97-links-%C3%BAteis">🔗 Links Úteis</h2>
+<ul>
+<li>📚 <a href="README_COMPLETE.md">README Completo</a></li>
+<li>📦 <a href="Estrturas/Estoque.md">Estoque.md</a></li>
+<li>🛒 <a href="Estrturas/vendas.md">Vendas.md</a></li>
+<li>🔧 <a href="https://github.com/oDuPrado/HoStore">GitHub</a></li>
+</ul>
+
+</body>
+</html>

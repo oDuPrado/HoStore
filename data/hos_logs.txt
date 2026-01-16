@@ -1230,3 +1230,9 @@ jan. 09, 2026 3:48:00 PM util.LogService info
 INFORMAÇÕES: Venda 4 finalizada com sucesso
 jan. 09, 2026 3:48:00 PM util.LogService info
 INFORMAÇÕES: Contas a receber não gerado: formaPagamento='MULTI' (norm='MULTI') e dados de parcelamento incompletos.
+jan. 14, 2026 8:43:27 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+jan. 14, 2026 8:43:27 AM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=100.0 parcelas=10 venc=2026-02-13 intervaloDias=30
+jan. 14, 2026 8:43:27 AM util.LogService info
+INFORMAÇÕES: Venda 1 finalizada com sucesso

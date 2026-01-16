@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>02_GUIA_DE_DECISAO.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%A7%AD-02---guia-de-decis%C3%A3o-completo">🧭 02 - Guia de Decisão (Completo)</h1>
+<p>Este documento responde a pergunta mais comum de toda operação:
+<strong>“Qual ação eu faço agora para não quebrar estoque e caixa?”</strong></p>
+<p>Se sua equipe usar este guia, você economiza:</p>
+<ul>
+<li>retrabalho</li>
+<li>erro de estoque</li>
+<li>briga interna</li>
+<li>suporte</li>
+</ul>
+<hr>
+<h2 id="0-princ%C3%ADpios-leia-uma-vez-e-pare-de-sofrer">0) Princípios (leia uma vez e pare de sofrer)</h2>
+<h3 id="01-regra-de-ouro-toda-a%C3%A7%C3%A3o-cr%C3%ADtica-tem-impacto">0.1 Regra de ouro: toda ação crítica tem impacto</h3>
+<ul>
+<li>Finalizar venda: <strong>mexe em estoque e caixa</strong></li>
+<li>Estornar: <strong>desfaz impactos</strong></li>
+<li>Devolver: <strong>desfaz parte dos impactos</strong></li>
+<li>Ajustar estoque: <strong>corrige quantidade, mas não corrige histórico de venda</strong></li>
+<li>Editar dados manualmente: <strong>quebra rastreabilidade</strong></li>
+</ul>
+<h3 id="02-corrigir-nunca-pode-apagar-rastro">0.2 “Corrigir” nunca pode apagar rastro</h3>
+<p>Se você apaga rastro, você perde:</p>
+<ul>
+<li>controle</li>
+<li>auditoria</li>
+<li>aprendizado (erro vira repetição)</li>
+</ul>
+<hr>
+<h2 id="1-devolu%C3%A7%C3%A3o-vs-estorno-vs-cancelamento-a-decis%C3%A3o-mais-importante">1) Devolução vs Estorno vs Cancelamento (a decisão mais importante)</h2>
+<h3 id="11-defini%C3%A7%C3%B5es-objetivas">1.1 Definições objetivas</h3>
+<table>
+<thead>
+<tr>
+<th>Ação</th>
+<th>Quando usar</th>
+<th>Impacto</th>
+<th>Exemplo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cancelamento</strong></td>
+<td>venda ainda <strong>não</strong> finalizada</td>
+<td>remove o rascunho/rascunho some</td>
+<td>vendedor abriu venda errada</td>
+</tr>
+<tr>
+<td><strong>Estorno</strong></td>
+<td>venda finalizada e cliente devolveu <strong>tudo</strong> (ou pagamento precisa ser revertido por completo)</td>
+<td>reverte venda inteira</td>
+<td>cliente desistiu na hora / cobrança duplicada</td>
+</tr>
+<tr>
+<td><strong>Devolução</strong></td>
+<td>venda finalizada e cliente devolveu <strong>parte</strong></td>
+<td>reverte apenas itens devolvidos</td>
+<td>devolveu 1 booster de 3</td>
+</tr>
+<tr>
+<td><strong>Ajuste</strong></td>
+<td>correção de estoque sem relação direta com venda</td>
+<td>muda quantidade e registra motivo</td>
+<td>item que quebrou / inventário achou diferença</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-%C3%A1rvore-de-decis%C3%A3o-r%C3%A1pida">1.2 Árvore de decisão (rápida)</h3>
+<pre class="hljs"><code><div>A venda foi FINALIZADA?
+  ├─ NÃO  -&gt; CANCELAR (antes de finalizar)
+  └─ SIM
+       ├─ Cliente devolveu TUDO? -&gt; ESTORNO
+       └─ Cliente devolveu PARTE? -&gt; DEVOLUÇÃO
+</div></code></pre>
+<h3 id="13-exemplos-reais-para-a-equipe-n%C3%A3o-errar">1.3 Exemplos reais (para a equipe não errar)</h3>
+<ul>
+<li>Venda aberta com item errado: <strong>Cancelar</strong> e criar outra</li>
+<li>Venda fechada e cliente devolveu 1 item: <strong>Devolução parcial</strong></li>
+<li>Venda fechada e pagamento cobrado 2x: <strong>Estorno (total)</strong></li>
+<li>Produto que quebrou no estoque: <strong>Ajuste (com motivo)</strong></li>
+</ul>
+<hr>
+<h2 id="2-comanda-vs-venda-direta-balc%C3%A3o">2) Comanda vs Venda Direta (balcão)</h2>
+<h3 id="21-quando-usar-comanda">2.1 Quando usar COMANDA</h3>
+<p>Use comanda quando:</p>
+<ul>
+<li>o cliente ainda vai adicionar itens</li>
+<li>você precisa “segurar” itens para um fechamento no final</li>
+<li>evento/mesa/consumo contínuo (quando aplicável)</li>
+</ul>
+<p><strong>Risco</strong> se usar errado:</p>
+<ul>
+<li>bagunça de estoque se baixar item antes da venda</li>
+<li>“itens presos” em comandas esquecidas</li>
+</ul>
+<p><strong>Regra operacional recomendada</strong>:</p>
+<ul>
+<li>comanda é “pré-venda”</li>
+<li>só vira venda (e mexe em estoque) quando finaliza</li>
+</ul>
+<h3 id="22-quando-usar-venda-direta">2.2 Quando usar VENDA DIRETA</h3>
+<p>Use venda direta quando:</p>
+<ul>
+<li>é compra imediata</li>
+<li>o cliente já decidiu</li>
+<li>pagamento vai acontecer agora</li>
+</ul>
+<hr>
+<h2 id="3-desconto-onde-aplicar-e-por-qu%C3%AA">3) Desconto: onde aplicar e por quê</h2>
+<h3 id="31-tipos-de-desconto-e-quando-usar">3.1 Tipos de desconto e quando usar</h3>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Quando usar</th>
+<th>Benefício</th>
+<th>Risco</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>No item</strong></td>
+<td>queima de estoque, item com condição diferente</td>
+<td>claro e auditável</td>
+<td>vendedor “usa para tudo”</td>
+</tr>
+<tr>
+<td><strong>No total</strong></td>
+<td>negociação do carrinho</td>
+<td>simples e rápido</td>
+<td>vira “desconto aleatório”</td>
+</tr>
+<tr>
+<td><strong>Por pagamento</strong></td>
+<td>PIX/dinheiro com desconto, cartão sem</td>
+<td>regra comercial clara</td>
+<td>precisa disciplina para aplicar sempre</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-regra-recomendada-para-loja-n%C3%A3o-virar-feira">3.2 Regra recomendada (para loja não virar feira)</h3>
+<ul>
+<li>preço base = preço cheio</li>
+<li>desconto (PIX/dinheiro) = opcional com política</li>
+<li>vendedor não decide sozinho (defina limites)</li>
+</ul>
+<hr>
+<h2 id="4-parcelamento-quando-vale-e-quando-destr%C3%B3i-margem">4) Parcelamento: quando vale e quando destrói margem</h2>
+<h3 id="41-quando-parcelar-vale-a-pena">4.1 Quando parcelar (vale a pena)</h3>
+<ul>
+<li>ticket alto</li>
+<li>cliente confiável / política da loja permite</li>
+<li>taxa do cartão está considerada na precificação</li>
+</ul>
+<h3 id="42-quando-n%C3%A3o-parcelar-armadilha">4.2 Quando não parcelar (armadilha)</h3>
+<ul>
+<li>ticket baixo (taxa come tudo)</li>
+<li>loja não controla contas a receber (vira “dinheiro perdido”)</li>
+<li>equipe preenche parcela errado (gera confusão)</li>
+</ul>
+<h3 id="43-checklist-antes-de-parcelar">4.3 Checklist antes de parcelar</h3>
+<ul>
+<li><input type="checkbox" id="checkbox0"><label for="checkbox0">Qual a taxa efetiva do cartão?</label></li>
+<li><input type="checkbox" id="checkbox1"><label for="checkbox1">Margem cobre a taxa?</label></li>
+<li><input type="checkbox" id="checkbox2"><label for="checkbox2">Cliente já tem histórico?</label></li>
+<li><input type="checkbox" id="checkbox3"><label for="checkbox3">Parcelas ficam registradas corretamente?</label></li>
+<li><input type="checkbox" id="checkbox4"><label for="checkbox4">Tem política de cobrança/atraso?</label></li>
+</ul>
+<hr>
+<h2 id="5-entrada-de-estoque-simples-vs-pedido-de-compra">5) Entrada de estoque: simples vs pedido de compra</h2>
+<h3 id="51-entrada-simples">5.1 Entrada simples</h3>
+<p>Use quando:</p>
+<ul>
+<li>reposição pequena</li>
+<li>compra pontual</li>
+<li>fornecedor informal</li>
+</ul>
+<h3 id="52-pedido-de-compra">5.2 Pedido de compra</h3>
+<p>Use quando:</p>
+<ul>
+<li>compra grande</li>
+<li>quer rastrear fornecedor e custo</li>
+<li>quer controle de recebimento e diferença</li>
+</ul>
+<p><strong>Decisão rápida</strong></p>
+<pre class="hljs"><code><div>Compra grande e recorrente? -&gt; Pedido de compra
+Compra pequena e pontual?   -&gt; Entrada simples
+</div></code></pre>
+<hr>
+<h2 id="6-ajuste-de-estoque-o-bot%C3%A3o-perigo">6) Ajuste de estoque (o botão “perigo”)</h2>
+<h3 id="61-quando-usar">6.1 Quando usar</h3>
+<ul>
+<li>quebra/perda</li>
+<li>divergência de inventário</li>
+<li>correção de cadastro (erro humano)</li>
+</ul>
+<h3 id="62-quando-n%C3%A3o-usar">6.2 Quando NÃO usar</h3>
+<ul>
+<li>para corrigir venda finalizada (use devolução/estorno)</li>
+<li>para “fazer bater” sem motivo (isso vira fraude/inconsistência)</li>
+</ul>
+<h3 id="63-pol%C3%ADtica-recomendada-empresa-que-quer-crescer">6.3 Política recomendada (empresa que quer crescer)</h3>
+<ul>
+<li>ajuste só com <strong>motivo</strong></li>
+<li>ajuste grande só com <strong>autorização do gerente</strong></li>
+<li>ajuste deve ser revisado semanalmente</li>
+</ul>
+<hr>
+<h2 id="7-cr%C3%A9dito-de-loja-o-que-%C3%A9-e-quando-usar">7) Crédito de loja: o que é e quando usar</h2>
+<h3 id="71-quando-usar-cr%C3%A9dito">7.1 Quando usar crédito</h3>
+<ul>
+<li>cliente devolveu e prefere crédito</li>
+<li>política da loja incentiva retorno</li>
+<li>troca por outro produto</li>
+</ul>
+<h3 id="72-quando-evitar-cr%C3%A9dito">7.2 Quando evitar crédito</h3>
+<ul>
+<li>caixa muito apertado e você precisa de liquidez</li>
+<li>equipe sem disciplina (crédito vira “dívida esquecida”)</li>
+</ul>
+<h3 id="73-regra-comercial-recomendada">7.3 Regra comercial recomendada</h3>
+<ul>
+<li>crédito tem validade? (ex: 90/180 dias)</li>
+<li>crédito é transferível? (sim/não)</li>
+<li>crédito pode ser convertido em dinheiro? (normalmente não)</li>
+</ul>
+<hr>
+<h2 id="8-checklist-de-decis%C3%A3o-coloque-na-parede">8) Checklist de decisão (coloque na parede)</h2>
+<p>Antes de confirmar qualquer ação crítica:</p>
+<ul>
+<li><input type="checkbox" id="checkbox5"><label for="checkbox5">Venda está </label><strong>aberta</strong> ou <strong>fechada</strong>?</li>
+<li><input type="checkbox" id="checkbox6"><label for="checkbox6">Isso vai mexer em </label><strong>estoque</strong>?</li>
+<li><input type="checkbox" id="checkbox7"><label for="checkbox7">Isso vai mexer em </label><strong>caixa</strong>?</li>
+<li><input type="checkbox" id="checkbox8"><label for="checkbox8">Existe </label><strong>motivo</strong> registrado?</li>
+<li><input type="checkbox" id="checkbox9"><label for="checkbox9">Precisa de </label><strong>autorização</strong>?</li>
+<li><input type="checkbox" id="checkbox10"><label for="checkbox10">A equipe sabe o que acontece depois?</label></li>
+</ul>
+<hr>
+<h2 id="9-faq-operacional-as-d%C3%BAvidas-que-sempre-voltam">9) FAQ operacional (as dúvidas que sempre voltam)</h2>
+<p><strong>“Posso ajustar estoque para corrigir venda?”</strong><br>
+Não. Ajuste corrige quantidade, não corrige histórico. Use devolução/estorno.</p>
+<p><strong>“Cliente devolveu só 1 item, como faço?”</strong><br>
+Devolução parcial, item a item.</p>
+<p><strong>“Venda ficou errada mas nem finalizei.”</strong><br>
+Cancelar e refazer. Não finalize coisa errada “pra corrigir depois”.</p>
+<hr>
+<p>✅ Próximo: <strong><a href="03_RISCOS_TECNICOS_E_OPERACAO.md">03 - Riscos Técnicos e Operacionais</a></strong></p>
+
+</body>
+</html>

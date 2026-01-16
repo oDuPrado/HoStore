@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>README.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%8F%AA-hostore---sistema-erp-para-lojas-tcg">🏪 HoStore - Sistema ERP para Lojas TCG</h1>
+<p><a href="https://www.oracle.com/java/"><img src="https://img.shields.io/badge/Java-17+-orange?logo=java" alt="Java"></a>
+<a href="https://maven.apache.org/"><img src="https://img.shields.io/badge/Build-Maven-blue?logo=apache-maven" alt="Maven"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License"></a>
+<a href=""><img src="https://img.shields.io/badge/Status-Em Desenvolvimento-yellow" alt="Status"></a></p>
+<blockquote>
+<p>Sistema de Gestão Empresarial (ERP) desktop especializado em Trading Card Games. Controle completo de vendas, estoque, financeiro e relatórios para lojas física de Pokémon, Magic, Yu-Gi-Oh!, Digimon, One Piece e mais.</p>
+</blockquote>
+<hr>
+<h2 id="%F0%9F%93%8B-%C3%ADndice-r%C3%A1pido">📋 Índice Rápido</h2>
+<ul>
+<li><a href="#-funcionalidades-principais">✨ Funcionalidades</a></li>
+<li><a href="#-requisitos">💻 Requisitos</a></li>
+<li><a href="#-instala%C3%A7%C3%A3o">📦 Instalação</a></li>
+<li><a href="#-como-usar">🚀 Como Usar</a></li>
+<li><a href="#-estrutura-do-projeto">🗂️ Estrutura</a></li>
+<li><a href="#%EF%B8%8F-atalhos-de-teclado">⌨️ Atalhos</a></li>
+<li><a href="#-documenta%C3%A7%C3%A3o-completa">📚 Documentação</a></li>
+</ul>
+<hr>
+<h2 id="%E2%9C%A8-funcionalidades-principais">✨ Funcionalidades Principais</h2>
+<h3 id="%F0%9F%9B%92-vendas">🛒 Vendas</h3>
+<ul>
+<li><strong>Carrinho Dinâmico</strong>: Adicione/remova produtos em tempo real</li>
+<li><strong>Descontos Flexíveis</strong>: Por item, total, percentual ou fixo</li>
+<li><strong>Múltiplos Pagamentos</strong>: Dinheiro, Cartão, PIX, Transferência, Combinado</li>
+<li><strong>Parcelamento</strong>: Cálculo automático com datas configuráveis</li>
+<li><strong>Comprovantes</strong>: Emissão em PDF ou impressão direta</li>
+<li><strong>Devoluções</strong>: Sistema completo com reintegração ao estoque</li>
+<li><strong>Estornos</strong>: Com reversão automática de movimentações</li>
+<li><strong>Auditoria</strong>: Registro completo de todas as ações</li>
+</ul>
+<h3 id="%F0%9F%93%A6-estoque">📦 Estoque</h3>
+<ul>
+<li><strong>Categorias Especializadas</strong>: Cartas, Boosters, Decks, ETBs, Acessórios, Alimentícios</li>
+<li><strong>Busca Avançada</strong>: Por nome, categoria, faixa de preço</li>
+<li><strong>Alertas Automáticos</strong>: Estoque baixo, produtos vencidos</li>
+<li><strong>Pedidos de Compra</strong>: Integrados com entrada de produtos</li>
+<li><strong>Movimentação</strong>: Rastreada e auditada</li>
+<li><strong>Dashboard</strong>: Resumo visual com KPIs</li>
+</ul>
+<h3 id="%F0%9F%92%B0-financeiro">💰 Financeiro</h3>
+<ul>
+<li><strong>Contas a Pagar</strong>: Registrar, parcelar, pagamentos</li>
+<li><strong>Contas a Receber</strong>: Acompanhar vendas parceladas</li>
+<li><strong>Crédito de Loja</strong>: Gerenciar créditos de clientes</li>
+<li><strong>Fluxo de Caixa</strong>: Relatórios completos</li>
+<li><strong>Impostos</strong>: Integração com ICMS, IPI, PIS, COFINS</li>
+</ul>
+<h3 id="%F0%9F%93%8A-relat%C3%B3rios">📊 Relatórios</h3>
+<ul>
+<li><strong>Dashboard com KPIs</strong>: Vendas, estoque, caixa em tempo real</li>
+<li><strong>Vendas</strong>: Por período, cliente, produto, margem</li>
+<li><strong>Estoque</strong>: Movimentação, validade, ABC</li>
+<li><strong>Financeiro</strong>: Fluxo, contas, resultado</li>
+<li><strong>Exportação</strong>: Excel, PDF, CSV</li>
+</ul>
+<h3 id="%F0%9F%8E%B4-apis-de-tcg">🎴 APIs de TCG</h3>
+<ul>
+<li><strong>Pokémon</strong>: Todos os sets e cartas</li>
+<li><strong>Magic</strong>: Integração Scryfall</li>
+<li><strong>Yu-Gi-Oh!</strong>: YGOPRODeck</li>
+<li><strong>Digimon</strong>: digimoncard.io</li>
+<li><strong>One Piece</strong>: optcgapi.com</li>
+<li>Cache local + sincronização automática</li>
+</ul>
+<h3 id="%F0%9F%91%A4-sistema">👤 Sistema</h3>
+<ul>
+<li><strong>Login com Autenticação</strong>: Controle de usuários</li>
+<li><strong>Permissões</strong>: Por função</li>
+<li><strong>Backup Automático</strong>: Diário em ./data/backup/</li>
+<li><strong>Logs Completos</strong>: Auditoria de todas as ações</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%92%BB-requisitos">💻 Requisitos</h2>
+<h3 id="m%C3%ADnimos">Mínimos</h3>
+<ul>
+<li><strong>SO</strong>: Windows 10+, macOS 10.15+, Linux (Ubuntu 20.04+)</li>
+<li><strong>Java</strong>: JDK 17+</li>
+<li><strong>RAM</strong>: 2 GB</li>
+<li><strong>Armazenamento</strong>: 500 MB</li>
+<li><strong>Resolução</strong>: 1024x768+</li>
+</ul>
+<h3 id="desenvolvimento">Desenvolvimento</h3>
+<ul>
+<li>Maven 3.8.0+</li>
+<li>IDE: VS Code, IntelliJ, Eclipse</li>
+<li>Git 2.30+</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%93%A6-instala%C3%A7%C3%A3o">📦 Instalação</h2>
+<h3 id="clone-e-compile">Clone e Compile</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Clone o repositório</span>
+git <span class="hljs-built_in">clone</span> https://github.com/oDuPrado/HoStore.git
+<span class="hljs-built_in">cd</span> HoStore
+
+<span class="hljs-comment"># Compile com Maven</span>
+mvn clean package
+</div></code></pre>
+<h3 id="execute">Execute</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Opção 1: Com Maven</span>
+mvn <span class="hljs-built_in">exec</span>:java@run
+
+<span class="hljs-comment"># Opção 2: JAR direto</span>
+java -jar target/HoStore-1.0.0-jar-with-dependencies.jar
+
+<span class="hljs-comment"># Opção 3: IDE</span>
+<span class="hljs-comment"># Abra app/Main.java e execute</span>
+</div></code></pre>
+<h3 id="primeiro-uso">Primeiro Uso</h3>
+<ul>
+<li>Sistema cria banco automaticamente</li>
+<li>Usuário padrão: <code>admin</code> / <code>admin</code> ⚠️ <strong>Alterar senha!</strong></li>
+</ul>
+<hr>
+<h2 id="%F0%9F%9A%80-como-usar">🚀 Como Usar</h2>
+<h3 id="nova-venda-30-segundos">Nova Venda (30 segundos)</h3>
+<ol>
+<li><code>Vendas → Nova Venda</code></li>
+<li>Selecione cliente</li>
+<li>Busque e adicione produtos</li>
+<li>Revise e finalize</li>
+<li>Escolha pagamento</li>
+<li>PDF gerado automaticamente</li>
+</ol>
+<h3 id="novo-produto-no-estoque">Novo Produto no Estoque</h3>
+<ol>
+<li><code>Estoque → Novo Item</code></li>
+<li>Selecione categoria (Carta, Booster, etc.)</li>
+<li>Preencha dados específicos</li>
+<li>Configure preços</li>
+<li>Confirme</li>
+</ol>
+<h3 id="entrada-de-compra">Entrada de Compra</h3>
+<ol>
+<li><code>Estoque → Entrada de Produtos</code></li>
+<li>Selecione pedido (ou novo)</li>
+<li>Confirm quantidades</li>
+<li>Vincula nota fiscal</li>
+<li>Estoque atualiza automaticamente</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%97%82%EF%B8%8F-estrutura-do-projeto">🗂️ Estrutura do Projeto</h2>
+<pre class="hljs"><code><div>HoStore/
+├── src/main/java/
+│   ├── api/                 # Integração com TCG APIs
+│   ├── app/Main.java        # Ponto de entrada
+│   ├── controller/          # Controladores (7 classes)
+│   ├── dao/                 # Acesso dados (50+ DAOs)
+│   ├── model/               # Modelos (60+ Models)
+│   ├── service/             # Lógica negócio (26 Services)
+│   └── ui/                  # Interface Swing + FlatLaf
+│       ├── venda/           # Vendas
+│       ├── estoque/         # Estoque
+│       ├── financeiro/      # Financeiro
+│       ├── clientes/        # Clientes
+│       ├── relatorios/      # Relatórios
+│       └── ajustes/         # Configurações
+├── data/
+│   ├── backup/              # Backups automáticos
+│   ├── cache/               # Cache de APIs
+│   └── export/              # Exportações
+├── pom.xml                  # Dependências Maven
+└── README_COMPLETE.md       # Documentação completa
+</div></code></pre>
+<h3 id="tecnologias">Tecnologias</h3>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Tecnologia</th>
+<th>Versão</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Linguagem</strong></td>
+<td>Java</td>
+<td>17+</td>
+</tr>
+<tr>
+<td><strong>UI</strong></td>
+<td>Swing + FlatLaf</td>
+<td>3.6</td>
+</tr>
+<tr>
+<td><strong>DB</strong></td>
+<td>SQLite</td>
+<td>3.42</td>
+</tr>
+<tr>
+<td><strong>PDF</strong></td>
+<td>PDFBox</td>
+<td>3.0.2</td>
+</tr>
+<tr>
+<td><strong>Excel</strong></td>
+<td>POI</td>
+<td>5.2.3</td>
+</tr>
+<tr>
+<td><strong>JSON</strong></td>
+<td>Gson</td>
+<td>2.10.1</td>
+</tr>
+<tr>
+<td><strong>Build</strong></td>
+<td>Maven</td>
+<td>3.8+</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%E2%8C%A8%EF%B8%8F-atalhos-de-teclado">⌨️ Atalhos de Teclado</h2>
+<table>
+<thead>
+<tr>
+<th>Atalho</th>
+<th>Ação</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Ctrl+N</code></td>
+<td>Nova venda</td>
+</tr>
+<tr>
+<td><code>Ctrl+S</code></td>
+<td>Salvar</td>
+</tr>
+<tr>
+<td><code>Ctrl+P</code></td>
+<td>Imprimir</td>
+</tr>
+<tr>
+<td><code>F2</code></td>
+<td>Focar busca (estoque)</td>
+</tr>
+<tr>
+<td><code>F3</code></td>
+<td>Focar tabela (estoque)</td>
+</tr>
+<tr>
+<td><code>Del</code></td>
+<td>Excluir selecionado</td>
+</tr>
+<tr>
+<td><code>Ctrl+E</code></td>
+<td>Nova entrada (estoque)</td>
+</tr>
+<tr>
+<td><code>Esc</code></td>
+<td>Cancelar/Fechar</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="%F0%9F%93%9A-documenta%C3%A7%C3%A3o-completa">📚 Documentação Completa</h2>
+<p>Para documentação técnica e detalhada, veja:</p>
+<ul>
+<li>📄 <strong><a href="README_COMPLETE.md">README_COMPLETE.md</a></strong> - Guia completo (80+ seções)</li>
+<li>📦 <strong><a href="Estrturas/Estoque.md">Estoque.md</a></strong> - Módulo de estoque detalhado</li>
+<li>🛒 <strong><a href="Estrturas/vendas.md">Vendas.md</a></strong> - Fluxos de venda e regras</li>
+<li>🔧 <strong><a href="estrutura.txt">estrutura.txt</a></strong> - Árvore de arquivos completa</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%A4%9D-contribuindo">🤝 Contribuindo</h2>
+<pre class="hljs"><code><div><span class="hljs-comment"># 1. Fork e clone</span>
+git <span class="hljs-built_in">clone</span> https://github.com/SEU_USUARIO/HoStore.git
+
+<span class="hljs-comment"># 2. Crie branch</span>
+git checkout -b feature/MinhaFeature
+
+<span class="hljs-comment"># 3. Commit</span>
+git commit -m <span class="hljs-string">"Adiciona MinhaFeature"</span>
+
+<span class="hljs-comment"># 4. Push</span>
+git push origin feature/MinhaFeature
+
+<span class="hljs-comment"># 5. Pull Request</span>
+<span class="hljs-comment"># Abra um PR no GitHub</span>
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%93%9E-suporte">📞 Suporte</h2>
+<h3 id="faq-r%C3%A1pido">FAQ Rápido</h3>
+<p><strong>P: Como faço backup?</strong>
+R: Automático diariamente em <code>./data/backup/</code>. Menu: <code>Ajustes → Backup Manual</code>.</p>
+<p><strong>P: Qual é o limite de produtos?</strong>
+R: Sem limite. Testado com ~50k itens sem perda de performance.</p>
+<p><strong>P: Posso usar em múltiplas lojas?</strong>
+R: Não na v1.0. Planejado para v2.0 com sistema de franquia.</p>
+<p><strong>P: Dados vão para nuvem?</strong>
+R: Não. SQLite local. Nuvem será opcional em v3.2 com criptografia.</p>
+<hr>
+<h2 id="%F0%9F%93%9D-licen%C3%A7a">📝 Licença</h2>
+<p>MIT License - <a href="LICENSE">Veja LICENSE</a></p>
+<hr>
+<h2 id="%F0%9F%91%A8%E2%80%8D%F0%9F%92%BB-autor">👨‍💻 Autor</h2>
+<p><strong>oDuPrado</strong> - <a href="https://github.com/oDuPrado">@GitHub</a></p>
+<hr>
+<h2 id="%F0%9F%97%82%EF%B8%8F-status-das-vers%C3%B5es">🗂️ Status das Versões</h2>
+<table>
+<thead>
+<tr>
+<th>Versão</th>
+<th>Status</th>
+<th>Recursos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0.0</td>
+<td>✅ Atual</td>
+<td>Vendas, Estoque, Fiscal Básico</td>
+</tr>
+<tr>
+<td>2.1.0</td>
+<td>🚀 Próxima</td>
+<td>Fiscal Completo, Múltiplos Usuários</td>
+</tr>
+<tr>
+<td>3.2.0</td>
+<td>🎯 Planejado</td>
+<td>Franquias, Mobile, Cloud Sync</td>
+</tr>
+<tr>
+<td>4.0.0</td>
+<td>🔮 Futuro</td>
+<td>JavaFX, API REST, Web</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Desenvolvido com ❤️ para a comunidade TCG</strong> 🎴</p>
+
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>01_POR_QUE_HOSTORE_EXISTE.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%92%BC-01---por-que-o-hostore-existe-comercial">💼 01 - Por que o HoStore existe (comercial)</h1>
+<p><strong>HoStore</strong> é um ERP criado para <strong>lojas de TCG</strong> que precisam operar com <strong>velocidade no balcão</strong> sem virar uma bagunça de <strong>estoque e caixa</strong> depois.</p>
+<p>Não é “um sistema bonitinho”. É um sistema para:</p>
+<ul>
+<li><strong>ganhar mais</strong> (margem e precificação melhor)</li>
+<li><strong>errar menos</strong> (menos inconsistência e retrabalho)</li>
+<li><strong>controlar</strong> (estoque, vendas, devoluções, contas e histórico)</li>
+</ul>
+<hr>
+<h2 id="1-o-problema-do-mundo-real-que-custa-dinheiro">1) O problema do mundo real (que custa dinheiro)</h2>
+<h3 id="11-estoque-fantasma-o-maior-assassino-de-margem">1.1 Estoque “fantasma” (o maior assassino de margem)</h3>
+<p>Sinais clássicos:</p>
+<ul>
+<li>“Eu tenho esse item… eu acho.”</li>
+<li>“Vendi e depois descobri que não tinha.”</li>
+<li>“Tá faltando coisa e ninguém sabe onde foi parar.”</li>
+</ul>
+<p>Isso costuma virar:</p>
+<ul>
+<li>perda de venda (ruptura)</li>
+<li>compra duplicada (estoque parado)</li>
+<li>briga interna (culpa do vendedor/estoque)</li>
+<li>inventário infinito (ninguém quer fazer)</li>
+</ul>
+<p><strong>O que o HoStore entrega</strong>:</p>
+<ul>
+<li>estoque com histórico (entradas/saídas/ajustes/devoluções)</li>
+<li>prevenção de divergência com processo claro</li>
+<li>rastreabilidade por ação e usuário</li>
+</ul>
+<p><strong>Resultado esperado</strong>:</p>
+<ul>
+<li>menos “sumiu item”</li>
+<li>inventário mais leve e frequente</li>
+<li>compra mais inteligente (menos dinheiro parado)</li>
+</ul>
+<hr>
+<h3 id="12-venda-r%C3%A1pida-sem-controle-vira-preju%C3%ADzo-invis%C3%ADvel">1.2 Venda rápida sem controle vira prejuízo invisível</h3>
+<p>Sinais clássicos:</p>
+<ul>
+<li>descontos “no grito”</li>
+<li>parcelamento sem controle</li>
+<li>PIX sem confirmação</li>
+<li>troco errado</li>
+<li>devolução anotada em papel e esquecida</li>
+</ul>
+<p><strong>O que o HoStore entrega</strong>:</p>
+<ul>
+<li>fluxo de venda padronizado (do carrinho ao pagamento)</li>
+<li>registro de formas de pagamento e mix</li>
+<li>estorno/devolução com impacto correto em estoque/valores</li>
+<li>comprovante/registro e histórico</li>
+</ul>
+<p><strong>Resultado esperado</strong>:</p>
+<ul>
+<li>menos erro humano repetido</li>
+<li>menos discussão sobre “quanto foi o total real”</li>
+<li>mais consistência no caixa</li>
+</ul>
+<hr>
+<h3 id="13-financeiro-na-cabe%C3%A7a-n%C3%A3o-escala">1.3 Financeiro “na cabeça” não escala</h3>
+<p>Quando a loja cresce, o financeiro vira:</p>
+<ul>
+<li>parcelas vencidas “surpresa”</li>
+<li>contas a pagar que aparecem tarde demais</li>
+<li>crédito de loja que vira dívida oculta</li>
+<li>falta de clareza do lucro real</li>
+</ul>
+<p><strong>O que o HoStore entrega</strong>:</p>
+<ul>
+<li>contas a pagar / receber</li>
+<li>controle de parcelas</li>
+<li>crédito de loja com histórico</li>
+<li>relatórios e visão por período</li>
+</ul>
+<p><strong>Resultado esperado</strong>:</p>
+<ul>
+<li>previsibilidade (o que vence e quando)</li>
+<li>menos “apagar incêndio”</li>
+<li>melhor decisão de compra e precificação</li>
+</ul>
+<hr>
+<h2 id="2-para-quem-o-hostore-%C3%A9-e-para-quem-n%C3%A3o-%C3%A9">2) Para quem o HoStore é (e para quem não é)</h2>
+<h3 id="%C3%A9-ideal-se-voc%C3%AA">É ideal se você:</h3>
+<ul>
+<li>é loja de TCG e quer controle <strong>sem burocratizar demais</strong></li>
+<li>quer operar no balcão rápido, com rastreio e histórico</li>
+<li>precisa lidar com devoluções, estornos e ajustes corretamente</li>
+<li>quer ter base para fiscal/nota (quando aplicável) sem reinventar a roda</li>
+</ul>
+<h3 id="n%C3%A3o-%C3%A9-foco-ainda-se-voc%C3%AA">Não é foco (ainda) se você:</h3>
+<ul>
+<li>quer e-commerce completo com logística, shipping e marketplace (outro projeto)</li>
+<li>quer um ERP generalista para qualquer segmento sem personalização</li>
+</ul>
+<hr>
+<h2 id="3-diferenciais-claros-que-viram-argumento-comercial">3) Diferenciais claros (que viram argumento comercial)</h2>
+<h3 id="31-feito-para-tcg-n%C3%A3o-erp-gen%C3%A9rico-adaptado">3.1 Feito para TCG (não “ERP genérico adaptado”)</h3>
+<ul>
+<li>organização e categorias alinhadas a produtos comuns de TCG</li>
+<li>fluxo de operação pensado para balcão</li>
+<li>base para integrações (sets/coleções, quando aplicável)</li>
+</ul>
+<h3 id="32-rastreabilidade-que-reduz-suporte-e-preju%C3%ADzo">3.2 Rastreabilidade que reduz suporte e prejuízo</h3>
+<ul>
+<li>movimentação de estoque rastreada (entrada/saída/ajuste/devolução)</li>
+<li>histórico consultável para “descobrir o que aconteceu”</li>
+<li>disciplina operacional embutida no fluxo</li>
+</ul>
+<h3 id="33-offline-friendly-e-perform%C3%A1tico">3.3 Offline-friendly e performático</h3>
+<ul>
+<li>operação local (quando necessário)</li>
+<li>sem depender de “internet perfeita” para vender</li>
+<li>foco em rapidez e responsividade</li>
+</ul>
+<hr>
+<h2 id="4-como-o-hostore-se-paga-roi-pr%C3%A1tico">4) Como o HoStore “se paga” (ROI prático)</h2>
+<p>Você não compra ERP para “ser moderno”. Você compra para não perder dinheiro.</p>
+<h3 id="ganhos-t%C3%ADpicos-onde-aparece">Ganhos típicos (onde aparece)</h3>
+<ul>
+<li><strong>menor ruptura</strong>: menos venda perdida por item inexistente</li>
+<li><strong>menos estoque parado</strong>: compra melhor, menos dinheiro travado</li>
+<li><strong>menos erro operacional</strong>: desconto/parcelas/troco/devolução feitos certo</li>
+<li><strong>menos retrabalho</strong>: menos planilhas e correções manuais</li>
+</ul>
+<h3 id="m%C3%A9tricas-simples-para-medir-sem-enrola%C3%A7%C3%A3o">Métricas simples para medir (sem enrolação)</h3>
+<ul>
+<li>% de itens com divergência no inventário (deve cair)</li>
+<li>número de ajustes sem motivo (deve cair)</li>
+<li>prazo médio de recebimento de parcelas (deve cair)</li>
+<li>margem média por categoria (deve subir com controle)</li>
+</ul>
+<hr>
+<h2 id="5-o-que-o-cliente-recebe-quando-assina-entreg%C3%A1veis">5) O que o cliente recebe quando assina (entregáveis)</h2>
+<ul>
+<li>acesso ao sistema e atualizações do produto</li>
+<li>pacote de documentação (este)</li>
+<li>onboarding operacional (checklist + treinamento rápido)</li>
+<li>suporte orientado a processo (não “jeitinho”)</li>
+</ul>
+<blockquote>
+<p>Importante: o sistema funciona melhor quando a loja segue um processo mínimo.
+Esse pacote existe para padronizar isso e reduzir suporte.</p>
+</blockquote>
+<hr>
+<h2 id="6-proposta-de-posicionamento-texto-pronto-para-voc%C3%AA-usar">6) Proposta de “posicionamento” (texto pronto para você usar)</h2>
+<p><strong>HoStore é o ERP para lojas TCG que querem vender rápido sem perder o controle.</strong><br>
+Ele organiza estoque, vendas, devoluções, financeiro e relatórios de um jeito que faz sentido para o balcão e para o dono da loja.</p>
+<hr>
+<p>✅ Próximo: <strong><a href="02_GUIA_DE_DECISAO.md">02 - Guia de Decisão</a></strong></p>
+
+</body>
+</html>

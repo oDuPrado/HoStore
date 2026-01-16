@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ARQUITETURA.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%8F%97%EF%B8%8F-arquitetura-do-hostore---guia-t%C3%A9cnico">🏗️ Arquitetura do HoStore - Guia Técnico</h1>
+<p><strong>Data</strong>: Janeiro 2026 | <strong>Versão</strong>: 1.0.0</p>
+<hr>
+<h2 id="%F0%9F%93%91-%C3%ADndice">📑 Índice</h2>
+<ol>
+<li><a href="#arquitetura-geral">Arquitetura Geral</a></li>
+<li><a href="#camadas-e-responsabilidades">Camadas e Responsabilidades</a></li>
+<li><a href="#fluxo-de-dados">Fluxo de Dados</a></li>
+<li><a href="#padr%C3%B5es-de-projeto">Padrões de Projeto</a></li>
+<li><a href="#estrutura-de-pacotes">Estrutura de Pacotes</a></li>
+<li><a href="#banco-de-dados">Banco de Dados</a></li>
+<li><a href="#configura%C3%A7%C3%A3o-e-deploy">Configuração e Deploy</a></li>
+</ol>
+<hr>
+<h2 id="%F0%9F%8E%AF-arquitetura-geral">🎯 Arquitetura Geral</h2>
+<h3 id="visualiza%C3%A7%C3%A3o-de-alto-n%C3%ADvel">Visualização de Alto Nível</h3>
+<pre class="hljs"><code><div>┌────────────────────────────────────────────────────────────────┐
+│                   APLICAÇÃO HOSTORE                             │
+├────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │           CAMADA DE APRESENTAÇÃO (UI/Swing)              │   │
+│  │  TelaPrincipal → PainelVendas → VendaNovaDialog          │   │
+│  │  Componentes: JFrame, JPanel, JDialog, JTable, JButton   │   │
+│  │  Tema: FlatLaf 3.6 (Modern Look &amp; Feel)                 │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓↑                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         CAMADA DE CONTROLE (Controller)                   │   │
+│  │  VendaController → EstoqueController → ClienteController  │   │
+│  │  Responsável: Carrinho em memória, ações de UI           │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓↑                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │      CAMADA DE NEGÓCIO (Service Layer)                    │   │
+│  │  VendaService → EstoqueService → DocumentoFiscalService   │   │
+│  │  Transações, Validações, Regras de Negócio             │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓↑                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │      CAMADA DE ACESSO (DAO - Data Access Object)         │   │
+│  │  VendaDAO → EstoqueDAO → ClienteDAO → [50+ DAOs]        │   │
+│  │  CRUD Operações, Queries Complexas                       │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓↑                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │         CAMADA DE DADOS (Database)                        │   │
+│  │  SQLite Database (hostore.db)                            │   │
+│  │  Tabelas: Vendas, Estoque, Clientes, Fiscal, etc.       │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+├────────────────────────────────────────────────────────────────┤
+│  CAMADAS TRANSVERSAIS                                           │
+│  Util (DB, BackupUtils, PDFGenerator, LogService)             │
+│  APIs (PokeTcgApi, CardGamesApi)                              │
+│  Modelos (Model classes - 60+ classes)                        │
+│  Factory (Criação de objetos)                                 │
+└────────────────────────────────────────────────────────────────┘
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%94%84-camadas-e-responsabilidades">🔄 Camadas e Responsabilidades</h2>
+<h3 id="1-camada-de-apresenta%C3%A7%C3%A3o-uiview">1. Camada de Apresentação (UI/View)</h3>
+<p><strong>Localização</strong>: <code>src/main/java/ui/</code></p>
+<p><strong>Responsabilidades</strong>:</p>
+<ul>
+<li>Renderizar componentes Swing</li>
+<li>Capturar entrada do usuário</li>
+<li>Exibir dados formatados</li>
+<li>Chamar controladores para ações</li>
+</ul>
+<p><strong>Estrutura</strong>:</p>
+<pre class="hljs"><code><div>ui/
+├── TelaPrincipal.java          # Janela principal (JFrame)
+├── ajustes/                    # Configurações, usuários
+│   ├── dialog/
+│   │   ├── LoginDialog.java
+│   │   ├── UsuarioDialog.java
+│   │   └── Configuracao.java
+│   └── painel/
+├── clientes/                   # Gerenciamento de clientes
+│   ├── dialog/
+│   │   └── ClienteCadastroDialog.java
+│   └── painel/
+│       └── PainelClientes.java
+├── comandas/                   # Sistema de comandas
+├── dash/                       # Dashboards
+│   └── DashboardPrincipal.java
+├── estoque/                    # Gerenciamento de estoque
+│   ├── dialog/
+│   │   ├── CadastroCartaDialog.java
+│   │   ├── CadastroBoosterDialog.java
+│   │   ├── EntradaProdutosDialog.java
+│   │   └── [17+ dialogs]
+│   └── painel/
+│       ├── PainelEstoque.java
+│       └── PainelPedidosEstoque.java
+├── financeiro/                 # Módulo financeiro
+│   ├── PainelContas.java
+│   └── RelatoriosFinanceiros.java
+├── relatorios/                 # Relatórios avançados
+│   └── RelatorioViewer.java
+└── venda/                      # Vendas
+    ├── dialog/
+    │   ├── VendaNovaDialog.java
+    │   ├── VendaFinalizarDialog.java
+    │   ├── VendaDevolucaoDialog.java
+    │   └── [9+ dialogs]
+    └── painel/
+        └── PainelVendas.java
+</div></code></pre>
+<p><strong>Exemplo: VendaNovaDialog</strong></p>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">VendaNovaDialog</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">JDialog</span> </span>{
+    <span class="hljs-comment">// Componentes</span>
+    <span class="hljs-keyword">private</span> JComboBox&lt;ClienteModel&gt; comboClientes;
+    <span class="hljs-keyword">private</span> JTable tabelaCarrinho;
+    <span class="hljs-keyword">private</span> JTextField txtBusca;
+    <span class="hljs-keyword">private</span> JLabel lblTotal;
+    <span class="hljs-keyword">private</span> JButton btnFinalizar;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">VendaNovaDialog</span><span class="hljs-params">(JFrame parent)</span> </span>{
+        <span class="hljs-keyword">super</span>(parent, <span class="hljs-string">"Nova Venda"</span>);
+        initUI();
+        bindEvents();
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">initUI</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// Layout e componentes</span>
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">bindEvents</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// Listeners de botões, campos, etc</span>
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">finalizarVenda</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-comment">// Chama VendaController.finalizar()</span>
+    }
+}
+</div></code></pre>
+<hr>
+<h3 id="2-camada-de-controle-controller">2. Camada de Controle (Controller)</h3>
+<p><strong>Localização</strong>: <code>src/main/java/controller/</code></p>
+<p><strong>Responsabilidades</strong>:</p>
+<ul>
+<li>Coordenar UI com Service</li>
+<li>Manter estado temporário (carrinho)</li>
+<li>Preparar dados para envio</li>
+<li>Fornecer feedback à UI</li>
+</ul>
+<p><strong>Classes</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">VendaController</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> VendaService vendaService;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;VendaItemModel&gt; carrinho;
+    
+    <span class="hljs-comment">// Operações de carrinho</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">adicionarItem</span><span class="hljs-params">(VendaItemModel item)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">removerItem</span><span class="hljs-params">(<span class="hljs-keyword">int</span> index)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">limparCarrinho</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> List&lt;VendaItemModel&gt; <span class="hljs-title">getCarrinho</span><span class="hljs-params">()</span>
+    
+    <span class="hljs-comment">// Cálculos</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTotalBruto</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTotalDesconto</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">double</span> <span class="hljs-title">getTotalLiquido</span><span class="hljs-params">()</span>
+    
+    <span class="hljs-comment">// Finalização</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">finalizar</span><span class="hljs-params">(String clienteId, String forma, <span class="hljs-keyword">int</span> parcelas)</span>
+}
+
+<span class="hljs-keyword">public</span> class EstoqueController </span>{
+    <span class="hljs-comment">// Operações de estoque</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">listar</span><span class="hljs-params">(String filtro)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cadastrar</span><span class="hljs-params">(ProdutoModel produto)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">atualizar</span><span class="hljs-params">(ProdutoModel produto)</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">deletar</span><span class="hljs-params">(String id)</span>
+}
+
+<span class="hljs-keyword">public</span> class ClienteController </span>{
+    <span class="hljs-comment">// Operações de clientes</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cadastrar</span><span class="hljs-params">(ClienteModel cliente)</span>
+    <span class="hljs-keyword">public</span> List&lt;ClienteModel&gt; <span class="hljs-title">listar</span><span class="hljs-params">()</span>
+    <span class="hljs-keyword">public</span> ClienteModel <span class="hljs-title">buscar</span><span class="hljs-params">(String id)</span>
+}
+</span></div></code></pre>
+<hr>
+<h3 id="3-camada-de-neg%C3%B3cio-service">3. Camada de Negócio (Service)</h3>
+<p><strong>Localização</strong>: <code>src/main/java/service/</code></p>
+<p><strong>Responsabilidades</strong>:</p>
+<ul>
+<li>Implementar regras de negócio</li>
+<li>Orquestrar operações transacionais</li>
+<li>Validações complexas</li>
+<li>Integração entre múltiplos DAOs</li>
+</ul>
+<p><strong>Principais Services</strong>:</p>
+<h4 id="vendaservice">VendaService</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">VendaService</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> VendaDAO vendaDAO;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> VendaItemDAO itemDAO;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> EstoqueService estoqueService;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DocumentoFiscalService fiscalService;
+    
+    <span class="hljs-comment">/**
+     * Finaliza venda com transação atômica
+     * 1. Valida dados
+     * 2. Cria venda
+     * 3. Insere itens
+     * 4. Baixa estoque
+     * 5. Emite fiscal
+     * 6. Gera comprovante
+     */</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">finalizarVenda</span><span class="hljs-params">(VendaModel venda, List&lt;VendaItemModel&gt; itens)</span> </span>{
+        <span class="hljs-comment">// Transação START</span>
+        <span class="hljs-keyword">try</span> {
+            <span class="hljs-comment">// 1. Validação</span>
+            validarVenda(venda, itens);
+            
+            <span class="hljs-comment">// 2. Criar venda</span>
+            <span class="hljs-keyword">int</span> vendaId = vendaDAO.insert(venda);
+            
+            <span class="hljs-comment">// 3. Itens</span>
+            <span class="hljs-keyword">for</span> (VendaItemModel item : itens) {
+                item.setVendaId(vendaId);
+                itemDAO.insert(item);
+            }
+            
+            <span class="hljs-comment">// 4. Estoque</span>
+            <span class="hljs-keyword">for</span> (VendaItemModel item : itens) {
+                estoqueService.saida(item.getProdutoId(), item.getQtd());
+            }
+            
+            <span class="hljs-comment">// 5. Fiscal</span>
+            fiscalService.emitirNFCe(venda);
+            
+            <span class="hljs-comment">// Transação COMMIT</span>
+            <span class="hljs-keyword">return</span> vendaId;
+            
+        } <span class="hljs-keyword">catch</span> (Exception e) {
+            <span class="hljs-comment">// Transação ROLLBACK</span>
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException(e);
+        }
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">estornarVenda</span><span class="hljs-params">(String vendaId, String motivo)</span> </span>{
+        <span class="hljs-comment">// Reverter operação anterior</span>
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">processarDevolucao</span><span class="hljs-params">(String vendaId, String motivo)</span> </span>{
+        <span class="hljs-comment">// Processar devolução</span>
+    }
+}
+</div></code></pre>
+<h4 id="estoqueservice">EstoqueService</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EstoqueService</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> EstoqueDAO estoqueDAO;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> MovimentacaoEstoqueDAO movDAO;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> CartaService cartaService;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;ProdutoEstoqueDTO&gt; <span class="hljs-title">listarTodos</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">return</span> estoqueDAO.findAll();
+    }
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">saida</span><span class="hljs-params">(String produtoId, <span class="hljs-keyword">int</span> quantidade)</span> </span>{
+        <span class="hljs-comment">// Valida quantidade</span>
+        ProdutoEstoqueDTO produto = buscarPorId(produtoId);
+        <span class="hljs-keyword">if</span> (produto.getQuantidade() &lt; quantidade) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">"Estoque insuficiente"</span>);
+        }
+        
+        <span class="hljs-comment">// Registra movimentação</span>
+        MovEstoqueModel mov = <span class="hljs-keyword">new</span> MovEstoqueModel();
+        mov.setProdutoId(produtoId);
+        mov.setTipo(<span class="hljs-string">"SAIDA"</span>);
+        mov.setQuantidade(-quantidade);
+        movDAO.insert(mov);
+        
+        <span class="hljs-comment">// Atualiza estoque</span>
+        estoqueDAO.decreaseQuantidade(produtoId, quantidade);
+    }
+}
+</div></code></pre>
+<h4 id="documentofiscalservice">DocumentoFiscalService</h4>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DocumentoFiscalService</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DocumentoFiscalDAO docDAO;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> PDFGenerator pdfGen;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">emitirNFCe</span><span class="hljs-params">(VendaModel venda)</span> </span>{
+        <span class="hljs-comment">// 1. Validar dados fiscais</span>
+        validarDadosFiscais(venda);
+        
+        <span class="hljs-comment">// 2. Gerar XML</span>
+        String xml = gerarXML(venda);
+        
+        <span class="hljs-comment">// 3. Assinar digitalmente (futuro)</span>
+        
+        <span class="hljs-comment">// 4. Salvar documento</span>
+        DocumentoFiscalModel doc = <span class="hljs-keyword">new</span> DocumentoFiscalModel();
+        doc.setVendaId(venda.getId());
+        doc.setXml(xml);
+        doc.setStatus(<span class="hljs-string">"EMITIDO"</span>);
+        docDAO.insert(doc);
+        
+        <span class="hljs-comment">// 5. Gerar PDF</span>
+        pdfGen.gerarPDF(venda, <span class="hljs-string">"comprovante.pdf"</span>);
+    }
+}
+</div></code></pre>
+<hr>
+<h3 id="4-camada-de-acesso-dao">4. Camada de Acesso (DAO)</h3>
+<p><strong>Localização</strong>: <code>src/main/java/dao/</code></p>
+<p><strong>Responsabilidades</strong>:</p>
+<ul>
+<li>CRUD básico (Create, Read, Update, Delete)</li>
+<li>Queries específicas</li>
+<li>Mapeamento objeto-relacional</li>
+<li>Tratamento de exceções SQL</li>
+</ul>
+<p><strong>Padrão DAO</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CartaDAO</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Connection connection;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CartaDAO</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">this</span>.connection = DB.getConnection();
+    }
+    
+    <span class="hljs-comment">// CREATE</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">insert</span><span class="hljs-params">(Carta carta)</span> <span class="hljs-keyword">throws</span> SQLException </span>{
+        String sql = <span class="hljs-string">"INSERT INTO cartas (nome, set, numero, raridade, preco_custo, preco_venda, quantidade) "</span>
+                   + <span class="hljs-string">"VALUES (?, ?, ?, ?, ?, ?, ?)"</span>;
+        
+        <span class="hljs-keyword">try</span> (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(<span class="hljs-number">1</span>, carta.getNome());
+            stmt.setString(<span class="hljs-number">2</span>, carta.getSet());
+            stmt.setString(<span class="hljs-number">3</span>, carta.getNumero());
+            stmt.setString(<span class="hljs-number">4</span>, carta.getRaridade());
+            stmt.setDouble(<span class="hljs-number">5</span>, carta.getPrecoCusto());
+            stmt.setDouble(<span class="hljs-number">6</span>, carta.getPrecoVenda());
+            stmt.setInt(<span class="hljs-number">7</span>, carta.getQuantidade());
+            
+            stmt.executeUpdate();
+            
+            <span class="hljs-keyword">try</span> (ResultSet rs = stmt.getGeneratedKeys()) {
+                <span class="hljs-keyword">if</span> (rs.next()) <span class="hljs-keyword">return</span> rs.getInt(<span class="hljs-number">1</span>);
+            }
+        }
+        <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;
+    }
+    
+    <span class="hljs-comment">// READ</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> Carta <span class="hljs-title">findById</span><span class="hljs-params">(<span class="hljs-keyword">int</span> id)</span> <span class="hljs-keyword">throws</span> SQLException </span>{
+        String sql = <span class="hljs-string">"SELECT * FROM cartas WHERE id = ?"</span>;
+        <span class="hljs-keyword">try</span> (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(<span class="hljs-number">1</span>, id);
+            <span class="hljs-keyword">try</span> (ResultSet rs = stmt.executeQuery()) {
+                <span class="hljs-keyword">if</span> (rs.next()) {
+                    <span class="hljs-keyword">return</span> mapToObject(rs);
+                }
+            }
+        }
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+    }
+    
+    <span class="hljs-comment">// READ ALL</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Carta&gt; <span class="hljs-title">findAll</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> SQLException </span>{
+        String sql = <span class="hljs-string">"SELECT * FROM cartas ORDER BY nome"</span>;
+        List&lt;Carta&gt; cartas = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+        
+        <span class="hljs-keyword">try</span> (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            <span class="hljs-keyword">while</span> (rs.next()) {
+                cartas.add(mapToObject(rs));
+            }
+        }
+        <span class="hljs-keyword">return</span> cartas;
+    }
+    
+    <span class="hljs-comment">// UPDATE</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">update</span><span class="hljs-params">(Carta carta)</span> <span class="hljs-keyword">throws</span> SQLException </span>{
+        String sql = <span class="hljs-string">"UPDATE cartas SET nome=?, preco_venda=?, quantidade=? WHERE id=?"</span>;
+        
+        <span class="hljs-keyword">try</span> (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(<span class="hljs-number">1</span>, carta.getNome());
+            stmt.setDouble(<span class="hljs-number">2</span>, carta.getPrecoVenda());
+            stmt.setInt(<span class="hljs-number">3</span>, carta.getQuantidade());
+            stmt.setInt(<span class="hljs-number">4</span>, carta.getId());
+            
+            <span class="hljs-keyword">return</span> stmt.executeUpdate();
+        }
+    }
+    
+    <span class="hljs-comment">// DELETE (lógico)</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">delete</span><span class="hljs-params">(<span class="hljs-keyword">int</span> id)</span> <span class="hljs-keyword">throws</span> SQLException </span>{
+        String sql = <span class="hljs-string">"UPDATE cartas SET deletado=true, deletado_em=NOW() WHERE id=?"</span>;
+        
+        <span class="hljs-keyword">try</span> (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(<span class="hljs-number">1</span>, id);
+            <span class="hljs-keyword">return</span> stmt.executeUpdate();
+        }
+    }
+    
+    <span class="hljs-comment">// Helper</span>
+    <span class="hljs-function"><span class="hljs-keyword">private</span> Carta <span class="hljs-title">mapToObject</span><span class="hljs-params">(ResultSet rs)</span> <span class="hljs-keyword">throws</span> SQLException </span>{
+        Carta carta = <span class="hljs-keyword">new</span> Carta();
+        carta.setId(rs.getInt(<span class="hljs-string">"id"</span>));
+        carta.setNome(rs.getString(<span class="hljs-string">"nome"</span>));
+        <span class="hljs-comment">// ... mais campos</span>
+        <span class="hljs-keyword">return</span> carta;
+    }
+}
+</div></code></pre>
+<p><strong>DAOs Disponíveis</strong> (50+):</p>
+<pre class="hljs"><code><div>CartaDAO, BoosterDAO, DeckDAO, EtbDAO, AcessorioDAO,
+ProdutoDAO, EstoqueDAO, VendaDAO, VendaItemDAO, ClienteDAO,
+ContaPagarDAO, ContaReceberDAO, DocumentoFiscalDAO,
+MovimentacaoEstoqueDAO, PedidoCompraDAO, NcmDAO, CfopDAO,
+CsosnDAO, ConfigFiscalDAO, ConfigLojaDAO, UsuarioDAO,
+[...]
+</div></code></pre>
+<hr>
+<h3 id="5-camada-de-dados-database">5. Camada de Dados (Database)</h3>
+<p><strong>Tipo</strong>: SQLite (arquivo local: <code>hostore.db</code>)</p>
+<p><strong>Estrutura Principal</strong>:</p>
+<pre class="hljs"><code><div><span class="hljs-comment">-- VENDAS</span>
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> vendas (
+    <span class="hljs-keyword">id</span> <span class="hljs-built_in">INTEGER</span> PRIMARY <span class="hljs-keyword">KEY</span> AUTOINCREMENT,
+    cliente_id <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    data_venda DATETIME <span class="hljs-keyword">DEFAULT</span> <span class="hljs-keyword">CURRENT_TIMESTAMP</span>,
+    total_bruto <span class="hljs-built_in">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    total_desconto <span class="hljs-built_in">REAL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">0</span>,
+    total_liquido <span class="hljs-built_in">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    forma_pagamento <span class="hljs-built_in">TEXT</span>,
+    <span class="hljs-keyword">status</span> <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">CHECK</span>(<span class="hljs-keyword">status</span> <span class="hljs-keyword">IN</span> (<span class="hljs-string">'aberta'</span>, <span class="hljs-string">'fechada'</span>, <span class="hljs-string">'estornada'</span>)),
+    criado_por <span class="hljs-built_in">TEXT</span>,
+    criado_em DATETIME <span class="hljs-keyword">DEFAULT</span> <span class="hljs-keyword">CURRENT_TIMESTAMP</span>,
+    alterado_em DATETIME,
+    <span class="hljs-keyword">FOREIGN</span> <span class="hljs-keyword">KEY</span>(cliente_id) <span class="hljs-keyword">REFERENCES</span> clientes(<span class="hljs-keyword">id</span>)
+);
+
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> vendas_itens (
+    <span class="hljs-keyword">id</span> <span class="hljs-built_in">INTEGER</span> PRIMARY <span class="hljs-keyword">KEY</span> AUTOINCREMENT,
+    venda_id <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    produto_id <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    quantidade <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    preco_unitario <span class="hljs-built_in">REAL</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    desconto <span class="hljs-built_in">REAL</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">0</span>,
+    subtotal <span class="hljs-built_in">REAL</span> <span class="hljs-keyword">GENERATED</span> <span class="hljs-keyword">ALWAYS</span> <span class="hljs-keyword">AS</span> (quantidade * preco_unitario - desconto),
+    <span class="hljs-keyword">FOREIGN</span> <span class="hljs-keyword">KEY</span>(venda_id) <span class="hljs-keyword">REFERENCES</span> vendas(<span class="hljs-keyword">id</span>),
+    <span class="hljs-keyword">FOREIGN</span> <span class="hljs-keyword">KEY</span>(produto_id) <span class="hljs-keyword">REFERENCES</span> estoque(<span class="hljs-keyword">id</span>)
+);
+
+<span class="hljs-comment">-- ESTOQUE</span>
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> cartas (
+    <span class="hljs-keyword">id</span> <span class="hljs-built_in">INTEGER</span> PRIMARY <span class="hljs-keyword">KEY</span>,
+    nome <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span>,
+    <span class="hljs-keyword">set</span> <span class="hljs-built_in">TEXT</span>,
+    numero <span class="hljs-built_in">TEXT</span>,
+    raridade <span class="hljs-built_in">TEXT</span>,
+    condicao <span class="hljs-built_in">TEXT</span>,
+    quantidade <span class="hljs-built_in">INTEGER</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-number">0</span>,
+    preco_custo <span class="hljs-built_in">REAL</span>,
+    preco_venda <span class="hljs-built_in">REAL</span>,
+    deletado <span class="hljs-built_in">BOOLEAN</span> <span class="hljs-keyword">DEFAULT</span> <span class="hljs-literal">FALSE</span>,
+    deletado_em DATETIME
+);
+
+<span class="hljs-comment">-- CLIENTES</span>
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">TABLE</span> clientes (
+    <span class="hljs-keyword">id</span> <span class="hljs-built_in">INTEGER</span> PRIMARY <span class="hljs-keyword">KEY</span>,
+    nome <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">NOT</span> <span class="hljs-literal">NULL</span> <span class="hljs-keyword">UNIQUE</span>,
+    cpf <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">UNIQUE</span>,
+    email <span class="hljs-built_in">TEXT</span> <span class="hljs-keyword">UNIQUE</span>,
+    telefone <span class="hljs-built_in">TEXT</span>,
+    data_cadastro DATETIME <span class="hljs-keyword">DEFAULT</span> <span class="hljs-keyword">CURRENT_TIMESTAMP</span>
+);
+
+<span class="hljs-comment">-- Índices para performance</span>
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_vendas_cliente <span class="hljs-keyword">ON</span> vendas(cliente_id);
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_vendas_data <span class="hljs-keyword">ON</span> vendas(data_venda);
+<span class="hljs-keyword">CREATE</span> <span class="hljs-keyword">INDEX</span> idx_cartas_nome <span class="hljs-keyword">ON</span> cartas(nome);
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%93%8A-fluxo-de-dados">📊 Fluxo de Dados</h2>
+<h3 id="exemplo-criar-nova-venda">Exemplo: Criar Nova Venda</h3>
+<pre class="hljs"><code><div>┌─────────────────────────────────────────────────────────────┐
+│ 1. UI - VendaNovaDialog                                      │
+│    Usuário clica &quot;Finalizar&quot;                                 │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 2. UI Event Handler                                          │
+│    btnFinalizar.addActionListener(e -&gt; {                    │
+│        venda = new VendaModel(cliente, carrinho, ...);      │
+│        controller.finalizar(venda);                          │
+│    })                                                        │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 3. Controller - VendaController                              │
+│    public int finalizar(...) {                              │
+│        return vendaService.finalizarVenda(venda, carrinho); │
+│    }                                                         │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Service - VendaService                                    │
+│    public int finalizarVenda(VendaModel venda, ...) {       │
+│        // Validações                                         │
+│        // Transação START                                    │
+│        vendaDAO.insert(venda);                              │
+│        itemDAO.insert(itens);                               │
+│        estoqueService.saida(...);                           │
+│        fiscalService.emitirNFCe(...);                       │
+│        // Transação COMMIT                                  │
+│    }                                                        │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                ┌────────┼────────┐
+                ↓        ↓        ↓
+┌──────────┐ ┌──────────┐ ┌──────────────┐
+│ VendaDAO │ │ ItemDAO  │ │ EstoqueDAO   │
+│ insert   │ │ insert   │ │ decreaseQty  │
+└────┬─────┘ └────┬─────┘ └──────┬───────┘
+     │            │              │
+     └────────────┼──────────────┘
+                  ↓
+     ┌────────────────────────────┐
+     │ SQLite Database             │
+     │ ├─ INSERT vendas            │
+     │ ├─ INSERT vendas_itens      │
+     │ └─ UPDATE estoque           │
+     └────────────────────────────┘
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%8E%A8-padr%C3%B5es-de-projeto">🎨 Padrões de Projeto</h2>
+<h3 id="1-mvc-model-view-controller">1. MVC (Model-View-Controller)</h3>
+<pre class="hljs"><code><div>Model: VendaModel, VendaItemModel (dados)
+  ↓
+View: VendaNovaDialog (Swing UI)
+  ↓
+Controller: VendaController (ação)
+</div></code></pre>
+<h3 id="2-dao-pattern">2. DAO Pattern</h3>
+<pre class="hljs"><code><div>CartaDAO
+├─ insert()
+├─ update()
+├─ delete()
+├─ findById()
+└─ findAll()
+</div></code></pre>
+<h3 id="3-service-layer">3. Service Layer</h3>
+<pre class="hljs"><code><div>VendaService (business logic)
+├─ finalizarVenda()
+├─ estornarVenda()
+└─ processarDevolucao()
+</div></code></pre>
+<h3 id="4-factory-pattern">4. Factory Pattern</h3>
+<pre class="hljs"><code><div>VendaFactory.criarVenda(cliente, items, ...);
+</div></code></pre>
+<h3 id="5-singleton">5. Singleton</h3>
+<pre class="hljs"><code><div><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DB</span> </span>{
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> DB instance;
+    
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">synchronized</span> DB <span class="hljs-title">getInstance</span><span class="hljs-params">()</span> </span>{
+        <span class="hljs-keyword">if</span> (instance == <span class="hljs-keyword">null</span>) {
+            instance = <span class="hljs-keyword">new</span> DB();
+        }
+        <span class="hljs-keyword">return</span> instance;
+    }
+}
+</div></code></pre>
+<h3 id="6-observer-pattern">6. Observer Pattern</h3>
+<pre class="hljs"><code><div><span class="hljs-comment">// Atualizar UI quando estoque muda</span>
+EstoqueService.addObserver(painel);
+EstoqueService.notifyObservers();
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%93%A6-estrutura-de-pacotes">📦 Estrutura de Pacotes</h2>
+<pre class="hljs"><code><div>com.example.hostore/
+├── app/
+│   ├── Main.java                 # Ponto de entrada
+│   └── SplashUI.java             # Tela de splash
+├── api/
+│   ├── CardGamesApi.java         # Yu-Gi-Oh, Magic, etc
+│   └── PokeTcgApi.java           # Pokémon específico
+├── controller/
+│   ├── VendaController.java
+│   ├── EstoqueController.java
+│   └── ClienteController.java
+├── dao/                          # 50+ DAOs
+│   ├── CartaDAO.java
+│   ├── VendaDAO.java
+│   └── [...]
+├── factory/
+│   └── VendaFactory.java
+├── model/                        # 60+ Models
+│   ├── VendaModel.java
+│   ├── VendaItemModel.java
+│   └── [...]
+├── service/                      # 26 Services
+│   ├── VendaService.java
+│   ├── EstoqueService.java
+│   └── [...]
+├── ui/
+│   ├── TelaPrincipal.java
+│   ├── ajustes/
+│   ├── clientes/
+│   ├── estoque/
+│   ├── venda/
+│   ├── financeiro/
+│   ├── relatorios/
+│   └── dash/
+└── util/
+    ├── DB.java                   # Gerenciador BD
+    ├── BackupUtils.java
+    ├── PDFGenerator.java
+    ├── LogService.java
+    └── [...]
+</div></code></pre>
+<hr>
+<h2 id="%F0%9F%92%BE-banco-de-dados">💾 Banco de Dados</h2>
+<h3 id="tabelas-principais">Tabelas Principais</h3>
+<ol>
+<li>
+<p><strong>Vendas</strong></p>
+<ul>
+<li>vendas</li>
+<li>vendas_itens</li>
+<li>vendas_pagamentos</li>
+<li>vendas_devolucao</li>
+</ul>
+</li>
+<li>
+<p><strong>Estoque</strong></p>
+<ul>
+<li>cartas</li>
+<li>boosters</li>
+<li>decks</li>
+<li>etb</li>
+<li>acessorios</li>
+<li>produtos</li>
+<li>movimentacao_estoque</li>
+</ul>
+</li>
+<li>
+<p><strong>Clientes</strong></p>
+<ul>
+<li>clientes</li>
+<li>cliente_endereco</li>
+</ul>
+</li>
+<li>
+<p><strong>Fiscal</strong></p>
+<ul>
+<li>documento_fiscal</li>
+<li>documento_fiscal_itens</li>
+<li>ncm</li>
+<li>cfop</li>
+</ul>
+</li>
+<li>
+<p><strong>Financeiro</strong></p>
+<ul>
+<li>contas_pagar</li>
+<li>contas_receber</li>
+<li>credito_loja</li>
+<li>plano_contas</li>
+</ul>
+</li>
+<li>
+<p><strong>Sistema</strong></p>
+<ul>
+<li>usuarios</li>
+<li>logs_auditoria</li>
+<li>configuracoes</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="%F0%9F%9A%80-configura%C3%A7%C3%A3o-e-deploy">🚀 Configuração e Deploy</h2>
+<h3 id="build">Build</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Compile e empacote</span>
+mvn clean package
+
+<span class="hljs-comment"># JAR gerado em: target/HoStore-1.0.0-jar-with-dependencies.jar</span>
+</div></code></pre>
+<h3 id="execu%C3%A7%C3%A3o">Execução</h3>
+<pre class="hljs"><code><div><span class="hljs-comment"># Direkto</span>
+java -jar HoStore-1.0.0-jar-with-dependencies.jar
+
+<span class="hljs-comment"># Via Maven</span>
+mvn <span class="hljs-built_in">exec</span>:java@run
+</div></code></pre>
+<h3 id="configura%C3%A7%C3%A3o-inicial">Configuração Inicial</h3>
+<ol>
+<li>Banco criado: <code>./hostore.db</code></li>
+<li>Pastas criadas:
+<ul>
+<li><code>./data/backup/</code> - Backups</li>
+<li><code>./data/cache/</code> - Cache de APIs</li>
+<li><code>./data/export/</code> - Exportações</li>
+</ul>
+</li>
+<li>Usuário padrão: <code>admin</code>/<code>admin</code></li>
+</ol>
+<h3 id="requisitos-runtime">Requisitos Runtime</h3>
+<ul>
+<li>Java 17+ (JRE)</li>
+<li>2 GB RAM mínimo</li>
+<li>500 MB HD livres</li>
+</ul>
+<hr>
+<h2 id="%F0%9F%93%88-performance">📈 Performance</h2>
+<h3 id="otimiza%C3%A7%C3%B5es">Otimizações</h3>
+<ol>
+<li>
+<p><strong>Índices de Banco</strong></p>
+<ul>
+<li>Nome, categoria, data</li>
+<li>Busca rápida</li>
+</ul>
+</li>
+<li>
+<p><strong>Cache em Memória</strong></p>
+<ul>
+<li>HAManager para cartas/boosters frequentes</li>
+</ul>
+</li>
+<li>
+<p><strong>Paginação</strong></p>
+<ul>
+<li>Tabelas &gt; 1k itens</li>
+<li>50 registros por página</li>
+</ul>
+</li>
+<li>
+<p><strong>Lazy Loading</strong></p>
+<ul>
+<li>Carrega imagens sob demanda</li>
+</ul>
+</li>
+<li>
+<p><strong>Thread Pool</strong></p>
+<ul>
+<li>APIs síncronas em threads separadas</li>
+</ul>
+</li>
+</ol>
+<h3 id="limites-testados">Limites Testados</h3>
+<table>
+<thead>
+<tr>
+<th>Dados</th>
+<th>Limite</th>
+<th>Performance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Produtos</td>
+<td>50.000</td>
+<td>✅ Bom</td>
+</tr>
+<tr>
+<td>Vendas</td>
+<td>100.000</td>
+<td>✅ Aceitável</td>
+</tr>
+<tr>
+<td>Clientes</td>
+<td>10.000</td>
+<td>✅ Excelente</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>Versão</strong>: 1.0.0 | <strong>Atualizado</strong>: Janeiro 2026</p>
+
+</body>
+</html>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>04_GUIA_DO_CLIENTE_COMO_USAR.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="%F0%9F%93%98-04---guia-definitivo-do-cliente-como-usar-o-hostore">📘 04 - Guia Definitivo do Cliente (Como usar o HoStore)</h1>
+<p>Este é o manual definitivo para operação do HoStore após assinatura.<br>
+Ele foi feito para você conseguir:</p>
+<ul>
+<li>treinar equipe</li>
+<li>padronizar rotina</li>
+<li>reduzir erro (estoque/caixa/financeiro)</li>
+<li>operar com previsibilidade</li>
+</ul>
+<hr>
+<h2 id="0-onboarding-p%C3%B3s-assinatura-o-que-fazer-no-dia-1">0) Onboarding pós-assinatura (o que fazer no Dia 1)</h2>
+<h3 id="01-checklist-de-setup-15%E2%80%9330-min">0.1 Checklist de setup (15–30 min)</h3>
+<ul>
+<li><input type="checkbox" id="checkbox0"><label for="checkbox0">Fazer login como admin</label></li>
+<li><input type="checkbox" id="checkbox1"><label for="checkbox1">Trocar senha padrão do admin</label></li>
+<li><input type="checkbox" id="checkbox2"><label for="checkbox2">Cadastrar dados da loja (nome, contato, etc.)</label></li>
+<li><input type="checkbox" id="checkbox3"><label for="checkbox3">Criar usuários por função</label></li>
+<li><input type="checkbox" id="checkbox4"><label for="checkbox4">Revisar configurações principais (impressão, backups, etc.)</label></li>
+<li><input type="checkbox" id="checkbox5"><label for="checkbox5">Fazer 1 venda de teste (item qualquer)</label></li>
+<li><input type="checkbox" id="checkbox6"><label for="checkbox6">Fazer 1 devolução parcial de teste</label></li>
+<li><input type="checkbox" id="checkbox7"><label for="checkbox7">Validar se estoque voltou corretamente</label></li>
+<li><input type="checkbox" id="checkbox8"><label for="checkbox8">Conferir onde ficam exportações/comprovantes (PDF, etc.)</label></li>
+<li><input type="checkbox" id="checkbox9"><label for="checkbox9">Fazer 1 backup manual e guardar</label></li>
+</ul>
+<h3 id="02-modelo-de-fun%C3%A7%C3%B5es-recomendado">0.2 Modelo de funções (recomendado)</h3>
+<table>
+<thead>
+<tr>
+<th>Perfil</th>
+<th>O que pode</th>
+<th>O que NÃO pode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vendedor</td>
+<td>criar venda, finalizar, consultar cliente/produto</td>
+<td>ajustes grandes, estorno sem autorização, mexer em config</td>
+</tr>
+<tr>
+<td>Estoque</td>
+<td>entrada/ajuste com motivo, pedidos de compra</td>
+<td>estorno/devolução sem processo</td>
+</tr>
+<tr>
+<td>Gerente</td>
+<td>tudo operacional + auditoria</td>
+<td>mexer no banco manualmente</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>configurações e manutenção</td>
+<td>usar no dia a dia (evitar)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="1-cadastro-m%C3%ADnimo-para-come%C3%A7ar">1) Cadastro mínimo para começar</h2>
+<h3 id="11-clientes">1.1 Clientes</h3>
+<p>Cadastre cliente quando:</p>
+<ul>
+<li>você quer histórico de compras</li>
+<li>você vai parcelar / contas a receber</li>
+<li>você oferece crédito de loja</li>
+</ul>
+<p>Campos recomendados:</p>
+<ul>
+<li>Nome</li>
+<li>Telefone</li>
+<li>Documento (CPF/CNPJ se aplicável)</li>
+<li>Observações (VIP, regra de desconto, etc.)</li>
+</ul>
+<p>Boas práticas:</p>
+<ul>
+<li>padronizar nome (sem “Joãozinho do bairro” misturado com “João Silva”)</li>
+<li>evitar duplicidade (sempre buscar antes de criar)</li>
+</ul>
+<hr>
+<h3 id="12-produtos-e-categorias-tcg">1.2 Produtos e categorias (TCG)</h3>
+<p>Produtos comuns em loja TCG:</p>
+<ul>
+<li>cartas (unitárias)</li>
+<li>boosters, decks, ETB, selados</li>
+<li>acessórios (sleeves, playmat, deckbox)</li>
+<li>itens gerais (quando aplicável)</li>
+</ul>
+<p>Campos recomendados:</p>
+<ul>
+<li>Nome claro e pesquisável</li>
+<li>Categoria correta</li>
+<li>Preço custo / venda</li>
+<li>Quantidade</li>
+<li>Código de barras (se existir)</li>
+<li>Observações</li>
+</ul>
+<p>Boas práticas de nome:</p>
+<ul>
+<li><strong>[Categoria] Nome - Variante/Condição</strong>
+Ex:</li>
+<li>Carta: “Charizard ex - SV - NM”</li>
+<li>Selado: “Booster Box - Scarlet &amp; Violet”</li>
+<li>Acessório: “Sleeve Dragon Shield Matte - Black”</li>
+</ul>
+<hr>
+<h2 id="2-fluxo-de-venda-do-balc%C3%A3o-ao-fechamento">2) Fluxo de venda (do balcão ao fechamento)</h2>
+<h3 id="21-antes-de-vender-rotina-de-balc%C3%A3o">2.1 Antes de vender (rotina de balcão)</h3>
+<ul>
+<li><input type="checkbox" id="checkbox10"><label for="checkbox10">confirmar o item e a condição (cartas)</label></li>
+<li><input type="checkbox" id="checkbox11"><label for="checkbox11">conferir estoque na tela</label></li>
+<li><input type="checkbox" id="checkbox12"><label for="checkbox12">definir regra de preço (sem inventar)</label></li>
+<li><input type="checkbox" id="checkbox13"><label for="checkbox13">confirmar forma de pagamento</label></li>
+</ul>
+<h3 id="22-criando-a-venda">2.2 Criando a venda</h3>
+<p>Passos:</p>
+<ol>
+<li>abrir “Nova Venda”</li>
+<li>selecionar cliente (ou consumidor padrão)</li>
+<li>adicionar itens (quantidade correta)</li>
+<li>revisar carrinho</li>
+<li>aplicar desconto se permitido</li>
+<li>escolher forma de pagamento</li>
+<li>confirmar pagamento</li>
+<li>finalizar</li>
+</ol>
+<h3 id="23-regras-essenciais">2.3 Regras essenciais</h3>
+<ul>
+<li>venda aberta não é venda finalizada</li>
+<li>só finalize quando o pagamento estiver confirmado</li>
+<li>desconto deve seguir regra comercial</li>
+<li>evite editar preço “no susto” sem motivo</li>
+</ul>
+<hr>
+<h2 id="3-pagamentos-padr%C3%B5es-que-evitam-erro">3) Pagamentos (padrões que evitam erro)</h2>
+<h3 id="31-dinheiro">3.1 Dinheiro</h3>
+<ul>
+<li>conferir troco antes de confirmar</li>
+<li>usar desconto apenas se política permitir</li>
+</ul>
+<h3 id="32-pix">3.2 PIX</h3>
+<ul>
+<li>confirmar recebimento antes de finalizar</li>
+<li>evitar “depois eu pago” (vira inadimplência informal)</li>
+</ul>
+<h3 id="33-cart%C3%A3o">3.3 Cartão</h3>
+<ul>
+<li>atenção às taxas (margem)</li>
+<li>parcelamento deve ser registrado corretamente</li>
+</ul>
+<hr>
+<h2 id="4-corre%C3%A7%C3%B5es-p%C3%B3s-venda-sem-quebrar-o-mundo">4) Correções pós-venda (sem quebrar o mundo)</h2>
+<h3 id="41-venda-ainda-n%C3%A3o-foi-finalizada">4.1 Venda ainda não foi finalizada</h3>
+<p>Ação correta:</p>
+<ul>
+<li><strong>Cancelar</strong> e refazer</li>
+</ul>
+<p>Por quê:</p>
+<ul>
+<li>você evita histórico errado</li>
+<li>evita ajustes desnecessários</li>
+</ul>
+<h3 id="42-venda-foi-finalizada-e-houve-erro">4.2 Venda foi finalizada e houve erro</h3>
+<p>Use o <strong>Guia de Decisão</strong> para escolher:</p>
+<ul>
+<li>estorno total</li>
+<li>devolução parcial</li>
+<li>nunca “ajeitar no estoque” para esconder erro</li>
+</ul>
+<hr>
+<h2 id="5-devolu%C3%A7%C3%B5es-estornos-e-cr%C3%A9dito-de-loja">5) Devoluções, Estornos e Crédito de loja</h2>
+<h3 id="51-pol%C3%ADtica-recomendada-exemplo">5.1 Política recomendada (exemplo)</h3>
+<ul>
+<li>devolução aceita em até X dias</li>
+<li>item lacrado precisa estar lacrado</li>
+<li>carta depende de condição (não aceitar se danificada depois)</li>
+<li>crédito de loja pode ter validade</li>
+</ul>
+<h3 id="52-cr%C3%A9dito-de-loja">5.2 Crédito de loja</h3>
+<p>Quando usar:</p>
+<ul>
+<li>devolução onde o cliente prefere crédito</li>
+<li>trocas</li>
+<li>fidelização</li>
+</ul>
+<p>Risco:</p>
+<ul>
+<li>crédito sem controle vira dívida oculta</li>
+</ul>
+<p>Boa prática:</p>
+<ul>
+<li>revisar crédito semanalmente</li>
+<li>definir política clara</li>
+</ul>
+<hr>
+<h2 id="6-estoque-entrada-invent%C3%A1rio-e-ajuste">6) Estoque (entrada, inventário e ajuste)</h2>
+<h3 id="61-entrada-de-estoque">6.1 Entrada de estoque</h3>
+<p>Use quando:</p>
+<ul>
+<li>recebeu mercadoria</li>
+<li>fez compra de reposição</li>
+</ul>
+<p>Boas práticas:</p>
+<ul>
+<li>registrar custo para margem</li>
+<li>registrar fornecedor (quando aplicável)</li>
+<li>conferir quantidade antes de lançar</li>
+</ul>
+<h3 id="62-invent%C3%A1rio-rotina-recomendada">6.2 Inventário (rotina recomendada)</h3>
+<p>Não espere “o ano acabar”.
+Faça inventário por partes:</p>
+<ul>
+<li>semanal: categoria pequena (acessórios)</li>
+<li>mensal: selados</li>
+<li>trimestral: cartas ou itens de maior volume</li>
+</ul>
+<h3 id="63-ajuste-com-motivo">6.3 Ajuste (com motivo)</h3>
+<p>Use ajuste para:</p>
+<ul>
+<li>quebra/perda</li>
+<li>divergência de inventário</li>
+<li>vencimento</li>
+</ul>
+<p>Nunca use ajuste para:</p>
+<ul>
+<li>corrigir venda (use devolução/estorno)</li>
+</ul>
+<hr>
+<h2 id="7-financeiro-o-m%C3%ADnimo-para-operar-com-controle">7) Financeiro (o mínimo para operar com controle)</h2>
+<h3 id="71-contas-a-pagar">7.1 Contas a pagar</h3>
+<ul>
+<li>cadastrar título (valor total, vencimento, fornecedor)</li>
+<li>registrar parcelas se existirem</li>
+<li>dar baixa ao pagar</li>
+</ul>
+<h3 id="72-contas-a-receber-parcelas">7.2 Contas a receber (parcelas)</h3>
+<ul>
+<li>toda venda parcelada precisa gerar parcelas corretamente</li>
+<li>rotina semanal: verificar vencidas</li>
+</ul>
+<h3 id="73-rotina-financeira-recomendada">7.3 Rotina financeira (recomendada)</h3>
+<p>Diário:</p>
+<ul>
+<li>conferir total vendido e pagamentos</li>
+</ul>
+<p>Semanal:</p>
+<ul>
+<li>contas a pagar nos próximos 7 dias</li>
+<li>parcelas vencidas e a vencer</li>
+</ul>
+<p>Mensal:</p>
+<ul>
+<li>fechamento por categoria (margem e giro)</li>
+</ul>
+<hr>
+<h2 id="8-relat%C3%B3rios-como-usar-para-decidir-compra">8) Relatórios (como usar para decidir compra)</h2>
+<h3 id="81-relat%C3%B3rios-que-importam">8.1 Relatórios que importam</h3>
+<ul>
+<li>vendas por período</li>
+<li>top produtos</li>
+<li>estoque baixo</li>
+<li>estoque parado (baixo giro)</li>
+</ul>
+<h3 id="82-regra-de-ouro-de-performance">8.2 Regra de ouro de performance</h3>
+<ul>
+<li>relatórios em janelas de 30/90 dias</li>
+<li>evitar “desde sempre”</li>
+</ul>
+<hr>
+<h2 id="9-backup-atualiza%C3%A7%C3%A3o-e-suporte-evite-cat%C3%A1strofe">9) Backup, atualização e suporte (evite catástrofe)</h2>
+<h3 id="91-backup">9.1 Backup</h3>
+<ul>
+<li>manter backup diário</li>
+<li>fazer backup manual antes de atualizar</li>
+<li>guardar cópia externa (drive/pendrive)</li>
+</ul>
+<h3 id="92-atualiza%C3%A7%C3%A3o-do-sistema">9.2 Atualização do sistema</h3>
+<p>Antes de atualizar:</p>
+<ul>
+<li><input type="checkbox" id="checkbox14"><label for="checkbox14">fazer backup manual</label></li>
+<li><input type="checkbox" id="checkbox15"><label for="checkbox15">fechar sistema corretamente</label></li>
+<li><input type="checkbox" id="checkbox16"><label for="checkbox16">aplicar atualização</label></li>
+<li><input type="checkbox" id="checkbox17"><label for="checkbox17">abrir e validar 1 venda de teste</label></li>
+</ul>
+<h3 id="93-suporte-melhor-forma-de-acionar">9.3 Suporte (melhor forma de acionar)</h3>
+<p>Quando reportar problema, enviar:</p>
+<ul>
+<li>print da tela</li>
+<li>passos para reproduzir</li>
+<li>data/hora aproximada</li>
+<li>o que era esperado vs o que aconteceu</li>
+</ul>
+<hr>
+<h2 id="10-treinamento-r%C3%A1pido-da-equipe-roteiro-pronto">10) Treinamento rápido da equipe (roteiro pronto)</h2>
+<h3 id="treino-1-30-min-vendedor">Treino 1 (30 min): vendedor</h3>
+<ul>
+<li>criar venda</li>
+<li>adicionar item</li>
+<li>aplicar desconto (quando permitido)</li>
+<li>finalizar com dinheiro/PIX</li>
+<li>imprimir/gerar comprovante</li>
+<li>simular erro: cancelar antes de finalizar</li>
+</ul>
+<h3 id="treino-2-30-min-corre%C3%A7%C3%B5es">Treino 2 (30 min): correções</h3>
+<ul>
+<li>devolução parcial</li>
+<li>estorno total</li>
+<li>crédito de loja (quando usar)</li>
+</ul>
+<h3 id="treino-3-30-min-estoque">Treino 3 (30 min): estoque</h3>
+<ul>
+<li>entrada de estoque</li>
+<li>ajuste com motivo</li>
+<li>inventário simples</li>
+</ul>
+<hr>
+<p>✅ Próximo: <strong><a href="02_GUIA_DE_DECISAO.md">02 - Guia de Decisão</a></strong> (para fixar)</p>
+
+</body>
+</html>

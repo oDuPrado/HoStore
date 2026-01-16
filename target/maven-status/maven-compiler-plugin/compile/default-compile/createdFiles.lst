@@ -23,6 +23,7 @@ ui\ajustes\painel\FornecedorPainel$1.class
 ui\estoque\dialog\CadastroDeckDialog.class
 ui\ajustes\painel\IdiomaPainel.class
 ui\estoque\dialog\BuscarCartaDialog$5.class
+ui\financeiro\painel\PainelFinanceiro$DelegatingRenderer.class
 ui\estoque\dialog\CriarPedidoEstoqueDialog$2.class
 ui\comandas\dialog\ComandaItemDialog$3.class
 util\UiKit$2.class
@@ -43,6 +44,7 @@ ui\venda\dialog\VendaFinalizarDialog$ButtonEditor.class
 service\MovimentacaoEstoqueService.class
 ui\venda\dialog\VendaFinalizarDialog.class
 ui\clientes\dialog\ClienteCadastroDialog$1.class
+ui\financeiro\dialog\ParcelasTituloDialog$DelegatingRenderer.class
 util\BackupUtils.class
 ui\ajustes\painel\NcmPainel$3.class
 ui\estoque\painel\PainelEstoque$5.class
@@ -155,6 +157,7 @@ model\Carta.class
 ui\estoque\painel\PainelPedidosEstoque$3.class
 dao\FornecedorDAO.class
 model\PromocaoModel.class
+ui\financeiro\dialog\ParcelasTituloDialog$StatusBadgePagarRenderer.class
 ui\estoque\painel\PainelEstoque$4.class
 ui\financeiro\dialog\VincularPedidosDialog$PedidosTableModel.class
 ui\ajustes\dialog\CondicaoDialog.class
@@ -221,6 +224,7 @@ model\SerieDiariaModel.class
 ui\estoque\dialog\ProdutosDoPedidoDialog$1.class
 ui\ajustes\dialog\UsuarioDialog.class
 ui\financeiro\painel\PainelFinanceiro$1.class
+ui\financeiro\painel\PainelFinanceiro$StatusBadgePagarRenderer.class
 dao\MovimentacaoEstoqueDAO.class
 ui\estoque\painel\PainelPedidosEstoque$7.class
 ui\dash\component\DashboardCard.class
@@ -256,9 +260,13 @@ model\ParcelaVencidaModel.class
 ui\ajustes\dialog\PromocaoDialog.class
 ui\comandas\dialog\ComandaDetalhesDialog.class
 ui\estoque\dialog\FornecedorSelectionDialog.class
+ui\financeiro\painel\PainelContasReceber$DelegatingRenderer.class
 ui\estoque\painel\PainelPedidosEstoque$5.class
+ui\financeiro\painel\PainelContasReceber$StatusBadgeRenderer.class
+ui\financeiro\dialog\PedidosCompraDialog$DelegatingRenderer.class
 util\LogService.class
 ui\financeiro\dialog\ParcelasTituloDialog$2.class
+ui\financeiro\dialog\ParcelasContaReceberDialog$DelegatingRenderer.class
 ConsultaSQLiteSimples.class
 ui\financeiro\dialog\PagamentoReceberDialog.class
 ui\estoque\dialog\EntradaProdutosDialog.class
@@ -294,6 +302,7 @@ ui\ajustes\dialog\FornecedorDialog$3.class
 ui\estoque\dialog\BuscarCartaDialog$Carta$PriceInfo.class
 ui\venda\dialog\VendaNovaDialog$4.class
 util\FormatterFactory$1.class
+ui\financeiro\dialog\ParcelasContaReceberDialog$StatusBadgeReceberRenderer.class
 ui\venda\dialog\VendaNovaDialog$12.class
 service\SessaoService.class
 ui\comandas\dialog\ComandaDetalhesDialog$3.class
@@ -354,6 +363,7 @@ ui\clientes\painel\PainelClientes$2.class
 model\MovimentacaoEstoqueModel.class
 ui\venda\dialog\VendaNovaDialog$1.class
 dao\ContaPagarPedidoDAO.class
+ui\financeiro\dialog\ParcelasContaReceberDialog$2.class
 service\FiscalApiService$4.class
 ui\ajustes\painel\TipoPromocaoPainel.class
 ui\estoque\dialog\MovimentacaoEstoqueDialog.class
@@ -400,6 +410,7 @@ ui\estoque\dialog\ProdutoCadastroDialog.class
 ui\estoque\dialog\BuscarCartaDialog.class
 ui\venda\painel\PainelVendas.class
 controller\ProdutoEstoqueController.class
+ui\financeiro\dialog\VincularPedidosDialog$DelegatingRenderer.class
 ui\ajustes\dialog\SelecionarPlanoContaDialog$1.class
 ui\ajustes\dialog\SelecionarPlanoContaDialog.class
 ui\estoque\dialog\BuscarCartaDialog$2.class
@@ -418,6 +429,7 @@ ui\venda\dialog\VendaDetalhesDialog$1.class
 ui\venda\dialog\VendaFinalizarDialog$5.class
 dao\VendaEstornoFinanceiroDAO.class
 ui\estoque\dialog\BuscarCartaDialog$3.class
+ui\financeiro\dialog\VincularPedidosDialog$1.class
 ui\venda\dialog\VendaFinalizarDialog$MoneyRenderer.class
 ui\financeiro\dialog\ContaPagarDialog.class
 ui\ajustes\AjustesPanel.class
@@ -443,6 +455,7 @@ ui\venda\dialog\VendaFinalizarDialog$6.class
 model\ParcelaContaReceberModel.class
 ui\ajustes\dialog\CategoriaProdutoDialog.class
 model\PagamentoContaPagarModel.class
+ui\financeiro\dialog\PedidosCompraDialog$4.class
 ui\dash\painel\DashboardPanel$5.class
 model\DashboardKpisModel.class
 dao\PedidoCompraDAO.class
@@ -450,7 +463,6 @@ dao\PromocaoProdutoDAO.class
 ui\ajustes\painel\NcmPainel$1.class
 model\DashboardResumoModel.class
 model\DocumentoFiscalAmbiente.class
-ui\financeiro\dialog\ParcelasTituloDialog$3.class
 service\VendaDevolucaoService.class
 ui\ajustes\painel\NcmPainel.class
 ui\dash\painel\DashboardPanel.class
