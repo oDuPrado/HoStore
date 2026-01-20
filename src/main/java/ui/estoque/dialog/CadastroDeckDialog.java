@@ -1,6 +1,7 @@
 package ui.estoque.dialog;
 
 import dao.JogoDAO;
+import dao.ProdutoDAO;
 import model.DeckModel;
 import model.JogoModel;
 import model.FornecedorModel;
@@ -263,6 +264,14 @@ public class CadastroDeckDialog extends JDialog {
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigoBarras == null)
                 codigoBarras = "";
+
+            int duplicados = new ProdutoDAO().contarPorCodigoBarrasAtivo(codigoBarras, id);
+            if (duplicados > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Este codigo ja existe em " + duplicados
+                                + " produtos. Na venda, sera necessario selecionar qual produto.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            }
 
             DeckModel d = new DeckModel(
                     id,

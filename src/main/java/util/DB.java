@@ -1123,6 +1123,8 @@ public class DB {
                                         "idx_estoque_movimentacoes_lote");
                         executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_estoque_lotes_produto_data ON estoque_lotes(produto_id, data_entrada, id)",
                                         "idx_estoque_lotes_produto_data");
+                        executeComLog(st, "DROP INDEX IF EXISTS ux_produtos_codigo_barras_ativo",
+                                        "drop_ux_produtos_codigo_barras_ativo");
 
                         migrarEstoqueParaLotes(c);
                 }

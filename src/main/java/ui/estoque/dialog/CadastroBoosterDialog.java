@@ -2,6 +2,7 @@
 package ui.estoque.dialog;
 
 import dao.JogoDAO;
+import dao.ProdutoDAO;
 import model.BoosterModel;
 import model.ColecaoModel;
 import model.FornecedorModel;
@@ -531,6 +532,14 @@ public class CadastroBoosterDialog extends JDialog {
             String codigo = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigo == null)
                 codigo = "";
+
+            int duplicados = new ProdutoDAO().contarPorCodigoBarrasAtivo(codigo, id);
+            if (duplicados > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Este codigo ja existe em " + duplicados
+                                + " produtos. Na venda, sera necessario selecionar qual produto.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            }
 
             int qtd = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();

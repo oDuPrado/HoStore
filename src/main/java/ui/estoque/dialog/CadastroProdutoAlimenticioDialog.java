@@ -1,6 +1,7 @@
 package ui.estoque.dialog;
 
 import model.AlimentoModel;
+import dao.ProdutoDAO;
 import model.FornecedorModel;
 import model.NcmModel;
 import service.NcmService;
@@ -449,6 +450,14 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             String codigo = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigo == null)
                 codigo = "";
+
+            int duplicados = new ProdutoDAO().contarPorCodigoBarrasAtivo(codigo, id);
+            if (duplicados > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Este codigo ja existe em " + duplicados
+                                + " produtos. Na venda, sera necessario selecionar qual produto.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            }
 
             int quantidade = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();

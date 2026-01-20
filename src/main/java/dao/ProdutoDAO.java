@@ -214,6 +214,42 @@ public class ProdutoDAO {
         return null;
     }
 
+    public List<ProdutoModel> findByCodigoBarrasList(String codigo, boolean incluirInativos) {
+        List<ProdutoModel> out = new ArrayList<>();
+        String sql = """
+                    SELECT * FROM produtos
+                     WHERE codigo_barras = ?
+                """ + andAtivo(incluirInativos) + " ORDER BY nome";
+
+        try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
+            ps.setString(1, codigo);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next())
+                    out.add(map(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return out;
+    }
+
+    public int contarPorCodigoBarrasAtivo(String codigo, String idExcluir) {
+        if (codigo == null || codigo.trim().isEmpty())
+            return 0;
+        String sql = "SELECT COUNT(1) AS total FROM produtos WHERE codigo_barras = ? AND ativo = 1 AND id <> ?";
+        try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
+            ps.setString(1, codigo.trim());
+            ps.setString(2, idExcluir == null ? "" : idExcluir);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return rs.getInt("total");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     /* ==================== MAP / BINDS ==================== */
 
     private ProdutoModel map(ResultSet rs) throws SQLException {
@@ -274,4 +310,5 @@ public class ProdutoDAO {
         ps.setString(14, p.getAlteradoEm().toString());
         ps.setString(15, p.getId());
     }
+
 }

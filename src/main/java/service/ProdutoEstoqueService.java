@@ -226,13 +226,9 @@ public class ProdutoEstoqueService {
     }
 
     public void atualizarQuantidade(String produtoId, int novaQtd) throws SQLException {
-        ProdutoModel p = dao.findById(produtoId);
-        if (p == null)
-            throw new SQLException("Produto não encontrado!");
-
-        p.setQuantidade(novaQtd);
-        p.setAlteradoEmNow();
-        dao.update(p);
+        try (Connection c = DB.get()) {
+            atualizarQuantidadeCache(produtoId, c);
+        }
     }
 
 
@@ -274,6 +270,54 @@ public class ProdutoEstoqueService {
         mov.setData(LocalDateTime.now());
         movService.registrar(mov, c);
         atualizarQuantidadeCache(produtoId, c);
+    }
+
+    public void ajustarLote(String produtoId, int loteId, int delta, String motivo, String usuario, Connection c)
+            throws Exception {
+        if (delta == 0)
+            throw new Exception("Quantidade invalida: 0");
+
+        int qtd = Math.abs(delta);
+        if (delta > 0) {
+            loteDAO.reporNoLote(loteId, qtd, c);
+        } else {
+            loteDAO.consumirDoLote(loteId, qtd, c);
+        }
+
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, loteId, "ajuste", qtd, motivo, usuario);
+        mov.setData(LocalDateTime.now());
+        movService.registrar(mov, c);
+        atualizarQuantidadeCache(produtoId, c);
+    }
+
+    public int criarLoteAjuste(String produtoId, int quantidade, String motivo, String usuario, Connection c)
+            throws Exception {
+        if (quantidade <= 0)
+            throw new Exception("Quantidade invalida: " + quantidade);
+
+        ProdutoModel produto = dao.findById(produtoId, c);
+        if (produto == null)
+            throw new Exception("Produto nao encontrado!");
+
+        int loteId = loteDAO.inserirLote(
+                produtoId,
+                null,
+                "AJUSTE_MANUAL",
+                LocalDateTime.now().format(FMT),
+                null,
+                produto.getPrecoCompra(),
+                produto.getPrecoVenda(),
+                quantidade,
+                motivo,
+                c);
+
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, loteId, "ajuste", quantidade, motivo, usuario);
+        mov.setData(LocalDateTime.now());
+        movService.registrar(mov, c);
+        atualizarQuantidadeCache(produtoId, c);
+        return loteId;
     }
 
     public void atualizarQuantidadeCache(String produtoId, Connection c) throws SQLException {

@@ -331,16 +331,14 @@ public class SelectProdutoDialog extends JDialog {
     }
 
     private void lerCodigoBarras() {
-        ScannerUtils.lerCodigoBarras(this, "Ler Código de Barras", codigo -> {
+        ScannerUtils.lerCodigoBarras(this, "Ler Codigo de Barras", codigo -> {
             if (codigo == null || codigo.isBlank())
                 return;
 
-            List<ProdutoModel> encontrados = todosProdutos.stream()
-                    .filter(p -> p.getCodigoBarras() != null && p.getCodigoBarras().equalsIgnoreCase(codigo))
-                    .collect(Collectors.toList());
+            List<ProdutoModel> encontrados = produtoDAO.findByCodigoBarrasList(codigo, false);
 
             if (encontrados.isEmpty()) {
-                AlertUtils.warn("Nenhum produto com este código de barras foi encontrado.");
+                AlertUtils.warn("Nenhum produto com este codigo de barras foi encontrado.");
                 return;
             }
 
@@ -348,20 +346,72 @@ public class SelectProdutoDialog extends JDialog {
             if (encontrados.size() == 1) {
                 escolhido = encontrados.get(0);
             } else {
-                escolhido = (ProdutoModel) JOptionPane.showInputDialog(
-                        this,
-                        "Múltiplos produtos encontrados com este código. Escolha o correto:",
-                        "Selecionar Produto",
-                        JOptionPane.PLAIN_MESSAGE,
-                        null,
-                        encontrados.toArray(),
-                        encontrados.get(0));
+                escolhido = escolherProdutoPorCodigo(encontrados);
             }
 
             if (escolhido != null) {
                 marcarProdutoNaTabela(escolhido);
             }
         });
+    }
+
+    private ProdutoModel escolherProdutoPorCodigo(List<ProdutoModel> encontrados) {
+        DefaultTableModel m = new DefaultTableModel(
+                new String[] { "Nome", "Tipo", "Fornecedor", "Preco Venda", "Estoque" }, 0) {
+            @Override
+            public boolean isCellEditable(int r, int c) {
+                return false;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int c) {
+                if (c == 3) return Double.class;
+                if (c == 4) return Integer.class;
+                return String.class;
+            }
+        };
+
+        for (ProdutoModel p : encontrados) {
+            m.addRow(new Object[] {
+                    p.getNome(),
+                    p.getTipo(),
+                    p.getFornecedorNome(),
+                    p.getPrecoVenda(),
+                    p.getQuantidade()
+            });
+        }
+
+        JTable t = new JTable(m);
+        UiKit.tableDefaults(t);
+        t.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        if (m.getRowCount() > 0)
+            t.setRowSelectionInterval(0, 0);
+
+        DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
+        applyZebra(t, zebra);
+        t.getColumnModel().getColumn(3).setCellRenderer(currencyRendererZebra(zebra));
+
+        JPanel panel = UiKit.card();
+        panel.setLayout(new BorderLayout(8, 8));
+        panel.add(UiKit.hint("Selecione o SKU correto para este codigo de barras."), BorderLayout.NORTH);
+        panel.add(UiKit.scroll(t), BorderLayout.CENTER);
+
+        int op = JOptionPane.showConfirmDialog(
+                this,
+                panel,
+                "Selecionar Produto",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+        if (op != JOptionPane.OK_OPTION)
+            return null;
+
+        int viewRow = t.getSelectedRow();
+        if (viewRow < 0)
+            return null;
+
+        int modelRow = t.convertRowIndexToModel(viewRow);
+        return encontrados.get(modelRow);
     }
 
     private void marcarProdutoNaTabela(ProdutoModel p) {

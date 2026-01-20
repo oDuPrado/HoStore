@@ -4,6 +4,7 @@ package ui.estoque.dialog;
 import dao.ColecaoDAO;
 import dao.JogoDAO;
 import dao.SetDAO;
+import dao.ProdutoDAO;
 import model.ColecaoModel;
 import model.EtbModel;
 import model.FornecedorModel;
@@ -503,6 +504,14 @@ public class CadastroEtbDialog extends JDialog {
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigoBarras == null)
                 codigoBarras = "";
+
+            int duplicados = new ProdutoDAO().contarPorCodigoBarrasAtivo(codigoBarras, id);
+            if (duplicados > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Este codigo ja existe em " + duplicados
+                                + " produtos. Na venda, sera necessario selecionar qual produto.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            }
 
             EtbModel e = new EtbModel(
                     id,

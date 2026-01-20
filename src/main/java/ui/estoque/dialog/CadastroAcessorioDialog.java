@@ -2,6 +2,7 @@
 package ui.estoque.dialog;
 
 import model.AcessorioModel;
+import dao.ProdutoDAO;
 import model.FornecedorModel;
 import model.NcmModel;
 import service.NcmService;
@@ -366,6 +367,14 @@ public class CadastroAcessorioDialog extends JDialog {
 
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
             if (codigoBarras == null) codigoBarras = "";
+
+            int duplicados = new ProdutoDAO().contarPorCodigoBarrasAtivo(codigoBarras, id);
+            if (duplicados > 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Este codigo ja existe em " + duplicados
+                                + " produtos. Na venda, sera necessario selecionar qual produto.",
+                        "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            }
 
             String ncmCombo = (String) cbNcm.getSelectedItem();
             String ncm = "";

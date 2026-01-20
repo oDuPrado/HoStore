@@ -193,12 +193,14 @@ public class PainelEstoque extends JPanel {
 
         JButton botaoEditar = UiKit.ghost("✏️ Editar");
         JButton botaoExcluir = UiKit.ghost("🗑️ Excluir");
+        JButton botaoLotes = UiKit.ghost("Lotes");
         JButton botaoCriarPedido = UiKit.ghost("📦 Criar Pedido");
         JButton botaoVerPedidos = UiKit.ghost("📄 Ver Pedidos");
         JButton botaoMovimentacoes = UiKit.ghost("📊 Movimentações");
 
         botaoEditar.addActionListener(e -> abrirEditar());
         botaoExcluir.addActionListener(e -> deletarSelecionado());
+        botaoLotes.addActionListener(e -> abrirLotes());
         botaoCriarPedido.addActionListener(e -> abrirCriarPedido());
         botaoVerPedidos.addActionListener(e -> {
             JFrame owner = (JFrame) SwingUtilities.getWindowAncestor(this);
@@ -212,6 +214,7 @@ public class PainelEstoque extends JPanel {
 
         painelRodape.add(botaoEditar);
         painelRodape.add(botaoExcluir);
+        painelRodape.add(botaoLotes);
         painelRodape.add(botaoCriarPedido);
         painelRodape.add(botaoVerPedidos);
         painelRodape.add(botaoMovimentacoes);
@@ -467,6 +470,31 @@ public class PainelEstoque extends JPanel {
                 new ProdutoCadastroDialog((JFrame) owner, null).setVisible(true);
                 break;
         }
+        listar();
+    }
+
+    private ProdutoModel obterSelecionado() {
+        int linhaSelecionada = tabela.getSelectedRow();
+        if (linhaSelecionada == -1) {
+            JOptionPane.showMessageDialog(this, "Selecione um item.");
+            return null;
+        }
+
+        if (produtosFiltrados == null || linhaSelecionada >= produtosFiltrados.size()) {
+            JOptionPane.showMessageDialog(this, "Selecao invalida.");
+            return null;
+        }
+
+        return produtosFiltrados.get(linhaSelecionada);
+    }
+
+    private void abrirLotes() {
+        ProdutoModel selecionado = obterSelecionado();
+        if (selecionado == null)
+            return;
+
+        Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
+        new ui.estoque.dialog.LotesProdutoDialog(owner, selecionado).setVisible(true);
         listar();
     }
 

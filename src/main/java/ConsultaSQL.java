@@ -6,7 +6,7 @@ public class ConsultaSQL {
     // 🔥 Caminho dinâmico igual ao DB.java
     private static final String DATABASE_URL = buildDatabaseUrl();
 
-    private static final String QUERY = "SELECT * FROM estoque_movimentacoes";
+    private static final String QUERY = "SELECT * FROM estoque_lotes";
 
     public static void main(String[] args) {
         System.out.println("Usando banco em: " + DATABASE_URL);
