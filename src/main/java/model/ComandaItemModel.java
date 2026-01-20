@@ -35,16 +35,16 @@ public class ComandaItemModel {
     public void setProdutoId(String produtoId) { this.produtoId = produtoId; }
 
     public int getQtd() { return qtd; }
-    public void setQtd(int qtd) { this.qtd = qtd; }
+    public void setQtd(int qtd) { this.qtd = qtd; recalcularTotal(); }
 
     public double getPreco() { return preco; }
-    public void setPreco(double preco) { this.preco = preco; }
+    public void setPreco(double preco) { this.preco = preco; recalcularTotal(); }
 
     public double getDesconto() { return desconto; }
-    public void setDesconto(double desconto) { this.desconto = desconto; }
+    public void setDesconto(double desconto) { this.desconto = desconto; recalcularTotal(); }
 
     public double getAcrescimo() { return acrescimo; }
-    public void setAcrescimo(double acrescimo) { this.acrescimo = acrescimo; }
+    public void setAcrescimo(double acrescimo) { this.acrescimo = acrescimo; recalcularTotal(); }
 
     public double getTotalItem() { return totalItem; }
     public void setTotalItem(double totalItem) { this.totalItem = totalItem; }

@@ -123,7 +123,22 @@ public class CupomFiscalFormatter {
 
         // Itens
         // Deixa a “cara de nota”: item / descrição / qtd x vl un / total
+        // ✅ Otimização: Cachear produtos em HashMap para evitar N+1 queries
         ProdutoDAO pdao = new ProdutoDAO();
+        java.util.Map<String, String> produtoCache = new java.util.HashMap<>();
+        for (VendaItemModel it : itens) {
+            if (!produtoCache.containsKey(it.getProdutoId())) {
+                try {
+                    var prod = pdao.findById(it.getProdutoId());
+                    String nome = (prod != null && prod.getNome() != null && !prod.getNome().isBlank())
+                            ? prod.getNome()
+                            : it.getProdutoId();
+                    produtoCache.put(it.getProdutoId(), nome);
+                } catch (Exception e) {
+                    produtoCache.put(it.getProdutoId(), it.getProdutoId());
+                }
+            }
+        }
 
         double totBruto = 0.0;
         double totDesconto = 0.0;
@@ -137,7 +152,8 @@ public class CupomFiscalFormatter {
             double descLinha = brutoLinha * (it.getDesconto() / 100.0);
             double totalLinha = brutoLinha - descLinha;
 
-            String nomeProduto = resolverNomeProduto(pdao, it.getProdutoId());
+            // Usar cache ao invés de chamada individual de DB
+            String nomeProduto = produtoCache.getOrDefault(it.getProdutoId(), it.getProdutoId());
             nomeProduto = limitar(nomeProduto, RECEIPT_WIDTH);
 
             // Linha 1: "001 DESCRICAO..."

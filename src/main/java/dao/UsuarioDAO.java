@@ -17,7 +17,7 @@ public class UsuarioDAO {
             p.setString(1, u.getId());
             p.setString(2, u.getNome());
             p.setString(3, u.getUsuario());
-            p.setString(4, hashSenha(u.getSenha()));
+            p.setString(4, u.getSenha()); // ✅ Senha já hashada em UsuarioDialog via SenhaUtils
             p.setString(5, u.getTipo());
             p.setInt(6, u.isAtivo() ? 1 : 0);
             p.executeUpdate();
@@ -29,7 +29,7 @@ public class UsuarioDAO {
         try (Connection c = DB.get(); PreparedStatement p = c.prepareStatement(sql)) {
             p.setString(1, u.getNome());
             p.setString(2, u.getUsuario());
-            p.setString(3, hashSenha(u.getSenha()));
+            p.setString(3, u.getSenha()); // ✅ Senha já hashada em UsuarioDialog via SenhaUtils
             p.setString(4, u.getTipo());
             p.setInt(5, u.isAtivo() ? 1 : 0);
             p.setString(6, u.getId());

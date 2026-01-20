@@ -1052,6 +1052,26 @@ public class DB {
                                         "idx_vendas_data");
                         executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_vendas_itens_venda ON vendas_itens(venda_id)",
                                         "idx_vendas_itens_venda");
+                        
+                        // ✅ NOVOS: Índices para tabelas críticas (evitam full scans)
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_parcelas_receber_titulo ON parcelas_contas_receber(titulo_id)",
+                                        "idx_parcelas_receber_titulo");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_parcelas_receber_status ON parcelas_contas_receber(status)",
+                                        "idx_parcelas_receber_status");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_parcelas_receber_vencimento ON parcelas_contas_receber(vencimento)",
+                                        "idx_parcelas_receber_vencimento");
+                        
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_parcelas_pagar_titulo ON parcelas_contas_pagar(titulo_id)",
+                                        "idx_parcelas_pagar_titulo");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_parcelas_pagar_status ON parcelas_contas_pagar(status)",
+                                        "idx_parcelas_pagar_status");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_parcelas_pagar_vencimento ON parcelas_contas_pagar(vencimento)",
+                                        "idx_parcelas_pagar_vencimento");
+                        
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_estoque_movimentacoes_produto ON estoque_movimentacoes(produto_id)",
+                                        "idx_estoque_movimentacoes_produto");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_estoque_movimentacoes_data ON estoque_movimentacoes(data)",
+                                        "idx_estoque_movimentacoes_data");
                 }
         }
 
@@ -1307,7 +1327,8 @@ public class DB {
                         p.setString(4, hashSenha("admin123"));
                         p.setString(5, "Admin");
                         p.executeUpdate();
-                        System.out.println("✅ Usuário padrão 'admin' criado (senha: admin123)");
+                        // ✅ Não logar a senha padrão por razões de segurança
+                        System.out.println("✅ Usuário padrão 'admin' criado");
                 }
         }
 

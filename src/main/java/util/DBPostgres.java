@@ -6,9 +6,16 @@ import java.sql.SQLException;
 
 public class DBPostgres {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/hostore";
-    private static final String USER = "postgres"; // ou "hostore_admin" se tiver criado outro
-    private static final String PASSWORD = "110300"; // ou a senha que você colocou
+    // ⚠️ CRÍTICO: Credenciais devem ser externalizadas via variáveis de ambiente ou properties
+    private static final String URL = System.getenv("HOSTORE_DB_URL") != null
+            ? System.getenv("HOSTORE_DB_URL")
+            : "jdbc:postgresql://localhost:5432/hostore";
+    private static final String USER = System.getenv("HOSTORE_DB_USER") != null
+            ? System.getenv("HOSTORE_DB_USER")
+            : "postgres";
+    private static final String PASSWORD = System.getenv("HOSTORE_DB_PASSWORD") != null
+            ? System.getenv("HOSTORE_DB_PASSWORD")
+            : "";
 
     static {
         try {

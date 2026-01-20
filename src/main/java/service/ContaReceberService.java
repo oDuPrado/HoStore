@@ -40,6 +40,11 @@ public class ContaReceberService {
             String primeiroVenc, int intervaloDias,
             String obs) throws SQLException {
 
+        /* Validação: numParcelas deve ser > 0 */
+        if (numParcelas <= 0) {
+            throw new IllegalArgumentException("Número de parcelas deve ser maior que zero");
+        }
+
         /* Cria título */
         TituloContaReceberModel titulo = new TituloContaReceberModel();
         titulo.setClienteId(clienteId);
@@ -87,9 +92,10 @@ public class ContaReceberService {
 
         /* Atualiza parcela */
         parcela.setValorPago(parcela.getValorPago() + valorPago);
-        if (parcela.getValorPago() + 0.009 /* margem */ >=
-                parcela.getValorNominal() + parcela.getValorJuros()
-                + parcela.getValorAcrescimo() - parcela.getValorDesconto()) {
+        double totalDevido = parcela.getValorNominal() + parcela.getValorJuros()
+                + parcela.getValorAcrescimo() - parcela.getValorDesconto();
+        // ✅ Tolerância de R$ 0,01 (não R$ 0,009) para evitar centavos pendentes
+        if (parcela.getValorPago() >= totalDevido - 0.01) {
             parcela.setStatus("pago");
             parcela.setDataPagamento(hojeISO());
         }

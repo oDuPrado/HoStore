@@ -11,8 +11,13 @@ public class ComparativoModel {
         c.valorAtual = atual;
         c.valorAnterior = anterior;
         c.deltaAbs = atual - anterior;
-        if (Math.abs(anterior) < 0.0000001) c.deltaPct = (Math.abs(atual) < 0.0000001) ? 0 : 1;
-        else c.deltaPct = (atual - anterior) / anterior;
+        // ✅ Corrigido: anterior == 0 retorna Double.POSITIVE_INFINITY (crescimento infinito)
+        // ao invés de 1 (100%), a menos que ambos sejam 0 (sem mudança)
+        if (Math.abs(anterior) < 0.0000001) {
+            c.deltaPct = (Math.abs(atual) < 0.0000001) ? 0.0 : Double.POSITIVE_INFINITY;
+        } else {
+            c.deltaPct = (atual - anterior) / anterior;
+        }
         return c;
     }
 }
