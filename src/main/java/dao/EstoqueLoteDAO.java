@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class EstoqueLoteDAO {
                       FROM estoque_lotes
                      WHERE produto_id = ?
                        AND qtd_disponivel > 0
-                     ORDER BY id ASC
+                     ORDER BY data_entrada ASC, id ASC
                 """;
 
         List<LoteSaldo> out = new ArrayList<>();
@@ -44,6 +45,44 @@ public class EstoqueLoteDAO {
             }
         }
         return out;
+    }
+
+    public int inserirLote(String produtoId,
+            String fornecedorId,
+            String codigoLote,
+            String dataEntradaIso,
+            String validadeIso,
+            double custoUnit,
+            double precoVendaUnit,
+            int qtd,
+            String observacoes,
+            Connection c) throws SQLException {
+        String sql = """
+                    INSERT INTO estoque_lotes
+                    (produto_id, fornecedor_id, codigo_lote, data_entrada, validade, custo_unit, preco_venda_unit,
+                     qtd_inicial, qtd_disponivel, status, observacoes)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'ativo', ?)
+                """;
+
+        try (PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, produtoId);
+            ps.setString(2, fornecedorId);
+            ps.setString(3, codigoLote);
+            ps.setString(4, dataEntradaIso);
+            ps.setString(5, validadeIso);
+            ps.setDouble(6, custoUnit);
+            ps.setDouble(7, precoVendaUnit);
+            ps.setInt(8, qtd);
+            ps.setInt(9, qtd);
+            ps.setString(10, observacoes);
+            ps.executeUpdate();
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next())
+                    return rs.getInt(1);
+            }
+        }
+        throw new SQLException("Falha ao criar lote para produto " + produtoId);
     }
 
     public int somarSaldoProduto(String produtoId, Connection c) throws SQLException {

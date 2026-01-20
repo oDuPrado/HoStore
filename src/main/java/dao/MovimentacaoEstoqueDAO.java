@@ -21,15 +21,20 @@ public class MovimentacaoEstoqueDAO {
 
     /** Insere nova movimentação usando uma conexão existente (ideal para transações) */
     public MovimentacaoEstoqueModel inserir(MovimentacaoEstoqueModel mov, Connection c) throws SQLException {
-        String sql = "INSERT INTO estoque_movimentacoes(produto_id, tipo_mov, quantidade, motivo, data, usuario) "
-                   + "VALUES(?,?,?,?,?,?)";
+        String sql = "INSERT INTO estoque_movimentacoes(produto_id, lote_id, tipo_mov, quantidade, motivo, data, usuario) "
+                   + "VALUES(?,?,?,?,?,?,?)";
         try (PreparedStatement p = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             p.setString(1, mov.getProdutoId());
-            p.setString(2, mov.getTipoMov());
-            p.setInt(3, mov.getQuantidade());
-            p.setString(4, mov.getMotivo());
-            p.setString(5, mov.getData().format(FMT));
-            p.setString(6, mov.getUsuario());
+            if (mov.getLoteId() == null) {
+                p.setNull(2, Types.INTEGER);
+            } else {
+                p.setInt(2, mov.getLoteId());
+            }
+            p.setString(3, mov.getTipoMov());
+            p.setInt(4, mov.getQuantidade());
+            p.setString(5, mov.getMotivo());
+            p.setString(6, mov.getData().format(FMT));
+            p.setString(7, mov.getUsuario());
             p.executeUpdate();
 
             try (ResultSet rs = p.getGeneratedKeys()) {
@@ -77,12 +82,13 @@ public class MovimentacaoEstoqueDAO {
     private MovimentacaoEstoqueModel mapear(ResultSet rs) throws SQLException {
         Integer id       = rs.getInt("id");
         String prodId    = rs.getString("produto_id");
+        Integer loteId   = (Integer) rs.getObject("lote_id");
         String tipoMov   = rs.getString("tipo_mov");
         int qtd          = rs.getInt("quantidade");
         String motivo    = rs.getString("motivo");
         LocalDateTime dt = LocalDateTime.parse(rs.getString("data"), FMT);
         String usuario   = rs.getString("usuario");
 
-        return new MovimentacaoEstoqueModel(id, prodId, tipoMov, qtd, motivo, dt, usuario);
+        return new MovimentacaoEstoqueModel(id, prodId, loteId, tipoMov, qtd, motivo, dt, usuario);
     }
 }

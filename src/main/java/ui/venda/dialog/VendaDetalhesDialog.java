@@ -545,7 +545,7 @@ public class VendaDetalhesDialog extends JDialog {
                     JOptionPane.YES_NO_OPTION);
 
             if (devolverEstoque == JOptionPane.YES_OPTION) {
-                new dao.VendaDevolucaoDAO().registrarDevolucaoCompleta(vendaId, itensDaVenda, c);
+                new service.EstornoService().estornarVendaCompleta(c, vendaId, itensDaVenda);
             }
 
             c.commit();

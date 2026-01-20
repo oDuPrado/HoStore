@@ -2,7 +2,9 @@ package service;
 
 import dao.VendaDAO;
 import dao.VendaItemDAO;
+import dao.VendaItemLoteDAO;
 import dao.VendaDevolucaoDAO;
+import dao.VendaDevolucaoLoteDAO;
 
 import model.VendaItemModel;
 import model.VendaModel;
@@ -64,19 +66,31 @@ public class VendaService {
                 // 2) grava venda
                 vendaId = vendaDAO.insert(venda, c);
 
-                // 3) grava itens + registra saída (estoque + histórico)
+                // 3) grava itens + registra saida por lote (FIFO)
                 ProdutoEstoqueService produtoEstoqueService = new ProdutoEstoqueService();
+                VendaItemLoteDAO itemLoteDAO = new VendaItemLoteDAO();
 
                 for (VendaItemModel it : itens) {
-                    itemDAO.insert(it, vendaId, c);
+                    int vendaItemId = itemDAO.insert(it, vendaId, c);
 
-                    produtoEstoqueService.registrarSaida(
+                    List<ProdutoEstoqueService.LoteConsumo> consumos = produtoEstoqueService.consumirFIFO(
                             it.getProdutoId(),
                             it.getQtd(),
                             "Venda #" + vendaId,
                             (venda.getUsuario() != null && !venda.getUsuario().isBlank()) ? venda.getUsuario()
                                     : "sistema",
                             c);
+
+                    for (ProdutoEstoqueService.LoteConsumo consumo : consumos) {
+                        itemLoteDAO.inserirConsumo(
+                                vendaItemId,
+                                consumo.loteId,
+                                consumo.qtdConsumida,
+                                consumo.custoUnit,
+                                c);
+                    }
+
+                    produtoEstoqueService.atualizarQuantidadeCache(it.getProdutoId(), c);
                 }
 
                 c.commit();
@@ -155,37 +169,68 @@ public class VendaService {
      */
     public void registrarDevolucao(VendaDevolucaoModel devolucao) throws Exception {
         if (devolucao == null)
-            throw new Exception("Devolução nula");
+            throw new Exception("Devolucao nula");
 
         try (Connection c = DB.get()) {
             c.setAutoCommit(false);
 
             try {
-                // 1) grava devolução (TRANSACIONAL)
-                devolucaoDAO.inserir(devolucao, c);
-
-                // 2) registra entrada (dono do estoque + histórico)
                 String usuario = (devolucao.getUsuario() != null && !devolucao.getUsuario().isBlank())
                         ? devolucao.getUsuario()
                         : "sistema";
 
-                new ProdutoEstoqueService().registrarEntrada(
+                int devolucaoId = devolucaoDAO.inserir(devolucao, c);
+
+                ProdutoEstoqueService produtoEstoqueService = new ProdutoEstoqueService();
+                VendaItemLoteDAO itemLoteDAO = new VendaItemLoteDAO();
+                VendaDevolucaoLoteDAO devolucaoLoteDAO = new VendaDevolucaoLoteDAO();
+
+                int restante = devolucao.getQuantidade();
+                List<VendaItemLoteDAO.ConsumoLote> consumos = itemLoteDAO.listarConsumoPorLote(
+                        devolucao.getVendaId(),
                         devolucao.getProdutoId(),
-                        devolucao.getQuantidade(),
-                        "Devolução da venda #" + devolucao.getVendaId(),
-                        usuario,
                         c);
 
+                for (VendaItemLoteDAO.ConsumoLote consumo : consumos) {
+                    if (restante <= 0)
+                        break;
+
+                    int devolvido = itemLoteDAO.somarDevolvidoNoLote(
+                            devolucao.getVendaId(),
+                            devolucao.getProdutoId(),
+                            consumo.loteId,
+                            c);
+                    int disponivel = consumo.qtdConsumida - devolvido;
+                    if (disponivel <= 0)
+                        continue;
+
+                    int qtd = Math.min(restante, disponivel);
+                    produtoEstoqueService.reporNoLote(
+                            devolucao.getProdutoId(),
+                            consumo.loteId,
+                            qtd,
+                            "Devolucao da venda #" + devolucao.getVendaId(),
+                            usuario,
+                            c);
+
+                    devolucaoLoteDAO.inserir(devolucaoId, consumo.loteId, qtd, consumo.custoUnit, c);
+                    restante -= qtd;
+                }
+
+                if (restante > 0) {
+                    throw new Exception("Quantidade devolvida excede o consumido nos lotes");
+                }
+
                 c.commit();
-                LogService.info("Devolução registrada para venda " + devolucao.getVendaId());
+                LogService.info("Devolucao registrada para venda " + devolucao.getVendaId());
 
             } catch (Exception e) {
                 try {
                     c.rollback();
                 } catch (Exception rbEx) {
-                    LogService.error("Falha ao dar rollback na devolução", rbEx);
+                    LogService.error("Falha ao dar rollback na devolucao", rbEx);
                 }
-                LogService.error("Erro ao registrar devolução", e);
+                LogService.error("Erro ao registrar devolucao", e);
                 throw e;
             }
         }

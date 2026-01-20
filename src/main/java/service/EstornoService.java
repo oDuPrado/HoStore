@@ -1,28 +1,26 @@
 package service;
 
 import dao.VendaDevolucaoDAO;
-import dao.ProdutoDAO;
+import dao.VendaDevolucaoLoteDAO;
+import dao.VendaItemLoteDAO;
 import model.VendaItemModel;
 import model.VendaDevolucaoModel;
-import model.ProdutoModel;
-import model.MovimentacaoEstoqueModel;
 
 import java.sql.Connection;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service responsável por registrar estornos de venda:
- *  1. Registra devoluções com motivo "Estorno".
- *  2. Reverte estoque dos itens estornados.
- *  3. Registra movimentações no histórico com motivo "Estorno da Venda #".
+ * Service responsavel por registrar estornos de venda:
+ *  1. Registra devolucao com motivo de estorno.
+ *  2. Reverte estoque dos itens estornados nos lotes originais.
  */
 public class EstornoService {
 
     private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
-    private final ProdutoDAO produtoDAO = new ProdutoDAO();
-    private final MovimentacaoEstoqueService movService = new MovimentacaoEstoqueService();
+    private final VendaItemLoteDAO itemLoteDAO = new VendaItemLoteDAO();
+    private final VendaDevolucaoLoteDAO devolucaoLoteDAO = new VendaDevolucaoLoteDAO();
+    private final ProdutoEstoqueService produtoEstoqueService = new ProdutoEstoqueService();
 
     /**
      * Registra um estorno parcial de um item da venda.
@@ -30,7 +28,6 @@ public class EstornoService {
     public void estornarItem(Connection c, int vendaId, VendaItemModel item, int qtdEstorno) throws Exception {
         if (qtdEstorno <= 0) return;
 
-        // 1. Registra no vendas_devolucoes com motivo específico
         VendaDevolucaoModel dev = new VendaDevolucaoModel();
         dev.setVendaId(vendaId);
         dev.setProdutoId(item.getProdutoId());
@@ -39,26 +36,40 @@ public class EstornoService {
         dev.setData(LocalDate.now());
         dev.setMotivo("Estorno parcial");
 
-        devolucaoDAO.inserir(dev);
+        int devolucaoId = devolucaoDAO.inserir(dev, c);
 
-        // 2. Repor no estoque
-        ProdutoModel produto = produtoDAO.findById(item.getProdutoId());
-        if (produto != null) {
-            produto.setQuantidade(produto.getQuantidade() + qtdEstorno);
-            produtoDAO.update(produto);
+        int restante = qtdEstorno;
+        List<VendaItemLoteDAO.ConsumoLote> consumos = itemLoteDAO.listarConsumoPorLote(
+                vendaId,
+                item.getProdutoId(),
+                c);
 
-            // 3. Registra entrada no histórico com motivo "Estorno da venda #"
-            MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+        for (VendaItemLoteDAO.ConsumoLote consumo : consumos) {
+            if (restante <= 0) break;
+
+            int devolvido = itemLoteDAO.somarDevolvidoNoLote(
+                    vendaId,
                     item.getProdutoId(),
-                    "entrada",
-                    qtdEstorno,
+                    consumo.loteId,
+                    c);
+            int disponivel = consumo.qtdConsumida - devolvido;
+            if (disponivel <= 0) continue;
+
+            int qtd = Math.min(restante, disponivel);
+            produtoEstoqueService.reporNoLote(
+                    item.getProdutoId(),
+                    consumo.loteId,
+                    qtd,
                     "Estorno da venda #" + vendaId,
-                    "sistema"
-            );
-            mov.setData(LocalDateTime.now());
-            movService.registrar(mov);
-        } else {
-            System.err.println("[ERRO] Produto não encontrado para estorno: " + item.getProdutoId());
+                    "sistema",
+                    c);
+
+            devolucaoLoteDAO.inserir(devolucaoId, consumo.loteId, qtd, consumo.custoUnit, c);
+            restante -= qtd;
+        }
+
+        if (restante > 0) {
+            throw new Exception("Quantidade estornada excede o consumido nos lotes");
         }
     }
 

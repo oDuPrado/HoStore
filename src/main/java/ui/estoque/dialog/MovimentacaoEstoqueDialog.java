@@ -73,7 +73,8 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         g.insets = new Insets(6, 6, 6, 6);
         g.anchor = GridBagConstraints.WEST;
 
-        cboTipo = new JComboBox<>(new String[] { "Todos", "entrada", "saida" });
+        // ✅ combo tipo
+        cboTipo = new JComboBox<>(new String[] { "Todos", "entrada", "saida", "ajuste", "estorno", "devolucao" });
 
         dtInicio = new JDateChooser();
         dtInicio.setDateFormatString("dd/MM/yyyy");
@@ -130,7 +131,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         card.setLayout(new BorderLayout(8, 8));
 
         tabelaModel = new DefaultTableModel(
-                new String[] { "ID", "Produto", "Tipo", "Quantidade", "Motivo", "Data/Hora", "Usuário" }, 0) {
+                new String[] { "ID", "Produto", "Lote", "Tipo", "Quantidade", "Motivo", "Data/Hora", "Usuario" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
                 return false;
@@ -138,7 +139,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
             @Override
             public Class<?> getColumnClass(int col) {
-                if (col == 0 || col == 3)
+                if (col == 0 || col == 2 || col == 4)
                     return Integer.class;
                 return String.class;
             }
@@ -150,13 +151,12 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         // Sort
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tabelaModel);
         tabela.setRowSorter(sorter);
-        sorter.toggleSortOrder(5);
-        sorter.toggleSortOrder(5);
+        sorter.toggleSortOrder(6);
+        sorter.toggleSortOrder(6);
 
-        // Renderers
         TableColumnModel cm = tabela.getColumnModel();
 
-        // Zebra para quase tudo
+        // Zebra
         DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
         for (int i = 0; i < cm.getColumnCount(); i++) {
             cm.getColumn(i).setCellRenderer(zebra);
@@ -167,23 +167,24 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         center.setHorizontalAlignment(SwingConstants.CENTER);
         center.setBorder(new EmptyBorder(0, 8, 0, 8));
         cm.getColumn(0).setCellRenderer(center); // ID
-        cm.getColumn(3).setCellRenderer(center); // Quantidade
-        cm.getColumn(5).setCellRenderer(center); // Data/Hora
+        cm.getColumn(2).setCellRenderer(center); // Lote
+        cm.getColumn(4).setCellRenderer(center); // Quantidade
+        cm.getColumn(6).setCellRenderer(center); // Data/Hora
 
-        // Coluna Tipo como “badge”
-        cm.getColumn(2).setCellRenderer(new TipoBadgeRenderer());
+        // Tipo badge
+        cm.getColumn(3).setCellRenderer(new TipoBadgeRenderer());
 
-        // Coluna Motivo com elipse + tooltip
-        cm.getColumn(4).setCellRenderer(new MotivoEllipsisRenderer());
+        // Motivo ellipsis
+        cm.getColumn(5).setCellRenderer(new MotivoEllipsisRenderer());
 
-        // Larguras decentes
+        // Larguras
         cm.getColumn(0).setMaxWidth(80);
-        cm.getColumn(2).setMaxWidth(120);
+        cm.getColumn(2).setMaxWidth(90);
         cm.getColumn(3).setMaxWidth(120);
-        cm.getColumn(5).setPreferredWidth(170);
-        cm.getColumn(6).setPreferredWidth(140);
+        cm.getColumn(4).setMaxWidth(120);
+        cm.getColumn(6).setPreferredWidth(170);
+        cm.getColumn(7).setPreferredWidth(140);
 
-        // Duplo clique: detalhes
         tabela.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -230,14 +231,14 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         }
 
         StringBuilder sql = new StringBuilder(
-                "SELECT m.id, m.produto_id, p.nome AS produto_nome, " +
+                "SELECT m.id, m.produto_id, m.lote_id, p.nome AS produto_nome, " +
                         "m.tipo_mov, m.quantidade, m.motivo, m.data, m.usuario " +
                         "FROM estoque_movimentacoes m " +
                         "LEFT JOIN produtos p ON m.produto_id = p.id " +
                         "WHERE 1=1 ");
         Vector<Object> params = new Vector<>();
 
-        if (!"Todos".equalsIgnoreCase(tipoSelecionado)) {
+        if (tipoSelecionado != null && !"Todos".equalsIgnoreCase(tipoSelecionado)) {
             sql.append("AND m.tipo_mov = ? ");
             params.add(tipoSelecionado);
         }
@@ -265,6 +266,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
                         produtoNome = "ID:" + rs.getString("produto_id");
 
                     String tipo = rs.getString("tipo_mov");
+                    Integer loteId = (Integer) rs.getObject("lote_id");
                     int quantidade = rs.getInt("quantidade");
                     String motivo = rs.getString("motivo");
                     String dataBruta = rs.getString("data");
@@ -279,7 +281,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
                     }
 
                     tabelaModel.addRow(new Object[] {
-                            id, produtoNome, tipo, quantidade, motivo, dataFormatada, usuario
+                            id, produtoNome, loteId, tipo, quantidade, motivo, dataFormatada, usuario
                     });
                 }
             }
@@ -300,12 +302,14 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
         Object idObj = tabelaModel.getValueAt(modelRow, 0);
         Object produtoObj = tabelaModel.getValueAt(modelRow, 1);
-        Object tipoObj = tabelaModel.getValueAt(modelRow, 2);
-        Object qtdObj = tabelaModel.getValueAt(modelRow, 3);
-        Object motivoObj = tabelaModel.getValueAt(modelRow, 4);
-        Object dataHoraObj = tabelaModel.getValueAt(modelRow, 5);
-        Object usuarioObj = tabelaModel.getValueAt(modelRow, 6);
+        Object loteObj = tabelaModel.getValueAt(modelRow, 2);
+        Object tipoObj = tabelaModel.getValueAt(modelRow, 3);
+        Object qtdObj = tabelaModel.getValueAt(modelRow, 4);
+        Object motivoObj = tabelaModel.getValueAt(modelRow, 5);
+        Object dataHoraObj = tabelaModel.getValueAt(modelRow, 6);
+        Object usuarioObj = tabelaModel.getValueAt(modelRow, 7);
 
+        // ✅ model separado (não mexe no tabelaModel)
         DefaultTableModel detalhesModel = new DefaultTableModel(new String[] { "Campo", "Valor" }, 0) {
             @Override
             public boolean isCellEditable(int r, int c) {
@@ -315,6 +319,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
         detalhesModel.addRow(new Object[] { "ID", idObj });
         detalhesModel.addRow(new Object[] { "Produto", produtoObj });
+        detalhesModel.addRow(new Object[] { "Lote", loteObj });
         detalhesModel.addRow(new Object[] { "Tipo", tipoObj });
         detalhesModel.addRow(new Object[] { "Quantidade", qtdObj });
         detalhesModel.addRow(new Object[] { "Motivo", motivoObj });
@@ -325,7 +330,7 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         UiKit.tableDefaults(tabelaDetalhes);
 
         TableColumnModel cm = tabelaDetalhes.getColumnModel();
-        cm.getColumn(0).setMaxWidth(140);
+        cm.getColumn(0).setMaxWidth(160);
 
         JPanel card = UiKit.card();
         card.setLayout(new BorderLayout(8, 8));
@@ -358,7 +363,6 @@ public class MovimentacaoEstoqueDialog extends JDialog {
 
     // ===== Renderers =====
 
-    /** Badge para coluna Tipo: entrada/saida */
     private static class TipoBadgeRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -405,7 +409,6 @@ public class MovimentacaoEstoqueDialog extends JDialog {
         }
     }
 
-    /** Motivo: corta texto grande (sem mudar conteúdo) e mostra tooltip completa */
     private static class MotivoEllipsisRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
@@ -415,7 +418,6 @@ public class MovimentacaoEstoqueDialog extends JDialog {
             String txt = value == null ? "" : value.toString();
             l.setToolTipText(txt);
 
-            // “visual”: encurta se for enorme
             if (txt.length() > 80) {
                 l.setText(txt.substring(0, 77) + "...");
             } else {

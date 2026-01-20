@@ -5,10 +5,9 @@ import dao.PedidoEstoqueProdutoDAO;
 import dao.ProdutoDAO;
 import model.PedidoEstoqueProdutoModel;
 import model.ProdutoModel;
-import model.MovimentacaoEstoqueModel;
-
-import java.time.LocalDateTime;
+import service.ProdutoEstoqueService;
 import java.util.List;
+
 import java.util.Map;
 
 /**
@@ -29,7 +28,6 @@ public class PedidoCompraService {
     private final ProdutoDAO produtoDAO = new ProdutoDAO();
 
     // Service que registra as movimentações de estoque no histórico
-    private final MovimentacaoEstoqueService movService = new MovimentacaoEstoqueService();
 
     /**
      * Recebe todos os itens de um pedido de compra e ajusta o estoque incrementalmente.
@@ -84,45 +82,24 @@ public class PedidoCompraService {
                     System.err.println("[ERRO] Produto não encontrado no estoque: " + produtoId);
                 } else {
                     if (delta > 0) {
-                        // Se delta > 0: novaRecebida > recebidaAnterior → "entrada" de diferença
-                        int estoqueAntes = produto.getQuantidade();
-                        int estoqueDepois = estoqueAntes + delta;
-                        System.out.println("✅ Entrada: somando +" + delta
-                                + " ao estoque atual (" + estoqueAntes + " → " + estoqueDepois + ")");
-                        produto.setQuantidade(estoqueDepois);
-                        produtoDAO.update(produto);
-
-                        // Cria e registra movimentação de entrada
-                        MovimentacaoEstoqueModel movEntrada = new MovimentacaoEstoqueModel(
+                        System.out.println("Entrada: somando +" + delta
+                                + " ao estoque via lote para o pedido " + pedidoId);
+                        new ProdutoEstoqueService().registrarEntrada(
                                 produtoId,
-                                "entrada",
                                 delta,
                                 "Recebimento do Pedido " + pedidoId,
-                                usuario
-                        );
-                        movEntrada.setData(LocalDateTime.now());
-                        movService.registrar(movEntrada);
+                                usuario);
 
                     } else {
-                        // Se delta < 0: novaRecebida < recebidaAnterior → "saída" de correção
+                        // Se delta < 0: novaRecebida < recebidaAnterior -> correcao de recebimento
                         int qtdASubtrair = Math.abs(delta);
-                        int estoqueAntes = produto.getQuantidade();
-                        int estoqueDepois = estoqueAntes - qtdASubtrair;
-                        System.out.println("❌ Correção: subtraindo -" + qtdASubtrair
-                                + " do estoque atual (" + estoqueAntes + " → " + estoqueDepois + ")");
-                        produto.setQuantidade(Math.max(0, estoqueDepois));
-                        produtoDAO.update(produto);
-
-                        // Cria e registra movimentação de saída
-                        MovimentacaoEstoqueModel movSaida = new MovimentacaoEstoqueModel(
+                        System.out.println("Correcao: subtraindo -" + qtdASubtrair
+                                + " do estoque via lote para o pedido " + pedidoId);
+                        new ProdutoEstoqueService().registrarSaida(
                                 produtoId,
-                                "saida",
                                 qtdASubtrair,
-                                "Correção de recebimento do Pedido " + pedidoId,
-                                usuario
-                        );
-                        movSaida.setData(LocalDateTime.now());
-                        movService.registrar(movSaida);
+                                "Correcao de recebimento do Pedido " + pedidoId,
+                                usuario);
                     }
                 }
             } else {

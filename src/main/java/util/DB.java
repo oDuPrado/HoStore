@@ -528,17 +528,40 @@ public class DB {
                                         "produtos_alimenticios");
 
                         executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS estoque_lotes(" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "produto_id TEXT NOT NULL, " +
+                                                        "fornecedor_id TEXT, " +
+                                                        "codigo_lote TEXT, " +
+                                                        "data_entrada TEXT NOT NULL, " +
+                                                        "validade TEXT, " +
+                                                        "custo_unit REAL, " +
+                                                        "preco_venda_unit REAL, " +
+                                                        "qtd_inicial INTEGER NOT NULL, " +
+                                                        "qtd_disponivel INTEGER NOT NULL, " +
+                                                        "status TEXT DEFAULT 'ativo', " +
+                                                        "observacoes TEXT, " +
+                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id), " +
+                                                        "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
+                                                        ")",
+                                        "estoque_lotes");
+
+                        executeComLog(st,
                                         "CREATE TABLE IF NOT EXISTS estoque_movimentacoes(" +
                                                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                                         "produto_id TEXT, " +
+                                                        "lote_id INTEGER, " +
                                                         "tipo_mov TEXT," +
                                                         "quantidade INTEGER, " +
                                                         "motivo TEXT, " +
                                                         "data TEXT, " +
                                                         "usuario TEXT," +
-                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
+                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id), " +
+                                                        "FOREIGN KEY(lote_id) REFERENCES estoque_lotes(id)" +
                                                         ")",
                                         "estoque_movimentacoes");
+
+                        ensureColumn(c, "estoque_movimentacoes", "lote_id", "INTEGER");
 
                         // ========== VENDAS ==========
                         executeComLog(st,
@@ -617,6 +640,30 @@ public class DB {
                                                         "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
                                                         ")",
                                         "vendas_devolucoes");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS vendas_itens_lotes(" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "venda_item_id INTEGER NOT NULL, " +
+                                                        "lote_id INTEGER NOT NULL, " +
+                                                        "qtd INTEGER NOT NULL, " +
+                                                        "custo_unit REAL, " +
+                                                        "FOREIGN KEY(venda_item_id) REFERENCES vendas_itens(id), " +
+                                                        "FOREIGN KEY(lote_id) REFERENCES estoque_lotes(id)" +
+                                                        ")",
+                                        "vendas_itens_lotes");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS vendas_devolucoes_lotes(" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "devolucao_id INTEGER NOT NULL, " +
+                                                        "lote_id INTEGER NOT NULL, " +
+                                                        "qtd INTEGER NOT NULL, " +
+                                                        "custo_unit REAL, " +
+                                                        "FOREIGN KEY(devolucao_id) REFERENCES vendas_devolucoes(id), " +
+                                                        "FOREIGN KEY(lote_id) REFERENCES estoque_lotes(id)" +
+                                                        ")",
+                                        "vendas_devolucoes_lotes");
 
                         // ========== CATÁLOGO / METADADOS (cartas) ==========
                         executeComLog(st,
@@ -1072,6 +1119,12 @@ public class DB {
                                         "idx_estoque_movimentacoes_produto");
                         executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_estoque_movimentacoes_data ON estoque_movimentacoes(data)",
                                         "idx_estoque_movimentacoes_data");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_estoque_movimentacoes_lote ON estoque_movimentacoes(lote_id)",
+                                        "idx_estoque_movimentacoes_lote");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_estoque_lotes_produto_data ON estoque_lotes(produto_id, data_entrada, id)",
+                                        "idx_estoque_lotes_produto_data");
+
+                        migrarEstoqueParaLotes(c);
                 }
         }
 
@@ -1677,6 +1730,26 @@ public class DB {
                 }
         }
 
+        private static void ensureColumn(Connection c, String table, String column, String type) throws SQLException {
+                if (columnExists(c, table, column))
+                        return;
+                try (Statement st = c.createStatement()) {
+                        st.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
+                }
+        }
+
+        private static boolean columnExists(Connection c, String table, String column) throws SQLException {
+                try (PreparedStatement ps = c.prepareStatement("PRAGMA table_info(" + table + ")")) {
+                        try (ResultSet rs = ps.executeQuery()) {
+                                while (rs.next()) {
+                                        if (column.equalsIgnoreCase(rs.getString("name")))
+                                                return true;
+                                }
+                        }
+                }
+                return false;
+        }
+
         public static boolean isConnected() {
                 try (Connection c = get()) {
                         return c != null && !c.isClosed();
@@ -1695,6 +1768,52 @@ public class DB {
                 System.err.println("ERROR: " + msg);
                 if (DEBUG && e != null)
                         e.printStackTrace();
+        }
+
+        private static void migrarEstoqueParaLotes(Connection c) {
+                String selectProdutos = """
+                                SELECT p.id, p.quantidade, p.preco_compra, p.preco_venda, p.fornecedor_id
+                                  FROM produtos p
+                                 WHERE p.quantidade > 0
+                            """;
+                String selectExisteLote = "SELECT 1 FROM estoque_lotes WHERE produto_id = ? LIMIT 1";
+                String insertLote = """
+                                INSERT INTO estoque_lotes
+                                (produto_id, fornecedor_id, codigo_lote, data_entrada, validade, custo_unit,
+                                 preco_venda_unit, qtd_inicial, qtd_disponivel, status, observacoes)
+                                VALUES (?, ?, ?, datetime('now'), NULL, ?, ?, ?, ?, 'ativo', 'MIGRACAO_INICIAL')
+                            """;
+
+                try (PreparedStatement psProdutos = c.prepareStatement(selectProdutos);
+                                ResultSet rs = psProdutos.executeQuery();
+                                PreparedStatement psExiste = c.prepareStatement(selectExisteLote);
+                                PreparedStatement psInsert = c.prepareStatement(insertLote)) {
+
+                        while (rs.next()) {
+                                String produtoId = rs.getString("id");
+                                int qtd = rs.getInt("quantidade");
+                                double custo = rs.getDouble("preco_compra");
+                                double preco = rs.getDouble("preco_venda");
+                                String fornecedorId = rs.getString("fornecedor_id");
+
+                                psExiste.setString(1, produtoId);
+                                try (ResultSet rsExiste = psExiste.executeQuery()) {
+                                        if (rsExiste.next())
+                                                continue;
+                                }
+
+                                psInsert.setString(1, produtoId);
+                                psInsert.setString(2, fornecedorId);
+                                psInsert.setString(3, "MIGRACAO_INICIAL");
+                                psInsert.setDouble(4, custo);
+                                psInsert.setDouble(5, preco);
+                                psInsert.setInt(6, qtd);
+                                psInsert.setInt(7, qtd);
+                                psInsert.executeUpdate();
+                        }
+                } catch (Exception e) {
+                        logWarn("Falha ao migrar estoque para lotes: " + e.getMessage(), (e instanceof Exception) ? (Exception) e : null);
+                }
         }
 
         public static void popularColecoesPokemonDoCacheSePossivel() {

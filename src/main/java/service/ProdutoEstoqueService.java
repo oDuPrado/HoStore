@@ -9,18 +9,36 @@ import dao.DeckDAO;
 import dao.EtbDAO;
 import model.DeckModel;
 import model.EtbModel;
+import util.DB;
 
 import service.MovimentacaoEstoqueService;
 import model.MovimentacaoEstoqueModel;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProdutoEstoqueService {
 
     private final ProdutoDAO dao = new ProdutoDAO();
+    private final dao.EstoqueLoteDAO loteDAO = new dao.EstoqueLoteDAO();
+    private final MovimentacaoEstoqueService movService = new MovimentacaoEstoqueService();
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+    public static class LoteConsumo {
+        public final int loteId;
+        public final int qtdConsumida;
+        public final double custoUnit;
+
+        public LoteConsumo(int loteId, int qtdConsumida, double custoUnit) {
+            this.loteId = loteId;
+            this.qtdConsumida = qtdConsumida;
+            this.custoUnit = custoUnit;
+        }
+    }
 
     /* ==================== PRODUTOS GENÉRICOS ==================== */
 
@@ -72,14 +90,7 @@ public class ProdutoEstoqueService {
     }
 
     public void baixarEstoque(String idProduto, int qtd) throws Exception {
-        ProdutoModel p = dao.findById(idProduto);
-        if (p == null)
-            throw new Exception("Produto não encontrado!");
-        if (p.getQuantidade() < qtd)
-            throw new Exception("Estoque insuficiente!");
-        p.setQuantidade(p.getQuantidade() - qtd);
-        p.setAlteradoEmNow();
-        dao.update(p);
+        registrarSaida(idProduto, qtd, "Baixa de estoque", "sistema");
     }
 
     public boolean estoqueBaixo(ProdutoModel p, int limite) {
@@ -143,97 +154,75 @@ public class ProdutoEstoqueService {
     }
 
     public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
-        ProdutoModel produto = dao.findById(produtoId);
-        if (produto == null)
-            throw new Exception("Produto não encontrado!");
-
-        // atualiza quantidade
-        produto.setQuantidade(produto.getQuantidade() + quantidade);
-        produto.setAlteradoEmNow();
-        dao.update(produto);
-
-        // registra movimentação
-        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-                produtoId, "entrada", quantidade, motivo, usuario);
-        mov.setData(LocalDateTime.now());
-
-        new MovimentacaoEstoqueService().registrar(mov);
+        try (Connection c = DB.get()) {
+            c.setAutoCommit(false);
+            registrarEntrada(produtoId, quantidade, motivo, usuario, c);
+            c.commit();
+        }
     }
 
     public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
         ProdutoModel produto = dao.findById(produtoId, c);
         if (produto == null)
-            throw new Exception("Produto não encontrado!");
+            throw new Exception("Produto nao encontrado!");
 
-        // atualiza quantidade
-        produto.setQuantidade(produto.getQuantidade() + quantidade);
-        produto.setAlteradoEmNow();
-        dao.update(produto, c); // usa a mesma conexão
+        String dataEntrada = LocalDateTime.now().format(FMT);
+        int loteId = loteDAO.inserirLote(
+                produtoId,
+                produto.getFornecedorId(),
+                null,
+                dataEntrada,
+                null,
+                produto.getPrecoCompra(),
+                produto.getPrecoVenda(),
+                quantidade,
+                motivo,
+                c);
 
-        // registra movimentação com a mesma conexão
         MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-                produtoId, "entrada", quantidade, motivo, usuario);
+                produtoId, loteId, "entrada", quantidade, motivo, usuario);
         mov.setData(LocalDateTime.now());
+        movService.registrar(mov, c);
 
-        new MovimentacaoEstoqueService().registrar(mov, c);
+        atualizarQuantidadeCache(produtoId, c);
     }
 
     public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario) throws Exception {
-        ProdutoModel produto = dao.findById(produtoId);
-        if (produto == null)
-            throw new Exception("Produto não encontrado!");
-
-        if (produto.getQuantidade() < quantidade)
-            throw new Exception("Estoque insuficiente para saída!");
-
-        // atualiza quantidade
-        produto.setQuantidade(produto.getQuantidade() - quantidade);
-        produto.setAlteradoEmNow();
-        dao.update(produto);
-
-        // registra movimentação
-        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-                produtoId, "saida", quantidade, motivo, usuario);
-        mov.setData(LocalDateTime.now());
-
-        new MovimentacaoEstoqueService().registrar(mov);
+        try (Connection c = DB.get()) {
+            c.setAutoCommit(false);
+            registrarSaida(produtoId, quantidade, motivo, usuario, c);
+            c.commit();
+        }
     }
 
     public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
-        ProdutoModel produto = dao.findById(produtoId);
+        ProdutoModel produto = dao.findById(produtoId, c);
         if (produto == null)
-            throw new Exception("Produto não encontrado!");
+            throw new Exception("Produto nao encontrado!");
 
-        if (produto.getQuantidade() < quantidade)
-            throw new Exception("Estoque insuficiente para saída!");
-
-        // atualiza quantidade
-        produto.setQuantidade(produto.getQuantidade() - quantidade);
-        produto.setAlteradoEmNow();
-        dao.update(produto, c); // ← usa a mesma conexão
-
-        // registra movimentação com a mesma conexão
-        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
-                produtoId, "saida", quantidade, motivo, usuario);
-        mov.setData(LocalDateTime.now());
-
-        new MovimentacaoEstoqueService().registrar(mov, c); // ← sem DB.get()
+        consumirFIFO(produtoId, quantidade, motivo, usuario, c);
+        atualizarQuantidadeCache(produtoId, c);
     }
 
     public int obterQuantidade(String produtoId) throws SQLException {
-        ProdutoModel p = dao.findById(produtoId);
-        if (p == null)
-            throw new SQLException("Produto não encontrado!");
-        return p.getQuantidade();
+        try (Connection c = DB.get()) {
+            return obterQuantidade(produtoId, c);
+        }
     }
 
     public int obterQuantidade(String produtoId, Connection c) throws SQLException {
         ProdutoModel p = dao.findById(produtoId, c);
         if (p == null)
-            throw new SQLException("Produto não encontrado!");
-        return p.getQuantidade();
+            throw new SQLException("Produto nao encontrado!");
+        int total = loteDAO.somarSaldoProduto(produtoId, c);
+        if (p.getQuantidade() != total) {
+            p.setQuantidade(total);
+            p.setAlteradoEmNow();
+            dao.update(p, c);
+        }
+        return total;
     }
 
     public void atualizarQuantidade(String produtoId, int novaQtd) throws SQLException {
@@ -244,6 +233,57 @@ public class ProdutoEstoqueService {
         p.setQuantidade(novaQtd);
         p.setAlteradoEmNow();
         dao.update(p);
+    }
+
+
+    public List<LoteConsumo> consumirFIFO(String produtoId, int quantidade, String motivo, String usuario, Connection c)
+            throws Exception {
+        if (quantidade <= 0)
+            throw new Exception("Quantidade invalida: " + quantidade);
+
+        List<LoteConsumo> consumos = new ArrayList<>();
+        int restante = quantidade;
+
+        for (dao.EstoqueLoteDAO.LoteSaldo lote : loteDAO.listarLotesDisponiveisFIFO(produtoId, c)) {
+            if (restante <= 0)
+                break;
+            int consumir = Math.min(restante, lote.qtdDisponivel);
+            loteDAO.consumirDoLote(lote.loteId, consumir, c);
+            MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                    produtoId, lote.loteId, "saida", consumir, motivo, usuario);
+            mov.setData(LocalDateTime.now());
+            movService.registrar(mov, c);
+            consumos.add(new LoteConsumo(lote.loteId, consumir, lote.custoUnit));
+            restante -= consumir;
+        }
+
+        if (restante > 0) {
+            throw new Exception("Estoque insuficiente para o produto " + produtoId);
+        }
+
+        return consumos;
+    }
+
+    public void reporNoLote(String produtoId, int loteId, int quantidade, String motivo, String usuario, Connection c)
+            throws Exception {
+        if (quantidade <= 0)
+            throw new Exception("Quantidade invalida: " + quantidade);
+        loteDAO.reporNoLote(loteId, quantidade, c);
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
+                produtoId, loteId, "entrada", quantidade, motivo, usuario);
+        mov.setData(LocalDateTime.now());
+        movService.registrar(mov, c);
+        atualizarQuantidadeCache(produtoId, c);
+    }
+
+    public void atualizarQuantidadeCache(String produtoId, Connection c) throws SQLException {
+        ProdutoModel p = dao.findById(produtoId, c);
+        if (p == null)
+            throw new SQLException("Produto nao encontrado!");
+        int total = loteDAO.somarSaldoProduto(produtoId, c);
+        p.setQuantidade(total);
+        p.setAlteradoEmNow();
+        dao.update(p, c);
     }
 
 }

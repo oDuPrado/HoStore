@@ -19,20 +19,20 @@ public class VendaDevolucaoDAO {
      * Mantido por compatibilidade (abre conexão própria).
      * Prefira inserir(dev, c) para ficar transacional.
      */
-    public void inserir(VendaDevolucaoModel dev) throws SQLException {
+    public int inserir(VendaDevolucaoModel dev) throws SQLException {
         try (Connection c = DB.get()) {
-            inserir(dev, c);
+            return inserir(dev, c);
         }
     }
 
     /**
      * Insere devolução usando a MESMA conexão do caller (transacional).
      */
-    public void inserir(VendaDevolucaoModel dev, Connection c) throws SQLException {
-        if (dev == null) throw new SQLException("Devolução nula");
+    public int inserir(VendaDevolucaoModel dev, Connection c) throws SQLException {
+        if (dev == null) throw new SQLException("Devolucao nula");
         if (c == null) throw new SQLException("Connection nula");
 
-        try (PreparedStatement p = c.prepareStatement(SQL_INSERT)) {
+        try (PreparedStatement p = c.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
             p.setInt(1, dev.getVendaId());
             p.setString(2, dev.getProdutoId());
             p.setInt(3, dev.getQuantidade());
@@ -40,7 +40,16 @@ public class VendaDevolucaoDAO {
             p.setString(5, (dev.getData() == null ? LocalDate.now() : dev.getData()).toString());
             p.setString(6, dev.getMotivo());
             p.executeUpdate();
+
+            try (ResultSet rs = p.getGeneratedKeys()) {
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    dev.setId(id);
+                    return id;
+                }
+            }
         }
+        throw new SQLException("Falha ao inserir devolucao");
     }
 
     public List<VendaDevolucaoModel> listarPorVenda(int vendaId) throws SQLException {
