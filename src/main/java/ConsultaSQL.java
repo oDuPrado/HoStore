@@ -1,7 +1,7 @@
 import java.sql.*;
 import java.io.File;
 
-public class ConsultaSQLiteSimples {
+public class ConsultaSQL {
 
     // 🔥 Caminho dinâmico igual ao DB.java
     private static final String DATABASE_URL = buildDatabaseUrl();

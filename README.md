@@ -273,4 +273,3 @@ MIT License - [Veja LICENSE](LICENSE)
 
 ---
 
-**Desenvolvido com ❤️ para a comunidade TCG** 🎴
