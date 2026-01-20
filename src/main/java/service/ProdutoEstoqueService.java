@@ -162,7 +162,7 @@ public class ProdutoEstoqueService {
 
     public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
-        ProdutoModel produto = dao.findById(produtoId);
+        ProdutoModel produto = dao.findById(produtoId, c);
         if (produto == null)
             throw new Exception("Produto não encontrado!");
 
@@ -224,6 +224,13 @@ public class ProdutoEstoqueService {
 
     public int obterQuantidade(String produtoId) throws SQLException {
         ProdutoModel p = dao.findById(produtoId);
+        if (p == null)
+            throw new SQLException("Produto não encontrado!");
+        return p.getQuantidade();
+    }
+
+    public int obterQuantidade(String produtoId, Connection c) throws SQLException {
+        ProdutoModel p = dao.findById(produtoId, c);
         if (p == null)
             throw new SQLException("Produto não encontrado!");
         return p.getQuantidade();

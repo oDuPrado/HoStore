@@ -69,7 +69,7 @@ public class EstoqueService {
      */
     public boolean possuiEstoque(Connection c, String produtoId, int qtdNec) throws SQLException {
         try {
-            int atual = produtoEstoqueService.obterQuantidade(produtoId);
+            int atual = produtoEstoqueService.obterQuantidade(produtoId, c);
             return atual >= qtdNec;
         } catch (Exception e) {
             throw new SQLException("Erro ao verificar estoque do produto " + produtoId + ": " + e.getMessage(), e);
@@ -121,7 +121,7 @@ public class EstoqueService {
      */
     public void baixarEstoqueProduto(Connection c, String produtoId, int quantidade) throws SQLException {
         try {
-            int atual = produtoEstoqueService.obterQuantidade(produtoId);
+            int atual = produtoEstoqueService.obterQuantidade(produtoId, c);
             if (atual < quantidade) {
                 throw new SQLException("Estoque insuficiente para o produto " + produtoId +
                         " (Disponível: " + atual + ", Necessário: " + quantidade + ")");

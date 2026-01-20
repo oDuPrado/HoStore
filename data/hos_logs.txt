@@ -1236,3 +1236,15 @@ jan. 14, 2026 8:43:27 AM util.LogService info
 INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=100.0 parcelas=10 venc=2026-02-13 intervaloDias=30
 jan. 14, 2026 8:43:27 AM util.LogService info
 INFORMAÇÕES: Venda 1 finalizada com sucesso
+jan. 20, 2026 2:36:26 PM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+jan. 20, 2026 2:36:26 PM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=20.0 parcelas=0 venc=2026-01-20 intervaloDias=0
+jan. 20, 2026 2:36:26 PM util.LogService info
+INFORMAÇÕES: Venda 2 finalizada com sucesso
+jan. 20, 2026 2:49:47 PM util.LogService info
+INFORMAÇÕES: FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+jan. 20, 2026 2:49:47 PM util.LogService info
+INFORMAÇÕES: FinalizarVenda: clienteId=AVULSO totalLiquido=100.0 parcelas=3 venc=2026-02-19 intervaloDias=30
+jan. 20, 2026 2:49:47 PM util.LogService info
+INFORMAÇÕES: Venda 3 finalizada com sucesso

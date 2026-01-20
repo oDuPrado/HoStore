@@ -56,13 +56,16 @@ public class ContaReceberService {
 
         /* Gera parcelas */
         double parcelaValor = arredondar(total / numParcelas);
+        double acumulado = 0.0;
         LocalDate venc = LocalDate.parse(primeiroVenc);
         for (int n = 1; n <= numParcelas; n++) {
             ParcelaContaReceberModel p = new ParcelaContaReceberModel();
             p.setTituloId(titulo.getId());
             p.setNumeroParcela(n);
             p.setVencimento(venc.toString());
-            p.setValorNominal(parcelaValor);
+            double valorParcela = (n == numParcelas) ? arredondar(total - acumulado) : parcelaValor;
+            acumulado += valorParcela;
+            p.setValorNominal(valorParcela);
             parcelaDAO.inserir(p);
             venc = venc.plusDays(intervaloDias);
         }

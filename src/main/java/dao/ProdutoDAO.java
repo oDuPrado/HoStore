@@ -111,6 +111,10 @@ public class ProdutoDAO {
         return findById(id, false);
     }
 
+    public ProdutoModel findById(String id, Connection c) {
+        return findById(id, c, false);
+    }
+
     public ProdutoModel findById(String id, boolean incluirInativos) {
         String sql = """
                     SELECT * FROM produtos
@@ -118,6 +122,24 @@ public class ProdutoDAO {
                 """ + andAtivo(incluirInativos);
 
         try (PreparedStatement ps = DB.get().prepareStatement(sql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next())
+                    return map(rs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public ProdutoModel findById(String id, Connection c, boolean incluirInativos) {
+        String sql = """
+                    SELECT * FROM produtos
+                     WHERE id = ?
+                """ + andAtivo(incluirInativos);
+
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next())
