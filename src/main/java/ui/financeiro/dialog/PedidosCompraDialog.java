@@ -296,6 +296,7 @@ public class PedidosCompraDialog extends JDialog {
             }
 
             // ordena por data desc (mais recente primeiro)
+            @SuppressWarnings("unchecked")
             TableRowSorter<TableModel> sorter = (TableRowSorter<TableModel>) table.getRowSorter();
             sorter.setSortKeys(List.of(new RowSorter.SortKey(2, SortOrder.DESCENDING)));
 
@@ -548,8 +549,11 @@ public class PedidosCompraDialog extends JDialog {
         dc.setDateFormatString("dd/MM/yyyy");
         dc.setPreferredSize(new Dimension(140, 30));
 
-        if (dc.getDateEditor() != null && dc.getDateEditor().getUiComponent() instanceof JComponent editor) {
-            editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+        if (dc.getDateEditor() != null) {
+            JComponent editor = dc.getDateEditor().getUiComponent();
+            if (editor instanceof JComponent) {
+                editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+            }
         }
 
         JButton calBtn = dc.getCalendarButton();

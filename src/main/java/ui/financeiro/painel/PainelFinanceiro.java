@@ -344,6 +344,7 @@ public class PainelFinanceiro extends JPanel {
             // Sort default: Data Geração desc
             if (tabelaPagar.getRowSorter() == null)
                 tabelaPagar.setAutoCreateRowSorter(true);
+            @SuppressWarnings("unchecked")
             TableRowSorter<TableModel> sorter = (TableRowSorter<TableModel>) tabelaPagar.getRowSorter();
             sorter.setSortKeys(List.of(new RowSorter.SortKey(2, SortOrder.DESCENDING)));
 
@@ -391,8 +392,11 @@ public class PainelFinanceiro extends JPanel {
         dc.setPreferredSize(new Dimension(130, 30));
         dc.setDateFormatString("dd/MM/yyyy");
 
-        if (dc.getDateEditor() != null && dc.getDateEditor().getUiComponent() instanceof JComponent editor) {
-            editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+        if (dc.getDateEditor() != null) {
+            JComponent editor = dc.getDateEditor().getUiComponent();
+            if (editor instanceof JComponent) {
+                editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+            }
         }
 
         JButton calBtn = dc.getCalendarButton();

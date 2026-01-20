@@ -292,8 +292,11 @@ public class ContaPagarDialog extends JDialog {
 
     private void prepararDateChooser(JDateChooser dc) {
         dc.setPreferredSize(new Dimension(170, 30));
-        if (dc.getDateEditor() != null && dc.getDateEditor().getUiComponent() instanceof JComponent editor) {
-            editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+        if (dc.getDateEditor() != null) {
+            JComponent editor = dc.getDateEditor().getUiComponent();
+            if (editor instanceof JComponent) {
+                editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+            }
         }
         JButton calBtn = dc.getCalendarButton();
         if (calBtn != null) {

@@ -3,6 +3,7 @@ util\DB$SupplierThrows.class
 model\ComparativoModel.class
 service\RelatoriosService.class
 model\EstoqueBaixoItemModel.class
+ConsultaSQL.class
 ui\estoque\dialog\MovimentacaoEstoqueDialog$1.class
 dao\AcessorioDAO.class
 ui\dash\painel\DashboardPanel$10.class
@@ -267,7 +268,6 @@ ui\financeiro\dialog\PedidosCompraDialog$DelegatingRenderer.class
 util\LogService.class
 ui\financeiro\dialog\ParcelasTituloDialog$2.class
 ui\financeiro\dialog\ParcelasContaReceberDialog$DelegatingRenderer.class
-ConsultaSQLiteSimples.class
 ui\financeiro\dialog\PagamentoReceberDialog.class
 ui\estoque\dialog\EntradaProdutosDialog.class
 model\ComandaModel.class

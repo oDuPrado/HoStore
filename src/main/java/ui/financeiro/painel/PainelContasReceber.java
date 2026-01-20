@@ -310,6 +310,7 @@ public class PainelContasReceber extends JPanel {
             // Sort default: Data Geração desc (mais recentes em cima)
             if (tabela.getRowSorter() == null)
                 tabela.setAutoCreateRowSorter(true);
+            @SuppressWarnings("unchecked")
             TableRowSorter<TableModel> sorter = (TableRowSorter<TableModel>) tabela.getRowSorter();
             sorter.setSortKeys(List.of(new RowSorter.SortKey(2, SortOrder.DESCENDING)));
 
@@ -360,8 +361,11 @@ public class PainelContasReceber extends JPanel {
         dc.setDateFormatString("dd/MM/yyyy");
 
         // Campo editor com arc (FlatLaf)
-        if (dc.getDateEditor() != null && dc.getDateEditor().getUiComponent() instanceof JComponent editor) {
-            editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+        if (dc.getDateEditor() != null) {
+            JComponent editor = dc.getDateEditor().getUiComponent();
+            if (editor instanceof JComponent) {
+                editor.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
+            }
         }
 
         // Botão do calendário: deixa consistente e “bonito” no padrão UiKit

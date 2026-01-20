@@ -13,6 +13,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\CartaAtributosPanel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\EtbDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\BancoDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ConsultaSQL.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\AcessorioDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\CadastroGenericoDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\VendaItemDAO.java
@@ -155,7 +156,6 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\M
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\ColecaoService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\MovimentacaoEstoqueDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\TesteConexao.java
-C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ConsultaSQLiteSimples.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ComandaDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\controller\VendaController.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\NcmService.java
