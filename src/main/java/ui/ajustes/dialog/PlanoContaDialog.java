@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import model.PlanoContaModel;
 import service.PlanoContaService;
 
@@ -27,6 +28,7 @@ public class PlanoContaDialog extends JDialog {
     public PlanoContaDialog(Window owner, PlanoContaModel p) {
         super(owner, p==null? "Novo Plano de Contas" : "Editar Plano de Contas",
               ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
         this.editing = p;
         initComponents();
         pack();

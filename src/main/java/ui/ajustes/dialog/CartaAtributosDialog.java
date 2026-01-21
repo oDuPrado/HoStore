@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import javax.swing.JDialog;
 import ui.ajustes.painel.CartaAtributosPanel;
 import java.awt.Frame;
@@ -16,7 +17,8 @@ public class CartaAtributosDialog extends JDialog {
      * Construtor: recebe o frame pai para centralizar a janela
      */
     public CartaAtributosDialog(Frame owner) {
-        super(owner, "Atributos da Carta", true);      // true = modal
+        super(owner, "Atributos da Carta", true);
+        UiKit.applyDialogBase(this);      // true = modal
         initComponents();
     }
 

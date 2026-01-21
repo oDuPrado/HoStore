@@ -1,6 +1,7 @@
 // src/ui/venda/dialog/VendaFinalizarDialog.java
 package ui.venda.dialog;
 
+import util.UiKit;
 import controller.VendaController;
 import dao.ProdutoDAO;
 import util.DB;
@@ -85,6 +86,7 @@ public class VendaFinalizarDialog extends JDialog {
             PainelVendas painelPai) {
 
         super(owner, "Finalizar Venda", true);
+        UiKit.applyDialogBase(this);
         this.controller = controller;
         this.painelPai = painelPai;
         this.clienteId = clienteId;
@@ -420,7 +422,7 @@ public class VendaFinalizarDialog extends JDialog {
             }
         });
 
-        painel.add(new JScrollPane(pagamentosTable), BorderLayout.CENTER);
+        painel.add(UiKit.scroll(pagamentosTable), BorderLayout.CENTER);
         return painel;
 
     }
@@ -688,7 +690,7 @@ public class VendaFinalizarDialog extends JDialog {
             ta.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 
             // ⚠️ Adiciona o componente na tela
-            add(new JScrollPane(ta), BorderLayout.CENTER);
+            add(UiKit.scroll(ta), BorderLayout.CENTER);
 
             // Formatação de moeda em Real
             NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));

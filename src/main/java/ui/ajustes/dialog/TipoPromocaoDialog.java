@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import dao.TipoPromocaoDAO;
 import model.TipoPromocaoModel;
 
@@ -20,6 +21,7 @@ public class TipoPromocaoDialog extends JDialog {
 
     public TipoPromocaoDialog(Integer linha, DefaultTableModel modelo) {
         super((Frame) null, "Tipo de Promoção", true);
+        UiKit.applyDialogBase(this);
         this.modelo = modelo;
         this.linhaSelecionada = linha;
 
@@ -44,7 +46,7 @@ public class TipoPromocaoDialog extends JDialog {
         gbc.gridy++;
         taDescricao.setLineWrap(true);
         taDescricao.setWrapStyleWord(true);
-        JScrollPane scroll = new JScrollPane(taDescricao);
+        JScrollPane scroll = UiKit.scroll(taDescricao);
         scroll.setPreferredSize(new Dimension(250, 80));
         form.add(scroll, gbc);
 

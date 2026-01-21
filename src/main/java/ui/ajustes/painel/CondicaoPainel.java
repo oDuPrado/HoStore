@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import ui.ajustes.dialog.CondicaoDialog;
 
 import javax.swing.*;
@@ -18,6 +19,7 @@ public class CondicaoPainel extends JPanel {
     );
 
     public CondicaoPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(8, 8));
 
         modelo = new DefaultTableModel(new String[]{"Nome"}, 0) {
@@ -26,7 +28,7 @@ public class CondicaoPainel extends JPanel {
             }
         };
         tabela = new JTable(modelo);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         JButton btnConfigurar = new JButton("⚙️ Configurar Condições");
         btnConfigurar.addActionListener(e -> {

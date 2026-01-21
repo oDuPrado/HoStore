@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import util.DB;
 
 import javax.swing.*;
@@ -19,6 +20,7 @@ public class IdiomaDialog extends JDialog {
 
     public IdiomaDialog(Frame owner) {
         super(owner, "Configurar Idiomas Disponíveis", true);
+        UiKit.applyDialogBase(this);
         initComponents();
         carregarIdiomasDoBanco();
         setSize(350, 250);

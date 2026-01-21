@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import dao.CadastroGenericoDAO;
 import ui.ajustes.dialog.TipoCartaDialog;
 
@@ -18,13 +19,14 @@ public class TipoCartaPainel extends JPanel {
     );
 
     public TipoCartaPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(8,8));
 
         modelo = new DefaultTableModel(new String[]{"Nome"}, 0) {
             @Override public boolean isCellEditable(int r,int c){return false;}
         };
         tabela = new JTable(modelo);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         JButton btnConfig = new JButton("⚡ Configurar Tipos de Carta");
         btnConfig.addActionListener(e -> {

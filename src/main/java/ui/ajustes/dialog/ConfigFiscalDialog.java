@@ -85,7 +85,7 @@ public class ConfigFiscalDialog extends JDialog {
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
 
-        JScrollPane scroll = new JScrollPane(form);
+        JScrollPane scroll = UiKit.scroll(form);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         card.add(scroll, BorderLayout.CENTER);

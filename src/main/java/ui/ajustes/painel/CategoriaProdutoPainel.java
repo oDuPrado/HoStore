@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import com.formdev.flatlaf.*;
 import javax.swing.*;
 import java.awt.*;
@@ -21,6 +22,7 @@ public class CategoriaProdutoPainel extends JPanel {
     }
 
     public CategoriaProdutoPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(12, 12));
         temaCombo = new JComboBox<>(TEMAS.keySet().toArray(new String[0]));
 

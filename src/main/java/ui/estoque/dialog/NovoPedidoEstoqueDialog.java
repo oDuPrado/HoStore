@@ -1,5 +1,6 @@
 package ui.estoque.dialog;
 
+import util.UiKit;
 import dao.PedidoCompraDAO;
 import dao.PedidoEstoqueProdutoDAO;
 import model.PedidoCompraModel;
@@ -26,6 +27,7 @@ public class NovoPedidoEstoqueDialog extends JDialog {
 
     public NovoPedidoEstoqueDialog(Frame owner) {
         super(owner, "Novo Pedido de Estoque", true);
+        UiKit.applyDialogBase(this);
 
         // 1. Detalhes do pedido
         JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT,8,5));
@@ -46,7 +48,7 @@ public class NovoPedidoEstoqueDialog extends JDialog {
             @Override public boolean isCellEditable(int r,int c){return c==3;}
         };
         tabelaItens = new JTable(modelItens);
-        add(new JScrollPane(tabelaItens), BorderLayout.CENTER);
+        add(UiKit.scroll(tabelaItens), BorderLayout.CENTER);
 
         // 3. Botões Salvar/Cancelar
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT,6,5));

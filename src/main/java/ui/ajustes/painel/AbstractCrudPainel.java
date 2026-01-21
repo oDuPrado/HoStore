@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -9,10 +10,12 @@ public abstract class AbstractCrudPainel extends JPanel {
     protected DefaultTableModel modelo;
 
     public AbstractCrudPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(8, 8));
         modelo = criarModelo();
         tabela = new JTable(modelo);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        UiKit.tableDefaults(tabela);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnAdd = new JButton("Adicionar");
@@ -31,6 +34,7 @@ public abstract class AbstractCrudPainel extends JPanel {
 
     public void abrir() {
         JDialog d = new JDialog((Frame) null, getTitulo(), true);
+        UiKit.applyDialogBase(d);
         d.setContentPane(this);
         d.setSize(700, 400);
         d.setLocationRelativeTo(null);

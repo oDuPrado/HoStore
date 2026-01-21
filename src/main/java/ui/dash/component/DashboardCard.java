@@ -22,6 +22,7 @@ public class DashboardCard extends JPanel {
     private Runnable onInfo;
 
     public DashboardCard(String title) {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(10, 8));
         setOpaque(true);
 

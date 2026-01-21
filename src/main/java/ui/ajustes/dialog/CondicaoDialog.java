@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import util.DB;
 
 import javax.swing.*;
@@ -23,6 +24,7 @@ public class CondicaoDialog extends JDialog {
 
     public CondicaoDialog(Frame owner) {
         super(owner, "Configurar Condições de Produto", true);
+        UiKit.applyDialogBase(this);
         initComponents();
         carregarCondicoesDoBanco();
         setSize(350, 250);

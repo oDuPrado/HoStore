@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import dao.PromocaoProdutoDAO;
 import model.PromocaoProdutoModel;
 import util.DB;
@@ -30,6 +31,7 @@ public class VerProdutosVinculadosDialog extends JDialog {
 
     public VerProdutosVinculadosDialog(String promocaoId) {
         super((Frame) null, "Produtos da Promoção", true);
+        UiKit.applyDialogBase(this);
         this.promocaoId = promocaoId;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -73,7 +75,7 @@ public class VerProdutosVinculadosDialog extends JDialog {
         JPanel p = new JPanel(new BorderLayout(4, 4));
         p.setBorder(BorderFactory.createTitledBorder(title));
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        p.add(new JScrollPane(list), BorderLayout.CENTER);
+        p.add(UiKit.scroll(list), BorderLayout.CENTER);
         JButton btn = new JButton(btnText);
         btn.addActionListener(e -> action.run());
         p.add(btn, BorderLayout.SOUTH);

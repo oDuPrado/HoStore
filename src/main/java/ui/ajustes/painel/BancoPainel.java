@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import model.BancoModel;
 import service.BancoService;
 
@@ -17,8 +18,9 @@ public class BancoPainel extends JPanel {
     private final JTable tabela = new JTable(model);
 
     public BancoPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(10,10));
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnNovo   = new JButton("Novo");

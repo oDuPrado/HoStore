@@ -1,5 +1,6 @@
 package ui.estoque.dialog;
 
+import util.UiKit;
 import controller.ProdutoEstoqueController;
 import model.ProdutoModel;
 import util.FormatterFactory;
@@ -22,6 +23,7 @@ public class ProdutoCadastroDialog extends JDialog {
 
     public ProdutoCadastroDialog(JFrame owner, ProdutoModel produto) {
         super(owner, produto == null ? "Novo Produto" : "Editar Produto", true);
+        UiKit.applyDialogBase(this);
         this.isEdicao     = produto != null;
         this.produtoOrig  = produto;
 

@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import com.toedter.calendar.JDateChooser;
 import dao.PromocaoDAO;
 import dao.TipoPromocaoDAO;
@@ -38,6 +39,7 @@ public class PromocaoDialog extends JDialog {
 
     public PromocaoDialog(JFrame owner, String promocaoId) throws Exception {
         super(owner, true);
+        UiKit.applyDialogBase(this);
         this.isEdicao = promocaoId != null;
         this.idOriginal = isEdicao ? promocaoId : UUID.randomUUID().toString();
 
@@ -137,7 +139,7 @@ public class PromocaoDialog extends JDialog {
         gbcc.gridx = 0;
         form.add(new JLabel("Observações:"), gbcc);
         gbcc.gridx = 1;
-        form.add(new JScrollPane(taObs), gbcc);
+        form.add(UiKit.scroll(taObs), gbcc);
 
         // se for edição, carrega campos do modelo
         if (isEdicao) {

@@ -1,6 +1,7 @@
 // ui/ajustes/dialog/UsuarioDialog.java
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import dao.UsuarioDAO;
 import model.UsuarioModel;
 import util.SenhaUtils; // ⚠️ IMPORTANTE: adicionar isso
@@ -23,6 +24,7 @@ public class UsuarioDialog extends JDialog {
 
     public UsuarioDialog(Frame owner, UsuarioModel u) {
         super(owner, u==null?"Novo Usuário":"Editar Usuário", true);
+        UiKit.applyDialogBase(this);
         isEdit = u != null;
         id     = isEdit ? u.getId() : UUID.randomUUID().toString();
 

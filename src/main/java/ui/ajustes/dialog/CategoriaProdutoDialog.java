@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import util.DB;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ public class CategoriaProdutoDialog extends JDialog {
 
     public CategoriaProdutoDialog(Frame owner) {
         super(owner, "Configurar Categorias de Produtos", true);
+        UiKit.applyDialogBase(this);
         initComponents();
         carregarCategoriasDoBanco();
         setSize(400, 300);

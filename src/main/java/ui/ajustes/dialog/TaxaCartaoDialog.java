@@ -176,7 +176,7 @@ public class TaxaCartaoDialog extends JDialog {
 
         gc.gridx = 1;
         gc.weightx = 1;
-        JScrollPane spObs = new JScrollPane(taObservacoes);
+        JScrollPane spObs = UiKit.scroll(taObservacoes);
         spObs.setPreferredSize(new Dimension(260, 120));
         spObs.getVerticalScrollBar().setUnitIncrement(16);
         form.add(spObs, gc);

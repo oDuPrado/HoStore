@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import model.BancoModel;
 import service.BancoService;
 
@@ -19,13 +20,14 @@ public class BancoDialog extends JDialog {
 
     public BancoDialog(Window owner, BancoModel banco) {
         super(owner, banco==null?"Nova Conta Bancária":"Editar Conta Bancária", ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
         this.banco = banco;
 
         JPanel form = new JPanel(new GridLayout(0,2,6,6));
         form.add(new JLabel("Banco:"));       form.add(tfNome);
         form.add(new JLabel("Agência:"));     form.add(tfAgencia);
         form.add(new JLabel("Conta:"));       form.add(tfConta);
-        form.add(new JLabel("Observações:")); form.add(new JScrollPane(taObservacoes));
+        form.add(new JLabel("Observações:")); form.add(UiKit.scroll(taObservacoes));
 
         JButton btnSalvar  = new JButton(banco==null?"Salvar":"Atualizar");
         JButton btnCancel  = new JButton("Cancelar");

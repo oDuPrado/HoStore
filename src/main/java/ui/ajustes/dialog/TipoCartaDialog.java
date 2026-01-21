@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import util.DB;
 
 import javax.swing.*;
@@ -24,6 +25,7 @@ public class TipoCartaDialog extends JDialog {
 
     public TipoCartaDialog(Frame owner) {
         super(owner, "Configurar Tipos de Carta", true);
+        UiKit.applyDialogBase(this);
         initComponents();
         carregarDoBanco();
         setSize(350, 300);

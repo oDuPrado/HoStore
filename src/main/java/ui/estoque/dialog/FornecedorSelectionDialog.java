@@ -1,5 +1,6 @@
 package ui.estoque.dialog;
 
+import util.UiKit;
 import dao.FornecedorDAO;
 import model.FornecedorModel;
 
@@ -21,6 +22,7 @@ public class FornecedorSelectionDialog extends JDialog {
 
     public FornecedorSelectionDialog(Frame owner) {
         super(owner, "Selecionar Fornecedor", true);
+        UiKit.applyDialogBase(this);
         setLayout(new BorderLayout(8,8));
         setSize(600, 400);
         setLocationRelativeTo(owner);
@@ -40,7 +42,7 @@ public class FornecedorSelectionDialog extends JDialog {
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         rowSorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(rowSorter);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        add(UiKit.scroll(table), BorderLayout.CENTER);
 
         // ——— Rodapé: botões ———
         JButton btnOk     = new JButton("OK");

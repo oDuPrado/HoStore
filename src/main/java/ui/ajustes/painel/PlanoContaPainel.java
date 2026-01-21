@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import model.PlanoContaModel;
 import service.PlanoContaService;
 
@@ -18,8 +19,9 @@ public class PlanoContaPainel extends JPanel {
     private final JTable tabela = new JTable(model);
 
     public PlanoContaPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(10,10));
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         // remove coluna de objeto da visão
         tabela.removeColumn(tabela.getColumnModel().getColumn(3));

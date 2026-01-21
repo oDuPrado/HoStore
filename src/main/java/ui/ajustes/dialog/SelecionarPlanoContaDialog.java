@@ -2,6 +2,7 @@
 // Procure com Ctrl+F por "// Plano de Contas com Selector Pai"
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import model.PlanoContaModel;
 import service.PlanoContaService;
 
@@ -21,6 +22,7 @@ public class SelecionarPlanoContaDialog extends JDialog {
 
     public SelecionarPlanoContaDialog(Window owner) {
         super(owner, "Selecionar Conta Pai", ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
         
         // modelo da tabela
         String[] colunas = {"Descrição", "Tipo", "Observações"};
@@ -44,7 +46,7 @@ public class SelecionarPlanoContaDialog extends JDialog {
         sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane sp = new JScrollPane(table);
+        JScrollPane sp = UiKit.scroll(table);
 
         // filtro de busca
         JTextField tfFiltro = new JTextField(20);

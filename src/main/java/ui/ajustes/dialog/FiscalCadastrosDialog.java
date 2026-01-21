@@ -23,6 +23,7 @@ public class FiscalCadastrosDialog extends JDialog {
     private final FiscalCatalogService service = FiscalCatalogService.getInstance();
 
     public FiscalCadastrosDialog(Window owner) {
+        UiKit.applyPanelBase(this);
         super(owner, "Configuração - Cadastros Fiscais", ModalityType.APPLICATION_MODAL);
 
         UiKit.applyDialogBase(this);
@@ -288,7 +289,7 @@ public class FiscalCadastrosDialog extends JDialog {
             // (CENTER já é scroll)
             // Mas aqui o retorno precisa ser um JScrollPane. Então envolvo o card num
             // scroll “neutro”.
-            JScrollPane outer = new JScrollPane(card);
+            JScrollPane outer = UiKit.scroll(card);
             outer.setBorder(null);
             outer.getViewport().setOpaque(false);
             outer.setOpaque(false);

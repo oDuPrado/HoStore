@@ -82,7 +82,7 @@ public class EntradaPedidoDialog extends JDialog {
         JPanel tableCard = UiKit.card();
         tableCard.setLayout(new BorderLayout(8, 8));
 
-        JScrollPane scroll = new JScrollPane(table);
+        JScrollPane scroll = UiKit.scroll(table);
         scroll.setBorder(new LineBorder(new Color(0xEEF0F3), 1, true));
         tableCard.add(scroll, BorderLayout.CENTER);
         add(tableCard, BorderLayout.CENTER);

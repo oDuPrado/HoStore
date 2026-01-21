@@ -1,4 +1,5 @@
 package ui.ajustes.dialog;
+import util.UiKit;
 import javax.swing.*;
 import java.awt.*;
 
@@ -7,8 +8,10 @@ public abstract class AbstractCrudPainel extends JPanel {
     protected JTable tabela = new JTable();
 
     public AbstractCrudPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(8,8));
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        UiKit.tableDefaults(tabela);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton add   = new JButton("Adicionar");
@@ -29,6 +32,7 @@ public abstract class AbstractCrudPainel extends JPanel {
     /** Abre em diálogo próprio */
     public void abrir() {
         JDialog d = new JDialog((Frame) null, getTitulo(), true);
+        UiKit.applyDialogBase(d);
         d.setContentPane(this);
         d.setSize(600,400);
         d.setLocationRelativeTo(null);

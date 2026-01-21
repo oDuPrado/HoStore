@@ -1,5 +1,6 @@
 package ui.dash.painel;
 
+import util.UiKit;
 import model.*;
 import service.RelatoriosService;
 import ui.dash.DashboardNavigator;
@@ -91,6 +92,7 @@ public class DashboardPanel extends JPanel {
     private final JTable tbMix = new JTable(tmMix);
 
     public DashboardPanel(Window owner, DashboardNavigator navigator) {
+        UiKit.applyPanelBase(this);
         this.owner = owner;
         this.navigator = navigator;
         setLayout(new BorderLayout(10,10));
@@ -204,7 +206,7 @@ public class DashboardPanel extends JPanel {
 
     private JScrollPane wrapTable(JTable t) {
         t.setRowHeight(22);
-        return new JScrollPane(t);
+        return UiKit.scroll(t);
     }
 
     private void wire() {

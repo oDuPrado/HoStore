@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import dao.PrinterConfigDAO;
 import model.PrinterConfigModel;
 
@@ -31,6 +32,7 @@ public class ConfigImpressaoDialog extends JDialog {
 
     public ConfigImpressaoDialog(JFrame owner) {
         super(owner, "Configurações de Impressão", true);
+        UiKit.applyDialogBase(this);
         setLayout(new BorderLayout(8, 8));
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(12, 12, 12, 12));
 

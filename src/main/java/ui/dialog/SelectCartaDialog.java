@@ -1,5 +1,6 @@
 package ui.dialog;
 
+import util.UiKit;
 import dao.CartaDAO;
 import model.Carta;
 
@@ -24,6 +25,7 @@ public class SelectCartaDialog extends JDialog {
 
     public SelectCartaDialog(JFrame owner) {
         super(owner, "Selecionar cartas", true);
+        UiKit.applyDialogBase(this);
         setSize(800, 500);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(8, 8));
@@ -51,7 +53,7 @@ public class SelectCartaDialog extends JDialog {
         };
         tabela = new JTable(modelo);
         tabela.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
 
         // Botões
         JButton ok = new JButton("Adicionar selecionadas");

@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import dao.FornecedorDAO;
 import model.FornecedorModel;
 import ui.ajustes.dialog.FornecedorDialog;
@@ -27,6 +28,7 @@ public class FornecedorPainel extends JPanel {
     private final FornecedorDAO dao = new FornecedorDAO();
 
     public FornecedorPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(8,8));
 
         // cria máscara de CNPJ sem propagar exceção
@@ -66,7 +68,7 @@ public class FornecedorPainel extends JPanel {
         btnDel .addActionListener(e -> onRemover());
 
         add(filtro, BorderLayout.NORTH);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(UiKit.scroll(tabela), BorderLayout.CENTER);
         add(botoes, BorderLayout.SOUTH);
 
         carregarTabela();

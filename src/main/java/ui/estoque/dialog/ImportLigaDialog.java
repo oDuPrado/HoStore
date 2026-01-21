@@ -1,5 +1,6 @@
 package ui.estoque.dialog;
 
+import util.UiKit;
 import util.AlertUtils;
 import util.DB;
 import org.apache.poi.ss.usermodel.*;
@@ -58,6 +59,7 @@ public class ImportLigaDialog extends JDialog {
 
     public ImportLigaDialog(Window parent) {
         super(parent, "Importar planilha da Liga", ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
         setLayout(new BorderLayout(10, 10));
         ((JComponent) getContentPane()).setBorder(new EmptyBorder(10, 10, 10, 10));
         initUI();
@@ -79,7 +81,7 @@ public class ImportLigaDialog extends JDialog {
 
         // Área de preview
         previewArea.setEditable(false);
-        JScrollPane scroll = new JScrollPane(previewArea);
+        JScrollPane scroll = UiKit.scroll(previewArea);
 
         // Botões inferiores
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));

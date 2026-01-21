@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import dao.PromocaoProdutoDAO;
 import model.PromocaoProdutoModel;
 import util.DB;
@@ -25,6 +26,7 @@ public class VincularProdutosDialog extends JDialog {
 
     public VincularProdutosDialog(String promocaoId) {
         super((Frame) null, "Vincular Produtos à Promoção", true);
+        UiKit.applyDialogBase(this);
         this.promocaoId = promocaoId;
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -43,7 +45,7 @@ public class VincularProdutosDialog extends JDialog {
         JPanel painelLista = new JPanel(new BorderLayout(5, 5));
         painelLista.setBorder(BorderFactory.createTitledBorder("Produtos Disponíveis"));
         listProdutos.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        painelLista.add(new JScrollPane(listProdutos), BorderLayout.CENTER);
+        painelLista.add(UiKit.scroll(listProdutos), BorderLayout.CENTER);
         add(painelLista, BorderLayout.CENTER);
 
         // botão vincular

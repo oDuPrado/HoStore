@@ -1,5 +1,6 @@
 package ui.dialog;
 
+import util.UiKit;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,6 +12,7 @@ public class SelecionarCategoriaDialog extends JDialog {
 
     public SelecionarCategoriaDialog(Frame owner) {
         super(owner, "Selecionar categoria", true);
+        UiKit.applyDialogBase(this);
 
         String[] categorias = {
             "Carta", "Booster", "Deck", "Acessório", "ETB",

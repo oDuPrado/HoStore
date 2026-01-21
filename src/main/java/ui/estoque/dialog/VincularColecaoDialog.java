@@ -1,5 +1,6 @@
 package ui.estoque.dialog;
 
+import util.UiKit;
 import dao.ColecaoDAO;
 import dao.SetDAO;
 import model.ColecaoModel;
@@ -48,6 +49,7 @@ public class VincularColecaoDialog extends JDialog {
      */
     public VincularColecaoDialog(Window parent, Set<String> nomesNaoMapeados) {
     super(parent, "Vincular Coleções e Sets", ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
 
     this.nomesPt = new ArrayList<>(nomesNaoMapeados);
 
@@ -83,7 +85,7 @@ public class VincularColecaoDialog extends JDialog {
         tabela.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(new JComboBox<>(listaColecoes.toArray(new ColecaoModel[0]))));
         tabela.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(new JComboBox<>(listaSets.toArray(new SetModel[0]))));
 
-        JScrollPane scroll = new JScrollPane(tabela);
+        JScrollPane scroll = UiKit.scroll(tabela);
         add(scroll, BorderLayout.CENTER);
 
         // --- 2) Painel de botões ---

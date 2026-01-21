@@ -2,6 +2,7 @@
 // src/ui/venda/dialog/VendaEstornoDialog.java
 package ui.venda.dialog;
 
+import util.UiKit;
 import dao.ProdutoDAO;
 import dao.VendaDevolucaoDAO;
 import dao.VendaEstornoFinanceiroDAO;
@@ -53,6 +54,7 @@ public class VendaEstornoDialog extends JDialog {
      * ------------------------------------------------------------------ */
     public VendaEstornoDialog(Window owner, int vendaId, List<VendaItemModel> itensOriginais) {
         super(owner, "Estornar Venda #" + vendaId, ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
         this.vendaId     = vendaId;
         this.itensDaVenda = itensOriginais;   // recebidos do VendaDetalhesDialog
 
@@ -94,7 +96,7 @@ public class VendaEstornoDialog extends JDialog {
                   .setCellEditor(new SpinnerIntegerEditor());
 
         preencheLinhasItens();
-        return new JScrollPane(itensTable);
+        return UiKit.scroll(itensTable);
     }
 
     private void preencheLinhasItens() {
@@ -142,7 +144,7 @@ public class VendaEstornoDialog extends JDialog {
         pagamentosTable.getColumnModel().getColumn(3)
                        .setCellEditor(new SpinnerDoubleEditor());
 
-        return new JScrollPane(pagamentosTable);
+        return UiKit.scroll(pagamentosTable);
     }
 
     private void carregarPagamentos() {

@@ -1,5 +1,6 @@
 package ui.ajustes.painel;
 
+import util.UiKit;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import java.awt.BorderLayout;
@@ -12,6 +13,7 @@ public class CartaAtributosPanel extends JPanel {
     private JTabbedPane abas;
 
     public CartaAtributosPanel() {
+        UiKit.applyPanelBase(this);
         super(new BorderLayout());
         initComponents();
     }

@@ -138,7 +138,7 @@ public class FornecedorDialog extends JDialog {
         gbc.weighty = 1;
         gbc.gridwidth = 3; // pega o resto das colunas
         gbc.fill = GridBagConstraints.BOTH;
-        JScrollPane obsScroll = new JScrollPane(taObs);
+        JScrollPane obsScroll = UiKit.scroll(taObs);
         form.add(obsScroll, gbc);
 
         centerCard.add(form, BorderLayout.CENTER);

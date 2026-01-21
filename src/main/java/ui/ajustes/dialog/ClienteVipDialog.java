@@ -1,5 +1,6 @@
 package ui.ajustes.dialog;
 
+import util.UiKit;
 import util.DB;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ public class ClienteVipDialog extends JDialog {
 
     public ClienteVipDialog(Frame owner) {
         super(owner, "Gerenciar Clientes VIP", true);
+        UiKit.applyDialogBase(this);
 
         setLayout(new BorderLayout(10,10));
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -35,7 +37,7 @@ public class ClienteVipDialog extends JDialog {
 
         // 2) Center: scroll de checkboxes
         panelChecks.setLayout(new BoxLayout(panelChecks, BoxLayout.Y_AXIS));
-        JScrollPane sp = new JScrollPane(panelChecks);
+        JScrollPane sp = UiKit.scroll(panelChecks);
         sp.setBorder(BorderFactory.createTitledBorder("Marque para VIP"));
         add(sp, BorderLayout.CENTER);
 

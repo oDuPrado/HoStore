@@ -1,5 +1,6 @@
 package ui.comandas.dialog;
 
+import util.UiKit;
 import service.ComandaService;
 import service.SessaoService;
 
@@ -15,6 +16,7 @@ public class ComandaPagamentoDialog extends JDialog {
 
     public ComandaPagamentoDialog(Window owner, int comandaId, double sugestao) {
         super(owner, "Registrar Pagamento - Comanda #" + comandaId, ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
         this.comandaId = comandaId;
 
         setSize(420, 220);

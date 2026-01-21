@@ -1,6 +1,7 @@
 // ui/ajustes/panel/UsuariosPanel.java
 package ui.ajustes.painel;
 
+import util.UiKit;
 import dao.UsuarioDAO;
 import model.UsuarioModel;
 import ui.ajustes.dialog.UsuarioDialog;
@@ -16,6 +17,7 @@ public class UsuarioPainel extends JPanel {
     private final JTable table = new JTable(tableModel);
 
     public UsuarioPainel() {
+        UiKit.applyPanelBase(this);
         setLayout(new BorderLayout(5,5));
 
         // toolbar
@@ -30,7 +32,7 @@ public class UsuarioPainel extends JPanel {
 
         // tabela
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        add(UiKit.scroll(table), BorderLayout.CENTER);
 
         // ações
         btnNovo.addActionListener(e -> openDialog(null));

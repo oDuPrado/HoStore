@@ -1,5 +1,6 @@
 package ui.venda.dialog;
 
+import util.UiKit;
 import model.VendaItemModel;
 import model.VendaModel;
 import util.CupomFiscalFormatter;
@@ -22,6 +23,7 @@ public class ComprovanteFiscalDialog extends JDialog {
             TableModel pagamentos,
             CupomFiscalFormatter.ParcelamentoInfo parcelamento) {
         super(owner, "Comprovante Fiscal - Venda #" + vendaId, ModalityType.APPLICATION_MODAL);
+        UiKit.applyDialogBase(this);
 
         setSize(520, 700);
         setLocationRelativeTo(owner);
@@ -43,7 +45,7 @@ public class ComprovanteFiscalDialog extends JDialog {
         ta.setText(texto);
         ta.setCaretPosition(0);
 
-        add(new JScrollPane(ta), BorderLayout.CENTER);
+        add(UiKit.scroll(ta), BorderLayout.CENTER);
 
         JPanel bts = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
 
