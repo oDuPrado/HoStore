@@ -29,7 +29,7 @@ public class CreditoLojaDialog extends JDialog {
         UiKit.applyDialogBase(this);
 
         setSize(760, 420);
-        setResizable(false);
+        setResizable(true);
         setLayout(new BorderLayout(10, 10));
 
         add(buildHeader(), BorderLayout.NORTH);

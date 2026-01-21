@@ -40,7 +40,7 @@ public class ClienteCadastroDialog extends JDialog {
         setSize(760, 560);
         setLocationRelativeTo(parent);
         setLayout(new BorderLayout(10, 10));
-        setResizable(false);
+        setResizable(true);
 
         clienteModel = (existente == null) ? novoModelo() : existente;
 

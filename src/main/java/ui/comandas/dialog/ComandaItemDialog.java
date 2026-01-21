@@ -32,7 +32,7 @@ public class ComandaItemDialog extends JDialog {
         setLocationRelativeTo(owner);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
-        setResizable(false);
+        setResizable(true);
 
         taObs.setLineWrap(true);
         taObs.setWrapStyleWord(true);

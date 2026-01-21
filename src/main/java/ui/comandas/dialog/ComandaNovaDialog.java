@@ -36,7 +36,7 @@ public class ComandaNovaDialog extends JDialog {
         setSize(740, 500);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout(10, 10));
-        setResizable(false);
+        setResizable(true);
 
         add(buildHeaderCard(), BorderLayout.NORTH);
         add(buildFormCard(), BorderLayout.CENTER);

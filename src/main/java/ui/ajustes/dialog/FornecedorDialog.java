@@ -170,7 +170,7 @@ public class FornecedorDialog extends JDialog {
         // Atalhos (ENTER salva / ESC fecha)
         bindKeys(btnSalvar, btnCancelar);
 
-        setResizable(false);
+        setResizable(true);
     }
 
     private void bindKeys(JButton btnSalvar, JButton btnCancelar) {

@@ -118,7 +118,7 @@ public class LoginDialog extends JDialog {
         });
 
         pack();
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(owner);
     }
 

@@ -64,7 +64,7 @@ public class UsuarioDialog extends JDialog {
         add(form,   BorderLayout.CENTER);
         add(rodape, BorderLayout.SOUTH);
         pack();
-        setResizable(false);
+        setResizable(true);
         setLocationRelativeTo(owner);
     }
 

@@ -42,7 +42,7 @@ public class ProdutoCadastroDialog extends JDialog {
 
     private void initUI() {
         setLayout(new GridLayout(0, 2, 8, 8));
-        setResizable(false);
+        setResizable(true);
 
         // Nome
         add(new JLabel("Nome:"));

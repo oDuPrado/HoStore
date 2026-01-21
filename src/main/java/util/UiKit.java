@@ -8,6 +8,8 @@ import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class UiKit {
 
@@ -62,6 +64,16 @@ public class UiKit {
             // ✅ remove borderWidth (não existe na sua versão e gera UnknownStyleException)
             d.getRootPane().putClientProperty(FlatClientProperties.STYLE,
                     "arc: 14; focusWidth: 0;");
+        }
+        d.setResizable(true);
+        if (d.getRootPane() != null && d.getRootPane().getClientProperty("uikit.responsive") == null) {
+            d.getRootPane().putClientProperty("uikit.responsive", Boolean.TRUE);
+            d.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    fitToScreen(d);
+                }
+            });
         }
     }
 
@@ -253,5 +265,25 @@ public class UiKit {
         sp.setBorder(new LineBorder(border, 1, true));
         sp.getViewport().setBackground(uiColor("Table.background", uiColor("Panel.background", Color.WHITE)));
         return sp;
+    }
+
+    private static void fitToScreen(Window w) {
+        if (w == null) {
+            return;
+        }
+        Rectangle bounds = w.getGraphicsConfiguration() != null
+                ? w.getGraphicsConfiguration().getBounds()
+                : new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+
+        int maxW = (int) Math.floor(bounds.width * 0.92);
+        int maxH = (int) Math.floor(bounds.height * 0.92);
+
+        Dimension size = w.getSize();
+        int newW = Math.min(size.width, maxW);
+        int newH = Math.min(size.height, maxH);
+
+        if (newW != size.width || newH != size.height) {
+            w.setSize(new Dimension(newW, newH));
+        }
     }
 }
