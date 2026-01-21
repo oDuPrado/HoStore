@@ -13,8 +13,8 @@ public class CartaAtributosPanel extends JPanel {
     private JTabbedPane abas;
 
     public CartaAtributosPanel() {
-        UiKit.applyPanelBase(this);
         super(new BorderLayout());
+        UiKit.applyPanelBase(this);
         initComponents();
     }
 

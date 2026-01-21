@@ -23,7 +23,6 @@ public class FiscalCadastrosDialog extends JDialog {
     private final FiscalCatalogService service = FiscalCatalogService.getInstance();
 
     public FiscalCadastrosDialog(Window owner) {
-        UiKit.applyPanelBase(this);
         super(owner, "Configuração - Cadastros Fiscais", ModalityType.APPLICATION_MODAL);
 
         UiKit.applyDialogBase(this);
