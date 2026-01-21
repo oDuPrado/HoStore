@@ -2,6 +2,7 @@ package ui.venda.dialog;
 
 import dao.ProdutoDAO;
 import model.ProdutoModel;
+import service.ProdutoEstoqueService;
 import util.AlertUtils;
 import util.LogService;
 import util.ScannerUtils;
@@ -280,9 +281,9 @@ public class SelectProdutoDialog extends JDialog {
             case 5 -> lista.sort(Comparator.comparing(ProdutoModel::getQuantidade));
         }
 
-        // popula linhas (estoque > 0)
+        // popula linhas (estoque > 0 ou item não-estoque/serviço)
         for (ProdutoModel p : lista) {
-            if (p != null && p.getQuantidade() > 0) {
+            if (p != null && (p.getQuantidade() > 0 || ProdutoEstoqueService.isNaoEstoque(p))) {
                 model.addRow(new Object[] {
                         false,
                         p.getId(),

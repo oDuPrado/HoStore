@@ -12,6 +12,7 @@ public class MovimentacaoEstoqueModel {
     private String motivo;       // ex: "Venda #1234", "Ajuste manual", etc.
     private LocalDateTime data;  // timestamp da movimentação
     private String usuario;      // login ou nome do usuário
+    private String eventoId;     // vínculo opcional com evento/torneio
 
     // Construtor para inserção
     public MovimentacaoEstoqueModel(String produtoId, String tipoMov, int quantidade,
@@ -84,4 +85,7 @@ public class MovimentacaoEstoqueModel {
 
     public String getUsuario() { return usuario; }
     public void setUsuario(String usuario) { this.usuario = usuario; }
+
+    public String getEventoId() { return eventoId; }
+    public void setEventoId(String eventoId) { this.eventoId = eventoId; }
 }

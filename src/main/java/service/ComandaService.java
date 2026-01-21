@@ -3,6 +3,7 @@ package service;
 import dao.ComandaDAO;
 import dao.ComandaItemDAO;
 import dao.ComandaPagamentoDAO;
+import dao.EventoParticipanteDAO;
 import model.ComandaItemModel;
 import model.ComandaModel;
 import model.ComandaPagamentoModel;
@@ -66,6 +67,11 @@ public class ComandaService {
 
     public void adicionarItem(int comandaId, String produtoId, int qtd, double preco, double desconto, double acrescimo,
             String obs, String usuario) throws Exception {
+        adicionarItemRetornandoId(comandaId, produtoId, qtd, preco, desconto, acrescimo, obs, usuario);
+    }
+
+    public int adicionarItemRetornandoId(int comandaId, String produtoId, int qtd, double preco, double desconto,
+            double acrescimo, String obs, String usuario) throws Exception {
 
         if (qtd <= 0)
             throw new Exception("Quantidade inválida.");
@@ -101,7 +107,7 @@ public class ComandaService {
             it.setCriadoPor(usuario);
             it.recalcularTotal();
 
-            itemDAO.inserir(it, conn);
+            int itemId = itemDAO.inserir(it, conn);
 
             // ✅ Opção A: Comanda NÃO mexe em estoque
             // Estoque será baixado SOMENTE ao virar venda (VendaService.finalizarVenda)
@@ -109,6 +115,7 @@ public class ComandaService {
             recomputarTotaisEAtualizar(comandaId, conn);
 
             conn.commit();
+            return itemId;
         }
     }
 
@@ -277,6 +284,9 @@ public class ComandaService {
                 ps.setInt(4, comandaId);
                 ps.executeUpdate();
             }
+
+            // Vincula participantes de eventos que pagaram via comanda
+            new EventoParticipanteDAO().vincularVendaPorComanda(comandaId, vendaId, conn);
 
             conn.commit();
         }

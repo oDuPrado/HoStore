@@ -39,3 +39,71 @@
 2026-01-21T12:37:22.963Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=PEDIDO_ITEM_ATUALIZADO entity=pedido_item id=675be5fd-a524-4638-9813-dcc15987bfed msg=pedido=96e51163-003f-401b-adcd-2ce1aa11e1b2 recebida=15 status=completo
 2026-01-21T12:37:22.963Z | INFO | PedidoItem atualizado: item=675be5fd-a524-4638-9813-dcc15987bfed pedido=96e51163-003f-401b-adcd-2ce1aa11e1b2 recebida=15 status=completo
 2026-01-21T12:37:22.980Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=PEDIDO_STATUS_ATUALIZADO entity=pedido id=96e51163-003f-401b-adcd-2ce1aa11e1b2 msg=status recalculado
+2026-01-21T13:59:29.884Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T13:59:33.818Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T13:59:33.825Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T13:59:33.841Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T13:59:33.914Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T14:25:20.124Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T14:25:25.105Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T14:25:25.111Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T14:25:25.129Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T14:25:25.189Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T14:54:03.865Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T14:54:07.893Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T14:54:07.899Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T14:54:07.916Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T14:54:08.032Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T14:54:17.321Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=PRODUTO_REMOVER entity=produto id=85c01e43-bdbf-4fe5-bfa0-0a8b442172ad msg=removido
+2026-01-21T14:54:20.774Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=PRODUTO_REMOVER entity=produto id=4e3bd396-28a9-46c6-9cfe-e3c3147a17e2 msg=removido
+2026-01-21T14:54:25.139Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=PRODUTO_REMOVER entity=produto id=0f53634b-d742-4253-8465-4d4817701a6e msg=removido
+2026-01-21T14:54:30.231Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=PRODUTO_REMOVER entity=produto id=EVT-c8f80986 msg=removido
+2026-01-21T14:55:52.628Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-21T14:55:52.628Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-21T14:55:52.631Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=80.0 parcelas=0 venc=2026-01-21 intervaloDias=0
+2026-01-21T14:55:52.632Z | SEVERE | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_ERRO entity=venda id=- msg=falha ao finalizar
+2026-01-21T14:56:04.417Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T14:56:08.511Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T14:56:08.520Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T14:56:08.539Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T14:56:08.587Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T14:56:32.650Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-21T14:56:32.650Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-21T14:56:32.653Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=80.0 parcelas=0 venc=2026-01-21 intervaloDias=0
+2026-01-21T14:56:32.668Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOTE_SAIDA entity=lote id=7 msg=produto=f7b713af-0a71-495b-b7fd-37a79a9c6000 qtd=4 motivo=Venda #4
+2026-01-21T14:56:32.680Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_OK entity=venda id=4 msg=finalizada
+2026-01-21T15:18:38.374Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T15:18:42.072Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T15:18:42.079Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T15:18:42.095Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T15:18:42.168Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T15:19:37.447Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=BARCODE_SCAN entity=produto id=- msg=codigo=123456789 encontrados=2
+2026-01-21T15:19:40.254Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=BARCODE_SELECT entity=produto id=9001b51a-97df-43ff-8755-1704f6ebd802 msg=codigo=123456789 nome=Teste_2
+2026-01-21T15:19:52.137Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-21T15:19:52.138Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-21T15:19:52.141Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=400.0 parcelas=0 venc=2026-01-21 intervaloDias=0
+2026-01-21T15:19:52.141Z | SEVERE | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_ERRO entity=venda id=- msg=falha ao finalizar
+2026-01-21T15:19:55.088Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-21T15:19:55.088Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-21T15:19:55.088Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=400.0 parcelas=0 venc=2026-01-21 intervaloDias=0
+2026-01-21T15:19:55.088Z | SEVERE | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_ERRO entity=venda id=- msg=falha ao finalizar
+2026-01-21T15:21:53.951Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-21T15:21:53.952Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-21T15:21:53.952Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=50.0 parcelas=0 venc=2026-01-21 intervaloDias=0
+2026-01-21T15:21:53.953Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_OK entity=venda id=5 msg=finalizada
+2026-01-21T15:22:31.911Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-21T15:22:31.911Z | INFO | FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+2026-01-21T15:22:31.911Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=50.0 parcelas=0 venc=2026-01-21 intervaloDias=0
+2026-01-21T15:22:31.911Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=VENDA_OK entity=venda id=6 msg=finalizada
+2026-01-21T15:22:31.913Z | INFO | Contas a receber não gerado: formaPagamento='MULTI' (norm='MULTI') e dados de parcelamento incompletos.
+2026-01-21T18:44:33.874Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T18:44:37.639Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T18:44:37.646Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T18:44:37.662Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T18:44:37.764Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T18:48:55.638Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T18:48:56.263Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=-
+2026-01-21T18:49:00.353Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T18:49:00.380Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T18:49:00.396Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T18:49:00.491Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado

@@ -14,6 +14,7 @@ public class CreditoLojaMovimentacaoModel {
     private String tipo;         // "entrada" ou "uso"
     private String referencia;   // ex: ID da venda, devolução, motivo
     private String data;         // timestamp ISO
+    private String eventoId;     // vínculo opcional com evento/torneio
 
     public CreditoLojaMovimentacaoModel() {
         this.id = UUID.randomUUID().toString();
@@ -47,4 +48,7 @@ public class CreditoLojaMovimentacaoModel {
 
     public String getData() { return data; }
     public void setData(String data) { this.data = data; }
+
+    public String getEventoId() { return eventoId; }
+    public void setEventoId(String eventoId) { this.eventoId = eventoId; }
 }

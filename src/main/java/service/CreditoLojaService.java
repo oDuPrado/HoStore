@@ -35,6 +35,20 @@ public class CreditoLojaService {
      * Adiciona crédito ao cliente e registra no histórico.
      */
     public void adicionarCredito(String clienteId, double valor, String referencia) {
+        adicionarCredito(clienteId, valor, referencia, null);
+    }
+
+    /**
+     * Adiciona crédito ao cliente e registra no histórico com vínculo opcional de evento.
+     */
+    public void adicionarCredito(String clienteId, double valor, String referencia, String eventoId) {
+        adicionarCreditoComRetorno(clienteId, valor, referencia, eventoId);
+    }
+
+    /**
+     * Adiciona crédito ao cliente e retorna o ID da movimentação criada.
+     */
+    public String adicionarCreditoComRetorno(String clienteId, double valor, String referencia, String eventoId) {
         try (Connection conn = DB.get()) {
             conn.setAutoCommit(false);  // início da transação
 
@@ -51,9 +65,11 @@ public class CreditoLojaService {
             // 2) registra movimentação
             CreditoLojaMovimentacaoModel mov = new CreditoLojaMovimentacaoModel(
                     clienteId, valor, "entrada", referencia);
+            mov.setEventoId(eventoId);
             dao.insertMovimentacao(mov);
 
             conn.commit();  // confirma tudo
+            return mov.getId();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao adicionar crédito", e);
         }

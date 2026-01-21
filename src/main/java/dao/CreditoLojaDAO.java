@@ -65,8 +65,8 @@ public class CreditoLojaDAO {
      * Insere uma movimentação no histórico.
      */
     public void insertMovimentacao(CreditoLojaMovimentacaoModel mov) throws SQLException {
-        String sql = "INSERT INTO credito_loja_movimentacoes (id, cliente_id, valor, tipo, referencia, data) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO credito_loja_movimentacoes (id, cliente_id, valor, tipo, referencia, data, evento_id) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DB.get();
              PreparedStatement p = conn.prepareStatement(sql)) {
             p.setString(1, mov.getId());
@@ -75,6 +75,7 @@ public class CreditoLojaDAO {
             p.setString(4, mov.getTipo());
             p.setString(5, mov.getReferencia());
             p.setString(6, mov.getData());
+            p.setString(7, mov.getEventoId());
             p.executeUpdate();
         }
     }
@@ -83,7 +84,7 @@ public class CreditoLojaDAO {
      * Retorna todas as movimentações de um cliente, ordenadas da mais recente para a mais antiga.
      */
     public List<CreditoLojaMovimentacaoModel> getMovimentacoes(String clienteId) throws SQLException {
-        String sql = "SELECT id, cliente_id, valor, tipo, referencia, data "
+        String sql = "SELECT id, cliente_id, valor, tipo, referencia, data, evento_id "
                    + "FROM credito_loja_movimentacoes WHERE cliente_id = ? ORDER BY data DESC";
         List<CreditoLojaMovimentacaoModel> lista = new ArrayList<>();
         try (Connection conn = DB.get();
@@ -98,6 +99,7 @@ public class CreditoLojaDAO {
                     m.setTipo(rs.getString("tipo"));
                     m.setReferencia(rs.getString("referencia"));
                     m.setData(rs.getString("data"));
+                    m.setEventoId(rs.getString("evento_id"));
                     lista.add(m);
                 }
             }

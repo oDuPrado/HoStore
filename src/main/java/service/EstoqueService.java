@@ -1,8 +1,10 @@
 package service;
 
 import dao.CartaDAO;
+import dao.ProdutoDAO;
 import model.Carta;
 import model.ProdutoEstoqueDTO;
+import model.ProdutoModel;
 import model.VendaItemModel;
 import util.DB;
 
@@ -69,6 +71,10 @@ public class EstoqueService {
      */
     public boolean possuiEstoque(Connection c, String produtoId, int qtdNec) throws SQLException {
         try {
+            ProdutoModel p = new ProdutoDAO().findById(produtoId, c, true);
+            if (ProdutoEstoqueService.isNaoEstoque(p)) {
+                return true;
+            }
             int atual = produtoEstoqueService.obterQuantidade(produtoId, c);
             return atual >= qtdNec;
         } catch (Exception e) {

@@ -141,6 +141,24 @@ public class ComandaDAO {
         return out;
     }
 
+    public List<ComandaModel> listarAbertasPorCliente(String clienteId) throws SQLException {
+        List<ComandaModel> out = new ArrayList<>();
+        String sql = """
+                    SELECT * FROM comandas
+                     WHERE status = 'aberta' AND cliente_id = ?
+                     ORDER BY criado_em DESC
+                """;
+        try (Connection conn = DB.get(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, clienteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    out.add(map(rs));
+                }
+            }
+        }
+        return out;
+    }
+
     private ComandaModel map(ResultSet rs) throws SQLException {
         ComandaModel c = new ComandaModel();
         c.setId(rs.getInt("id"));

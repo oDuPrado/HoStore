@@ -5,10 +5,12 @@ import dao.VendaItemDAO;
 import dao.VendaItemLoteDAO;
 import dao.VendaDevolucaoDAO;
 import dao.VendaDevolucaoLoteDAO;
+import dao.ProdutoDAO;
 
 import model.VendaItemModel;
 import model.VendaModel;
 import model.VendaDevolucaoModel;
+import model.ProdutoModel;
 
 import util.DB;
 import util.LogService;
@@ -16,7 +18,9 @@ import util.PDFGenerator;
 
 import java.sql.Connection;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Serviço transacional:
@@ -32,6 +36,7 @@ public class VendaService {
     private final VendaItemDAO itemDAO = new VendaItemDAO();
     private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
     private final ContaReceberService contaReceberService = new ContaReceberService();
+    private final ProdutoDAO produtoDAO = new ProdutoDAO();
 
     public int finalizarVenda(VendaModel venda, List<VendaItemModel> itens) throws Exception {
 
@@ -56,10 +61,14 @@ public class VendaService {
                         + " venc=" + venda.getDataPrimeiroVencimento()
                         + " intervaloDias=" + venda.getIntervaloDias());
 
-                // 1) valida estoque
+                // 1) valida estoque (ignora itens de serviço / não-estoque)
+                Map<String, Boolean> naoEstoque = new HashMap<>();
                 for (VendaItemModel it : itens) {
                     String produtoId = it.getProdutoId();
-                    if (!estoqueService.possuiEstoque(c, produtoId, it.getQtd())) {
+                    ProdutoModel produto = produtoDAO.findById(produtoId, c, true);
+                    boolean isNaoEstoque = ProdutoEstoqueService.isNaoEstoque(produto);
+                    naoEstoque.put(produtoId, isNaoEstoque);
+                    if (!isNaoEstoque && !estoqueService.possuiEstoque(c, produtoId, it.getQtd())) {
                         throw new Exception("Estoque insuficiente para o produto " + produtoId);
                     }
                 }
@@ -74,24 +83,26 @@ public class VendaService {
                 for (VendaItemModel it : itens) {
                     int vendaItemId = itemDAO.insert(it, vendaId, c);
 
-                    List<ProdutoEstoqueService.LoteConsumo> consumos = produtoEstoqueService.consumirFIFO(
-                            it.getProdutoId(),
-                            it.getQtd(),
-                            "Venda #" + vendaId,
-                            (venda.getUsuario() != null && !venda.getUsuario().isBlank()) ? venda.getUsuario()
-                                    : "sistema",
-                            c);
-
-                    for (ProdutoEstoqueService.LoteConsumo consumo : consumos) {
-                        itemLoteDAO.inserirConsumo(
-                                vendaItemId,
-                                consumo.loteId,
-                                consumo.qtdConsumida,
-                                consumo.custoUnit,
+                    if (!naoEstoque.getOrDefault(it.getProdutoId(), false)) {
+                        List<ProdutoEstoqueService.LoteConsumo> consumos = produtoEstoqueService.consumirFIFO(
+                                it.getProdutoId(),
+                                it.getQtd(),
+                                "Venda #" + vendaId,
+                                (venda.getUsuario() != null && !venda.getUsuario().isBlank()) ? venda.getUsuario()
+                                        : "sistema",
                                 c);
-                    }
 
-                    produtoEstoqueService.atualizarQuantidadeCache(it.getProdutoId(), c);
+                        for (ProdutoEstoqueService.LoteConsumo consumo : consumos) {
+                            itemLoteDAO.inserirConsumo(
+                                    vendaItemId,
+                                    consumo.loteId,
+                                    consumo.qtdConsumida,
+                                    consumo.custoUnit,
+                                    c);
+                        }
+
+                        produtoEstoqueService.atualizarQuantidadeCache(it.getProdutoId(), c);
+                    }
                 }
 
                 c.commit();

@@ -556,12 +556,14 @@ public class DB {
                                                         "motivo TEXT, " +
                                                         "data TEXT, " +
                                                         "usuario TEXT," +
+                                                        "evento_id TEXT," +
                                                         "FOREIGN KEY(produto_id) REFERENCES produtos(id), " +
                                                         "FOREIGN KEY(lote_id) REFERENCES estoque_lotes(id)" +
                                                         ")",
                                         "estoque_movimentacoes");
 
                         ensureColumn(c, "estoque_movimentacoes", "lote_id", "INTEGER");
+                        ensureColumn(c, "estoque_movimentacoes", "evento_id", "TEXT");
 
                         // ========== VENDAS ==========
                         executeComLog(st,
@@ -1049,9 +1051,11 @@ public class DB {
                                                 tipo TEXT NOT NULL,
                                                 referencia TEXT,
                                                 data TEXT NOT NULL,
+                                                evento_id TEXT,
                                                 FOREIGN KEY (cliente_id) REFERENCES clientes(id)
                                             )
                                         """, "credito_loja_movimentacoes");
+                        ensureColumn(c, "credito_loja_movimentacoes", "evento_id", "TEXT");
 
                         // ========== JOGOS + SETS_JOGOS ==========
                         executeComLog(st, """
@@ -1346,6 +1350,116 @@ public class DB {
                         executeComLog(st,
                                         "CREATE INDEX IF NOT EXISTS idx_comandas_pag_comanda ON comandas_pagamentos(comanda_id)",
                                         "idx_comandas_pag_comanda");
+
+                        // ========== EVENTOS / LIGAS ==========
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS eventos (
+                                                id TEXT PRIMARY KEY,
+                                                nome TEXT NOT NULL,
+                                                jogo_id TEXT,
+                                                data_inicio TEXT,
+                                                data_fim TEXT,
+                                                status TEXT NOT NULL DEFAULT 'rascunho', -- rascunho | aberto | fechado | cancelado
+                                                taxa_inscricao REAL NOT NULL DEFAULT 0,
+                                                produto_inscricao_id TEXT,
+                                                regras_texto TEXT,
+                                                limite_participantes INTEGER,
+                                                observacoes TEXT,
+                                                criado_em TEXT,
+                                                criado_por TEXT,
+                                                alterado_em TEXT,
+                                                alterado_por TEXT,
+                                                FOREIGN KEY (jogo_id) REFERENCES jogos(id),
+                                                FOREIGN KEY (produto_inscricao_id) REFERENCES produtos(id)
+                                            );
+                                        """, "eventos");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS eventos_participantes (
+                                                id TEXT PRIMARY KEY,
+                                                evento_id TEXT NOT NULL,
+                                                cliente_id TEXT,
+                                                nome_avulso TEXT,
+                                                status TEXT NOT NULL DEFAULT 'inscrito', -- inscrito | pago | presente | desistente | desclassificado
+                                                venda_id INTEGER,
+                                                comanda_id INTEGER,
+                                                comanda_item_id INTEGER,
+                                                data_checkin TEXT,
+                                                criado_em TEXT,
+                                                criado_por TEXT,
+                                                alterado_em TEXT,
+                                                alterado_por TEXT,
+                                                FOREIGN KEY (evento_id) REFERENCES eventos(id),
+                                                FOREIGN KEY (cliente_id) REFERENCES clientes(id),
+                                                FOREIGN KEY (venda_id) REFERENCES vendas(id),
+                                                FOREIGN KEY (comanda_id) REFERENCES comandas(id)
+                                            );
+                                        """, "eventos_participantes");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS eventos_ranking (
+                                                id TEXT PRIMARY KEY,
+                                                evento_id TEXT NOT NULL,
+                                                participante_id TEXT NOT NULL,
+                                                pontos INTEGER NOT NULL DEFAULT 0,
+                                                colocacao INTEGER,
+                                                observacao TEXT,
+                                                FOREIGN KEY (evento_id) REFERENCES eventos(id),
+                                                FOREIGN KEY (participante_id) REFERENCES eventos_participantes(id)
+                                            );
+                                        """, "eventos_ranking");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS eventos_premiacao_regras (
+                                                id TEXT PRIMARY KEY,
+                                                evento_id TEXT NOT NULL,
+                                                colocacao_inicio INTEGER,
+                                                colocacao_fim INTEGER,
+                                                tipo TEXT NOT NULL, -- BOOSTER | CREDITO | PRODUTO
+                                                produto_id TEXT,
+                                                quantidade INTEGER,
+                                                valor_credito REAL,
+                                                observacoes TEXT,
+                                                FOREIGN KEY (evento_id) REFERENCES eventos(id),
+                                                FOREIGN KEY (produto_id) REFERENCES produtos(id)
+                                            );
+                                        """, "eventos_premiacao_regras");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS eventos_premiacoes (
+                                                id TEXT PRIMARY KEY,
+                                                evento_id TEXT NOT NULL,
+                                                participante_id TEXT NOT NULL,
+                                                tipo TEXT NOT NULL, -- BOOSTER | CREDITO | PRODUTO
+                                                produto_id TEXT,
+                                                quantidade INTEGER,
+                                                valor_credito REAL,
+                                                status TEXT NOT NULL DEFAULT 'pendente', -- pendente | entregue | estornado
+                                                movimentacao_estoque_id INTEGER,
+                                                credito_mov_id TEXT,
+                                                entregue_em TEXT,
+                                                entregue_por TEXT,
+                                                estornado_em TEXT,
+                                                estornado_por TEXT,
+                                                observacoes TEXT,
+                                                FOREIGN KEY (evento_id) REFERENCES eventos(id),
+                                                FOREIGN KEY (participante_id) REFERENCES eventos_participantes(id),
+                                                FOREIGN KEY (produto_id) REFERENCES produtos(id)
+                                            );
+                                        """, "eventos_premiacoes");
+
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_eventos_status ON eventos(status)",
+                                        "idx_eventos_status");
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_eventos_participantes_evento ON eventos_participantes(evento_id)",
+                                        "idx_eventos_participantes_evento");
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_eventos_ranking_evento ON eventos_ranking(evento_id)",
+                                        "idx_eventos_ranking_evento");
+                        executeComLog(st,
+                                        "CREATE INDEX IF NOT EXISTS idx_eventos_premiacoes_evento ON eventos_premiacoes(evento_id)",
+                                        "idx_eventos_premiacoes_evento");
 
                         executeComLog(st,
                                         "INSERT OR IGNORE INTO clientes " +

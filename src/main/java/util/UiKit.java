@@ -103,6 +103,7 @@ public class UiKit {
         t.setShowHorizontalLines(true);
         t.setShowVerticalLines(false);
         t.setFillsViewportHeight(true);
+        t.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         t.setIntercellSpacing(new Dimension(0, 0));
 
         t.setGridColor(uiColor("Table.gridColor", isDark() ? new Color(0x2A3038) : new Color(0xEEF0F3)));
@@ -148,8 +149,18 @@ public class UiKit {
                 JLabel l = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
                         column);
 
-                String st = (value == null) ? "" : value.toString().toLowerCase();
-                l.setText(" " + st + " ");
+                String raw = (value == null) ? "" : value.toString().trim();
+                String st = raw.toLowerCase();
+                String label = switch (st) {
+                    case "inscrito" -> "Aguardando pagto";
+                    case "inscrito_comanda" -> "Em comanda";
+                    case "pago" -> "Pago";
+                    case "presente" -> "Presente";
+                    case "desistente" -> "Desistente";
+                    case "pendente" -> "Pendente";
+                    default -> raw.isBlank() ? "" : raw;
+                };
+                l.setText(" " + label + " ");
                 l.setHorizontalAlignment(SwingConstants.CENTER);
                 l.setFont(l.getFont().deriveFont(Font.BOLD, 12f));
                 l.setBorder(new EmptyBorder(4, 10, 4, 10));
@@ -175,6 +186,11 @@ public class UiKit {
                     case "completo" -> bg = dark ? new Color(0x1E3A2A) : new Color(0xDCFCE7);
                     case "parcial" -> bg = dark ? new Color(0x4A3B12) : new Color(0xFEF3C7);
                     case "pendente" -> bg = dark ? new Color(0x2A3038) : new Color(0xF3F4F6);
+                    case "inscrito" -> bg = dark ? new Color(0x4A3B12) : new Color(0xFEF3C7);
+                    case "inscrito_comanda" -> bg = dark ? new Color(0x1F3A52) : new Color(0xE0F2FE);
+                    case "pago" -> bg = dark ? new Color(0x1E3A2A) : new Color(0xDCFCE7);
+                    case "presente" -> bg = dark ? new Color(0x1E3A2A) : new Color(0xDCFCE7);
+                    case "desistente" -> bg = dark ? new Color(0x4A1C1C) : new Color(0xFEE2E2);
                     default -> bg = dark ? new Color(0x2A3038) : new Color(0xF3F4F6);
                 }
 

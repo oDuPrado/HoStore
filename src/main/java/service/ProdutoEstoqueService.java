@@ -33,12 +33,21 @@ public class ProdutoEstoqueService {
         public final int loteId;
         public final int qtdConsumida;
         public final double custoUnit;
+        public final Integer movimentacaoId;
 
-        public LoteConsumo(int loteId, int qtdConsumida, double custoUnit) {
+        public LoteConsumo(int loteId, int qtdConsumida, double custoUnit, Integer movimentacaoId) {
             this.loteId = loteId;
             this.qtdConsumida = qtdConsumida;
             this.custoUnit = custoUnit;
+            this.movimentacaoId = movimentacaoId;
         }
+    }
+
+    public static boolean isNaoEstoque(ProdutoModel p) {
+        if (p == null || p.getTipo() == null)
+            return false;
+        String tipo = p.getTipo().trim();
+        return "SERVICO".equalsIgnoreCase(tipo) || "NAO_ESTOQUE".equalsIgnoreCase(tipo);
     }
 
     /* ==================== PRODUTOS GENÉRICOS ==================== */
@@ -209,6 +218,17 @@ public class ProdutoEstoqueService {
         atualizarQuantidadeCache(produtoId, c);
     }
 
+    public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario, Connection c,
+            String eventoId) throws Exception {
+        LogService.audit("ESTOQUE_SAIDA", "produto", produtoId, "qtd=" + quantidade + " motivo=" + motivo);
+        ProdutoModel produto = dao.findById(produtoId, c);
+        if (produto == null)
+            throw new Exception("Produto nao encontrado!");
+
+        consumirFIFO(produtoId, quantidade, motivo, usuario, c, eventoId);
+        atualizarQuantidadeCache(produtoId, c);
+    }
+
     public int obterQuantidade(String produtoId) throws SQLException {
         try (Connection c = DB.get()) {
             return obterQuantidade(produtoId, c);
@@ -237,6 +257,11 @@ public class ProdutoEstoqueService {
 
     public List<LoteConsumo> consumirFIFO(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
+        return consumirFIFO(produtoId, quantidade, motivo, usuario, c, null);
+    }
+
+    public List<LoteConsumo> consumirFIFO(String produtoId, int quantidade, String motivo, String usuario,
+            Connection c, String eventoId) throws Exception {
         if (quantidade <= 0)
             throw new Exception("Quantidade invalida: " + quantidade);
 
@@ -252,9 +277,10 @@ public class ProdutoEstoqueService {
                     "produto=" + produtoId + " qtd=" + consumir + " motivo=" + motivo);
             MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
                     produtoId, lote.loteId, "saida", consumir, motivo, usuario);
+            mov.setEventoId(eventoId);
             mov.setData(LocalDateTime.now());
             movService.registrar(mov, c);
-            consumos.add(new LoteConsumo(lote.loteId, consumir, lote.custoUnit));
+            consumos.add(new LoteConsumo(lote.loteId, consumir, lote.custoUnit, mov.getId()));
             restante -= consumir;
         }
 

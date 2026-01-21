@@ -21,8 +21,8 @@ public class MovimentacaoEstoqueDAO {
 
     /** Insere nova movimentação usando uma conexão existente (ideal para transações) */
     public MovimentacaoEstoqueModel inserir(MovimentacaoEstoqueModel mov, Connection c) throws SQLException {
-        String sql = "INSERT INTO estoque_movimentacoes(produto_id, lote_id, tipo_mov, quantidade, motivo, data, usuario) "
-                   + "VALUES(?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO estoque_movimentacoes(produto_id, lote_id, tipo_mov, quantidade, motivo, data, usuario, evento_id) "
+                   + "VALUES(?,?,?,?,?,?,?,?)";
         try (PreparedStatement p = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             p.setString(1, mov.getProdutoId());
             if (mov.getLoteId() == null) {
@@ -35,6 +35,7 @@ public class MovimentacaoEstoqueDAO {
             p.setString(5, mov.getMotivo());
             p.setString(6, mov.getData().format(FMT));
             p.setString(7, mov.getUsuario());
+            p.setString(8, mov.getEventoId());
             p.executeUpdate();
 
             try (ResultSet rs = p.getGeneratedKeys()) {
@@ -88,7 +89,10 @@ public class MovimentacaoEstoqueDAO {
         String motivo    = rs.getString("motivo");
         LocalDateTime dt = LocalDateTime.parse(rs.getString("data"), FMT);
         String usuario   = rs.getString("usuario");
+        String eventoId  = rs.getString("evento_id");
 
-        return new MovimentacaoEstoqueModel(id, prodId, loteId, tipoMov, qtd, motivo, dt, usuario);
+        MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(id, prodId, loteId, tipoMov, qtd, motivo, dt, usuario);
+        mov.setEventoId(eventoId);
+        return mov;
     }
 }

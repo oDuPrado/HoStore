@@ -20,6 +20,7 @@ import ui.dash.painel.DashboardPanel;
 import ui.ajustes.AjustesPanel;
 import ui.financeiro.painel.PainelFinanceiro;
 import ui.ajustes.dialog.LoginDialog;
+import ui.eventos.painel.PainelEventos;
 
 // ✅ NOVO
 import ui.comandas.painel.PainelComandas;
@@ -163,6 +164,7 @@ public class TelaPrincipal extends JFrame {
         JButton tabClientes = criarTab("🧍 Clientes", new PainelClientes());
         JButton tabVendas = criarTab("💰 Vendas", new PainelVendas(this));
         JButton tabComandas = criarTab("🧾 Comandas", new PainelComandas());
+        JButton tabEventos = criarTab("🏆 Eventos/Liga", new PainelEventos());
         JButton tabRelatorios = criarTab("📊 Relatórios", new DashboardPanel());
         JButton tabAjustes = criarTab("⚙️ Ajustes", new AjustesPanel());
         JButton tabBuscar = criarTab("🤖 HoRadars", null);
@@ -174,6 +176,7 @@ public class TelaPrincipal extends JFrame {
         tabBar.add(tabClientes);
         tabBar.add(tabVendas);
         tabBar.add(tabComandas);
+        tabBar.add(tabEventos);
         tabBar.add(tabRelatorios);
         tabBar.add(tabAjustes);
         tabBar.add(tabBuscar);
