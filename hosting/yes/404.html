@@ -1,97 +1,169 @@
 <!DOCTYPE html>
-<!-- Arquivo: yes/404.html -->
+<!-- Arquivo: hosting/yes/404.html -->
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HoStore – Página não encontrada</title>
-  <!-- ----------------------------------------------------------
-       Estilos compartilhados com o index para manter identidade.
-       Razão: aparência consistente em toda a hospedagem.
-  ----------------------------------------------------------- -->
+  <title>HoStore | Pagina nao encontrada</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f141b;
+      --bg-soft: #171e28;
+      --bg-card: #1d2633;
+      --fg: #f2f5f7;
+      --fg-muted: #aab3bf;
+      --primary: #f4b740;
+      --primary-2: #ffcf70;
+      --accent: #2ab3ff;
+      --border: rgba(255,255,255,0.08);
+      --radius: 16px;
+      --shadow: 0 18px 50px rgba(0,0,0,0.4);
+    }
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      display: flex;
-      flex-direction: column;
+      font-family: "Space Grotesk", sans-serif;
+      background: radial-gradient(900px 500px at 10% -10%, rgba(244,183,64,0.15), transparent),
+                  radial-gradient(900px 600px at 120% 10%, rgba(42,179,255,0.18), transparent),
+                  var(--bg);
+      color: var(--fg);
       min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .wrap {
+      width: min(920px, 100%);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      display: grid;
+      gap: 24px;
     }
     header {
-      background: #4CAF50;
-      color: white;
-      padding: 1rem;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
     }
-    main {
-      flex: 1;
-      max-width: 600px;
-      margin: 2rem auto;
-      padding: 1.5rem;
-      background: white;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      text-align: center;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
-    h1 {
-      margin: 0.5rem 0;
-      font-size: 2rem;
-      color: #ffa100;
+    .brand-mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #181b22;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow);
     }
-    p {
-      margin: 1rem 0;
-      line-height: 1.4;
+    .brand h1 { font-size: 22px; }
+    .brand p { color: var(--fg-muted); font-size: 13px; margin-top: 2px; }
+    .status {
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(42,179,255,0.12);
+      border: 1px solid rgba(42,179,255,0.3);
+      padding: 8px 12px;
+      border-radius: 999px;
     }
-    a.button {
-      display: inline-block;
-      margin-top: 1rem;
-      background: #4CAF50;
-      color: white;
+    .content {
+      display: grid;
+      gap: 18px;
+    }
+    .code {
+      font-size: clamp(48px, 10vw, 96px);
+      letter-spacing: -2px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .lead {
+      font-size: 18px;
+      color: var(--fg);
+    }
+    .hint {
+      color: var(--fg-muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 18px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-weight: 600;
       text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      font-size: 1rem;
     }
-    a.button:hover {
-      background: #43A047;
+    .btn.primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #171a20;
     }
-    footer {
-      text-align: center;
-      padding: 1rem 0;
-      font-size: 0.85rem;
-      color: #666;
+    .btn.ghost {
+      border-color: var(--border);
+      color: var(--fg);
+      background: transparent;
+    }
+    .footer {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      color: var(--fg-muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    @media (max-width: 640px) {
+      .wrap { padding: 24px; }
+      header { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
-  <!-- -------------------------------------------------------
-       Cabeçalho igual ao index, com link para voltar à home
-  -------------------------------------------------------- -->
-  <header>
-    <a href="index.html" style="color:white; text-decoration:none;">
-      <h2>HoStore</h2>
-    </a>
-  </header>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="brand-mark">HS</div>
+        <div>
+          <h1>HoStore Update Center</h1>
+          <p>Central de atualizacoes e downloads</p>
+        </div>
+      </div>
+      <span class="status">Status 404</span>
+    </header>
 
-  <!-- -----------------------------------------------------
-       Conteúdo centralizado explicando o erro 404
-  ------------------------------------------------------ -->
-  <main>
-    <h1>404</h1>
-    <p>Ops! A página ou arquivo que você está procurando não foi encontrado.</p>
-    <!-- -------------------------------------------------
-         Botão para voltar à página principal de download
-    -------------------------------------------------- -->
-    <a class="button" href="index.html">Voltar ao Início</a>
-  </main>
+    <div class="content">
+      <div class="code">404</div>
+      <div class="lead">Pagina ou arquivo nao encontrado.</div>
+      <div class="hint">
+        Verifique se o link esta correto. Se voce tentou baixar o HoStore,
+        volte para a central e tente novamente.
+      </div>
+      <div class="actions">
+        <a class="btn primary" href="index.html">Voltar para a central</a>
+        <a class="btn ghost" href="HoStore.jar">Tentar baixar</a>
+      </div>
+    </div>
 
-  <!-- -----------------------------------------------------
-       Rodapé simples com informação adicional
-  ------------------------------------------------------ -->
-  <footer>
-    Se achou que isso é um erro, verifique a URL ou <a href="index.html">tente novamente</a>.
-  </footer>
+    <div class="footer">
+      <span>HoStore | Central de atualizacoes</span>
+      <span>Se o erro persistir, revise a URL ou fale com o suporte.</span>
+    </div>
+  </div>
 </body>
 </html>

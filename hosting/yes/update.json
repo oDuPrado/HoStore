@@ -1,6 +1,32 @@
 {
-  "latest_version": "1.0.1",
+  "latest_version": "1.1.30",
   "download_url": "https://hostore-7c455.web.app/yes/HoStore.jar",
-  "checksum_sha256": "4e63da280d985ce8b0ac372c551775f9634a77abb8dbfdae7829c9758cc4121e",
-  "changelog": "Versão inicial atualizada com NCM, cadastro ajustado e bugs visuais corrigidos."
+  "changelog": "Eventos/Liga: inscricao como servico, fluxo pagar agora ou comanda, check-in e status claros.\\nPremiacao: regras por faixa, aplicacao automatica pelo ranking e confirmacao por participante.\\nEstoque: entrada por pedido agora atualiza lotes na hora.\\nRelatorios: faturamento liquido, ticket e lucro considerando devolucoes/estornos.\\nUI/UX: padronizacao UiKit, tabelas com scroll consistente e telas redimensionaveis.\\nLanding page: nova central de atualizacoes com abas, logs e README.",
+  "history": [
+    {
+      "version": "1.1.29",
+      "date": "2025-03-08",
+      "notes": [
+        "Eventos/Liga integrado com vendas/comandas, ranking e premiacao.",
+        "Premiacao por regras com confirmacao e controle de estoque/credito.",
+        "Relatorios corrigidos com liquido real (vendas - devolucoes - estornos).",
+        "UiKit e layouts padronizados e responsivos."
+      ]
+    },
+    {
+      "version": "1.1.20",
+      "date": "2025-02-10",
+      "notes": [
+        "Ajustes de estoque por lote e melhorias na entrada de produtos.",
+        "Correcoes gerais de layout e estabilidade."
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2025-01-05",
+      "notes": [
+        "Melhorias de cadastros fiscais e ajustes visuais."
+      ]
+    }
+  ]
 }

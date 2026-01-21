@@ -1,194 +1,677 @@
-<!DOCTYPE html>
-<!-- Arquivo: yes/index.html -->
+﻿<!DOCTYPE html>
+<!-- Arquivo: hosting/yes/index.html -->
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-  <meta http-equiv="Pragma"        content="no-cache">
-  <meta http-equiv="Expires"       content="0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>HoStore – Atualização & Download</title>
+  <title>HoStore | Central de Atualizacoes</title>
 
-  <!-- Fonte Roboto (se quiser, já está no projeto em data/fonts) -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Reset & variáveis */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg-body: #f0f0f0;
-      --fg-text: #222;
-      --fg-muted: #555;
-      --primary: #1e88e5;
-      --card-bg: #fff;
-      --radius: 8px;
+      --bg: #0f141b;
+      --bg-soft: #171e28;
+      --bg-card: #1d2633;
+      --fg: #f2f5f7;
+      --fg-muted: #aab3bf;
+      --primary: #f4b740;
+      --primary-2: #ffcf70;
+      --accent: #2ab3ff;
+      --border: rgba(255,255,255,0.08);
+      --radius: 14px;
+      --shadow: 0 14px 40px rgba(0,0,0,0.35);
     }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: var(--bg-body);
-      color: var(--fg-text);
+      font-family: "Space Grotesk", sans-serif;
+      background: radial-gradient(1200px 500px at 10% -10%, rgba(244,183,64,0.15), transparent),
+                  radial-gradient(1000px 600px at 120% 10%, rgba(42,179,255,0.18), transparent),
+                  var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+    }
+    .shell {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+    header {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .brand {
       display: flex;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 1rem;
+      gap: 16px;
     }
-
-    /* Card central */
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      max-width: 360px;
-      width: 100%;
-      padding: 2rem 1.5rem;
-      text-align: center;
-    }
-    .card h1 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-    }
-    .card p.subtitle {
-      color: var(--fg-muted);
-      margin-bottom: 1.5rem;
-    }
-
-    /* Versão e changelog */
-    .version {
+    .brand-mark {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      display: grid;
+      place-items: center;
+      color: #181b22;
       font-weight: 700;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
     }
-    .changelog {
-      text-align: left;
-      margin-bottom: 1.5rem;
+    .brand h1 {
+      font-size: 28px;
+      letter-spacing: 0.2px;
     }
-    .changelog h2 {
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-    }
-    .changelog ul {
-      list-style: disc inside;
+    .brand p {
       color: var(--fg-muted);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(42,179,255,0.1);
+      border: 1px solid rgba(42,179,255,0.25);
+      color: var(--accent);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
     }
 
-    /* Botão de download */
-    .btn {
-      display: inline-block;
-      background: var(--primary);
-      color: #fff;
-      text-decoration: none;
-      padding: 0.75rem 1.5rem;
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      font-weight: 500;
-      transition: background 0.2s;
-      margin-bottom: 1rem;
-    }
-    .btn:hover {
-      background: #1565c0;
+      padding: 20px;
+      box-shadow: var(--shadow);
     }
 
-    /* Detalhes do checksum */
-    details {
-      font-size: 0.85rem;
-      color: var(--fg-muted);
-      margin-top: 0.5rem;
+    .download-card h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
     }
-    details summary {
+    .meta {
+      display: grid;
+      gap: 8px;
+      margin: 16px 0 20px;
+      font-size: 14px;
+      color: var(--fg-muted);
+    }
+    .meta span {
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #171a20;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 700;
+      width: 100%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 30px rgba(244,183,64,0.3);
+    }
+    .cta:hover { transform: translateY(-1px); }
+
+    .secondary-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .ghost-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
       cursor: pointer;
-      user-select: none;
-    }
-    details p {
-      margin-top: 0.5rem;
-      word-break: break-all;
     }
 
-    /* Rodapé */
-    .footer {
-      margin-top: 1.5rem;
-      font-size: 0.75rem;
+    .tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #161a22;
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .section-title {
+      font-size: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
       color: var(--fg-muted);
+      font-size: 14px;
+    }
+    .list li { margin-left: 18px; }
+
+    .log-box {
+      border: 1px dashed rgba(255,255,255,0.18);
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.2);
+      color: var(--fg-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .readme-box {
+      background: #0e1218;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 14px;
+      max-height: 360px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #cfd6df;
+      white-space: pre-wrap;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--fg-muted);
+    }
+
+    @media (max-width: 920px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .layout { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
-  <div class="card">
-    <h1>HoStore</h1>
-    <p class="subtitle">Atualização &amp; Download</p>
-
-    <!-- Loader enquanto busca update.json -->
-    <div id="loader" style="margin:2rem auto;">
-      <svg width="48" height="48" viewBox="0 0 50 50">
-        <circle cx="25" cy="25" r="20" fill="none" stroke="#ddd" stroke-width="6"></circle>
-        <path id="spinner" fill="#1e88e5" d="M25 5 A20 20 0 0 1 45 25 L40 25 A15 15 0 0 0 25 10 Z">
-          <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25"
-            dur="1s" repeatCount="indefinite"/>
-        </path>
-      </svg>
-    </div>
-
-    <!-- Conteúdo principal, escondido até o fetch -->
-    <div id="content" style="display:none;">
-      <p class="version">Versão <span id="version"></span></p>
-
-      <div class="changelog">
-        <h2>Changelog</h2>
-        <ul id="changelog-list"></ul>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark">HS</div>
+        <div>
+          <h1>HoStore Update Center</h1>
+          <p>Central oficial para baixar novas versoes e conferir novidades.</p>
+        </div>
       </div>
+      <div class="status-pill" id="status-pill">Verificando atualizacao...</div>
+    </header>
 
-      <!-- Botão de download usa link relativo para NÃO dar 404 -->
-      <a id="download-btn" class="btn" href="/HoStore.jar" download>Baixar</a>
+    <div class="layout">
+      <aside class="card download-card">
+        <h2>Baixar atualizacao</h2>
+        <p style="color: var(--fg-muted); font-size: 14px;">Versao recomendada para todos os clientes.</p>
 
-      <!-- checksum só se você quiser ver -->
-      <details>
-        <summary>Verificar checksum SHA-256</summary>
-        <p id="checksum"></p>
-      </details>
+        <div class="meta">
+          <div>Versao atual: <span id="version">--</span></div>
+          <div>Tamanho: <span id="size">--</span></div>
+          <div>Ultima verificacao: <span id="last-check">--</span></div>
+        </div>
 
-      <p class="footer">
-        <a href="/update.json" target="_blank">Ver raw update.json</a>
-      </p>
+        <a id="download-btn" class="cta" href="HoStore.jar" download>
+          Baixar HoStore
+        </a>
+
+        <p class="footer-note">
+          Dica: sempre feche o sistema antes de atualizar. O instalador nao remove seus dados.
+        </p>
+      </aside>
+
+      <section class="card">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="tab-update">Atualizacao</button>
+          <button class="tab-btn" data-tab="tab-features">Novas features</button>
+          <button class="tab-btn" data-tab="tab-logs">Logs & suporte</button>
+          <button class="tab-btn" data-tab="tab-readme">README</button>
+          <button class="tab-btn" data-tab="tab-history">Historico</button>
+        </div>
+
+        <div id="tab-update" class="tab-panel active">
+          <div class="section-title">
+            <span>Resumo rapido</span>
+          </div>
+          <ul class="list" id="summary-list">
+            <li>Baixe o arquivo e substitua o jar atual.</li>
+            <li>Feche o sistema antes de atualizar.</li>
+            <li>Reabra o HoStore apos a troca do arquivo.</li>
+          </ul>
+        </div>
+
+        <div id="tab-features" class="tab-panel">
+          <div class="section-title">
+            <span>Notas da versao</span>
+          </div>
+          <ul class="list" id="changelog-list"></ul>
+        </div>
+
+        <div id="tab-logs" class="tab-panel">
+          <div class="section-title">
+            <span>Logs e diagnostico</span>
+          </div>
+          <div class="log-box">
+            <p><strong>Onde ficam os logs:</strong></p>
+            <p>Windows: <code>data/hos_logs.txt</code></p>
+            <p>Se precisar de suporte, envie esse arquivo junto com o print do erro.</p>
+            <p style="margin-top: 10px;"><strong>Checklist rapido:</strong></p>
+            <p>1) Feche o sistema antes de trocar o JAR.</p>
+            <p>2) Confirme o checksum e reabra o HoStore.</p>
+            <p>3) Se falhar, restaure o jar anterior e envie os logs.</p>
+          </div>
+        </div>
+
+        <div id="tab-readme" class="tab-panel">
+          <div class="section-title">
+            <span>README do sistema</span>
+          </div>
+          <div class="readme-box" id="readme"></div>
+        </div>
+
+        <div id="tab-history" class="tab-panel">
+          <div class="section-title">
+            <span>Historico de versoes</span>
+          </div>
+          <div class="log-box" id="history-box">Sem historico carregado.</div>
+        </div>
+      </section>
     </div>
   </div>
 
+  <textarea id="readme-source" style="display:none;">
+# 🏪 HoStore - Sistema ERP para Lojas TCG
+
+[![Java](https://img.shields.io/badge/Java-17+-orange?logo=java)](https://www.oracle.com/java/)
+[![Maven](https://img.shields.io/badge/Build-Maven-blue?logo=apache-maven)](https://maven.apache.org/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)]()
+
+> Sistema de Gestão Empresarial (ERP) desktop especializado em Trading Card Games. Controle completo de vendas, estoque, financeiro e relatórios para lojas física de Pokémon, Magic, Yu-Gi-Oh!, Digimon, One Piece e mais.
+
+---
+
+## 📋 Índice Rápido
+
+- [✨ Funcionalidades](#-funcionalidades-principais)
+- [💻 Requisitos](#-requisitos)
+- [📦 Instalação](#-instalação)
+- [🚀 Como Usar](#-como-usar)
+- [🗂️ Estrutura](#-estrutura-do-projeto)
+- [⌨️ Atalhos](#️-atalhos-de-teclado)
+- [📚 Documentação](#-documentação-completa)
+
+---
+
+## ✨ Funcionalidades Principais
+
+### 🛒 Vendas
+- **Carrinho Dinâmico**: Adicione/remova produtos em tempo real
+- **Descontos Flexíveis**: Por item, total, percentual ou fixo
+- **Múltiplos Pagamentos**: Dinheiro, Cartão, PIX, Transferência, Combinado
+- **Parcelamento**: Cálculo automático com datas configuráveis
+- **Comprovantes**: Emissão em PDF ou impressão direta
+- **Devoluções**: Sistema completo com reintegração ao estoque
+- **Estornos**: Com reversão automática de movimentações
+- **Auditoria**: Registro completo de todas as ações
+
+### 📦 Estoque
+- **Categorias Especializadas**: Cartas, Boosters, Decks, ETBs, Acessórios, Alimentícios
+- **Busca Avançada**: Por nome, categoria, faixa de preço
+- **Alertas Automáticos**: Estoque baixo, produtos vencidos
+- **Pedidos de Compra**: Integrados com entrada de produtos
+- **Movimentação**: Rastreada e auditada
+- **Dashboard**: Resumo visual com KPIs
+
+### 💰 Financeiro
+- **Contas a Pagar**: Registrar, parcelar, pagamentos
+- **Contas a Receber**: Acompanhar vendas parceladas
+- **Crédito de Loja**: Gerenciar créditos de clientes
+- **Fluxo de Caixa**: Relatórios completos
+- **Impostos**: Integração com ICMS, IPI, PIS, COFINS
+
+### 📊 Relatórios
+- **Dashboard com KPIs**: Vendas, estoque, caixa em tempo real
+- **Vendas**: Por período, cliente, produto, margem
+- **Estoque**: Movimentação, validade, ABC
+- **Financeiro**: Fluxo, contas, resultado
+- **Exportação**: Excel, PDF, CSV
+
+### 🎴 APIs de TCG
+- **Pokémon**: Todos os sets e cartas
+- **Magic**: Integração Scryfall
+- **Yu-Gi-Oh!**: YGOPRODeck
+- **Digimon**: digimoncard.io
+- **One Piece**: optcgapi.com
+- Cache local + sincronização automática
+
+### 👤 Sistema
+- **Login com Autenticação**: Controle de usuários
+- **Permissões**: Por função
+- **Backup Automático**: Diário em ./data/backup/
+- **Logs Completos**: Auditoria de todas as ações
+
+---
+
+## 💻 Requisitos
+
+### Mínimos
+- **SO**: Windows 10+, macOS 10.15+, Linux (Ubuntu 20.04+)
+- **Java**: JDK 17+
+- **RAM**: 2 GB
+- **Armazenamento**: 500 MB
+- **Resolução**: 1024x768+
+
+### Desenvolvimento
+- Maven 3.8.0+
+- IDE: VS Code, IntelliJ, Eclipse
+- Git 2.30+
+
+---
+
+## 📦 Instalação
+1. Baixe o JDK 17+ em [oracle.com/java](https://www.oracle.com/java/) ou [adoptium.net](https://adoptium.net/).
+2. Baixe o HoStore.jar
+3. Coloque o JAR em uma pasta dedicada (ex: C:\HoStore\)
+4. Crie um atalho para o JAR ou execute via terminal:
+   ```bash
+   java -jar HoStore.jar  
+```
+
+### Primeiro Uso
+- Sistema cria banco automaticamente
+- Usuário padrão: `admin` / `admin` ⚠️ **Alterar senha!**
+
+---
+
+## 🚀 Como Usar
+
+### Nova Venda (30 segundos)
+1. `Vendas → Nova Venda`
+2. Selecione cliente
+3. Busque e adicione produtos
+4. Revise e finalize
+5. Escolha pagamento
+6. PDF gerado automaticamente
+
+### Novo Produto no Estoque
+1. `Estoque → Novo Item`
+2. Selecione categoria (Carta, Booster, etc.)
+3. Preencha dados específicos
+4. Configure preços
+5. Confirme
+
+### Entrada de Compra
+1. `Estoque → Entrada de Produtos`
+2. Selecione pedido (ou novo)
+3. Confirm quantidades
+4. Vincula nota fiscal
+5. Estoque atualiza automaticamente
+
+---
+
+## 🗂️ Estrutura do Projeto
+
+```
+HoStore/
+├── src/main/java/
+│   ├── api/                 # Integração com TCG APIs
+│   ├── app/Main.java        # Ponto de entrada
+│   ├── controller/          # Controladores (7 classes)
+│   ├── dao/                 # Acesso dados (50+ DAOs)
+│   ├── model/               # Modelos (60+ Models)
+│   ├── service/             # Lógica negócio (26 Services)
+│   └── ui/                  # Interface Swing + FlatLaf
+│       ├── venda/           # Vendas
+│       ├── estoque/         # Estoque
+│       ├── financeiro/      # Financeiro
+│       ├── clientes/        # Clientes
+│       ├── relatorios/      # Relatórios
+│       └── ajustes/         # Configurações
+├── data/
+│   ├── backup/              # Backups automáticos
+│   ├── cache/               # Cache de APIs
+│   └── export/              # Exportações
+├── pom.xml                  # Dependências Maven
+└── README_COMPLETE.md       # Documentação completa
+```
+
+### Tecnologias
+
+| Componente | Tecnologia | Versão |
+|-----------|-----------|--------|
+| **Linguagem** | Java | 17+ |
+| **UI** | Swing + FlatLaf | 3.6 |
+| **DB** | SQLite | 3.42 |
+| **PDF** | PDFBox | 3.0.2 |
+| **Excel** | POI | 5.2.3 |
+| **JSON** | Gson | 2.10.1 |
+| **Build** | Maven | 3.8+ |
+
+---
+
+## ⌨️ Atalhos de Teclado
+
+| Atalho | Ação |
+|--------|------|
+| `Ctrl+N` | Nova venda |
+| `Ctrl+S` | Salvar |
+| `Ctrl+P` | Imprimir |
+| `F2` | Focar busca (estoque) |
+| `F3` | Focar tabela (estoque) |
+| `Del` | Excluir selecionado |
+| `Ctrl+E` | Nova entrada (estoque) |
+| `Esc` | Cancelar/Fechar |
+
+---
+
+## 📚 Documentação Completa
+
+Para documentação técnica e detalhada, veja:
+
+- 📄 **[README_COMPLETE.md](README_COMPLETE.md)** - Guia completo (80+ seções)
+- 📦 **[Estoque.md](Estrturas/Estoque.md)** - Módulo de estoque detalhado
+- 🛒 **[Vendas.md](Estrturas/vendas.md)** - Fluxos de venda e regras
+- 🔧 **[estrutura.txt](estrutura.txt)** - Árvore de arquivos completa
+
+---
+
+## 🤝 Contribuindo
+
+```bash
+# 1. Fork e clone
+git clone https://github.com/SEU_USUARIO/HoStore.git
+
+# 2. Crie branch
+git checkout -b feature/MinhaFeature
+
+# 3. Commit
+git commit -m "Adiciona MinhaFeature"
+
+# 4. Push
+git push origin feature/MinhaFeature
+
+# 5. Pull Request
+# Abra um PR no GitHub
+```
+
+---
+
+## 📞 Suporte
+
+### FAQ Rápido
+
+**P: Como faço backup?**
+R: Automático diariamente em `./data/backup/`. Menu: `Ajustes → Backup Manual`.
+
+**P: Qual é o limite de produtos?**
+R: Sem limite. Testado com ~50k itens sem perda de performance.
+
+**P: Posso usar em múltiplas lojas?**
+R: Não na v1.0. Planejado para v2.0 com sistema de franquia.
+
+**P: Dados vão para nuvem?**
+R: Não. SQLite local. Nuvem será opcional em v3.2 com criptografia.
+
+---
+
+## 📝 Licença
+
+MIT License - [Veja LICENSE](LICENSE)
+
+---
+
+## 👨‍💻 Autor
+
+**oDuPrado** - [@GitHub](https://github.com/oDuPrado)
+
+---
+
+## 🗂️ Status das Versões
+
+| Versão | Status | Recursos |
+|--------|--------|----------|
+| 1.0.0 | ✅ Atual | Vendas, Estoque, Fiscal Básico |
+| 2.1.0 | 🚀 Próxima | Fiscal Completo, Múltiplos Usuários |
+| 3.2.0 | 🎯 Planejado | Franquias, Mobile, Cloud Sync |
+| 4.0.0 | 🔮 Futuro | JavaFX, API REST, Web |
+
+---
+</textarea>
+
   <script>
+    const ui = {
+      version: document.getElementById('version'),
+      size: document.getElementById('size'),
+      checksum: null,
+      download: document.getElementById('download-btn'),
+      status: document.getElementById('status-pill'),
+      lastCheck: document.getElementById('last-check'),
+      changelog: document.getElementById('changelog-list'),
+      readme: document.getElementById('readme'),
+      history: document.getElementById('history-box'),
+      summary: document.getElementById('summary-list')
+    };
+
+    const formatBytes = (bytes) => {
+      if (!bytes || Number.isNaN(bytes)) return '--';
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+    };
+
+    const splitChangelog = (text) => {
+      if (!text) return [];
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length > 1) return lines;
+      return text.split('•').map(l => l.trim()).filter(Boolean);
+    };
+
+    const setStatus = (msg, ok = true) => {
+      ui.status.textContent = msg;
+      ui.status.style.background = ok ? 'rgba(42,179,255,0.1)' : 'rgba(244,99,99,0.15)';
+      ui.status.style.color = ok ? 'var(--accent)' : '#ff8585';
+      ui.status.style.borderColor = ok ? 'rgba(42,179,255,0.25)' : 'rgba(255,133,133,0.35)';
+    };
+
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabs.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+          panel.classList.toggle('active', panel.id === btn.dataset.tab);
+        });
+      });
+    });
+
+    const copyBtn = document.getElementById('copy-version');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const text = ui.version.textContent || '';
+        if (!text || text === '--') return;
+        navigator.clipboard.writeText(text).then(() => {
+          ui.summary.innerHTML = '<li>Versao copiada para a area de transferencia.</li>';
+        });
+      });
+    }
+
     (async () => {
+      ui.lastCheck.textContent = new Date().toLocaleString('pt-BR');
       try {
-        const res = await fetch('update.json');
+        const res = await fetch('update.json', { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
-        // Preenche versão
-        document.getElementById('version').textContent = data.latest_version;
+        const version = data.latest_version || '--';
+        const downloadUrl = data.download_url || 'HoStore.jar';
+        ui.version.textContent = version;
+        ui.download.href = downloadUrl;
+        ui.download.textContent = version === '--' ? 'Baixar HoStore' : `Baixar v${version}`;
 
-        // Preenche changelog
-        const ul = document.getElementById('changelog-list');
-        data.changelog.split('\\n').forEach(line => {
+        ui.changelog.innerHTML = '';
+        splitChangelog(data.changelog).forEach(item => {
           const li = document.createElement('li');
-          li.textContent = line;
-          ul.appendChild(li);
+          li.textContent = item;
+          ui.changelog.appendChild(li);
         });
 
-        // Preenche checksum
-        document.getElementById('checksum').textContent = data.checksum_sha256;
+        setStatus('Atualizacao disponivel', true);
 
-        // Atualiza texto do botão
-        const btn = document.getElementById('download-btn');
-        btn.textContent = `Baixar v${data.latest_version}`;
+        try {
+          const head = await fetch(downloadUrl, { method: 'HEAD' });
+          const size = head.headers.get('content-length');
+          ui.size.textContent = size ? formatBytes(parseInt(size, 10)) : '--';
+        } catch (err) {
+          ui.size.textContent = '--';
+        }
 
-        // Mostra conteúdo e esconde loader
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
       } catch (e) {
         console.error(e);
-        document.querySelector('.card').innerHTML = `
-          <p style="color:red; text-align:center; margin:2rem 0;">
-            ❌ Não foi possível carregar a atualização.<br>${e.message}
-          </p>
-        `;
+        setStatus('Erro ao carregar update.json', false);
+        ui.summary.innerHTML = '<li>Falha ao carregar dados de atualizacao. Tente novamente mais tarde.</li>';
       }
     })();
+
+    // README
+    const readmeSrc = document.getElementById('readme-source');
+    if (readmeSrc) {
+      ui.readme.textContent = readmeSrc.value.trim();
+    }
   </script>
 </body>
 </html>
