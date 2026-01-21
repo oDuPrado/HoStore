@@ -5,6 +5,7 @@ import dao.VendaDevolucaoLoteDAO;
 import dao.VendaItemLoteDAO;
 import model.VendaItemModel;
 import model.VendaDevolucaoModel;
+import util.LogService;
 
 import java.sql.Connection;
 import java.time.LocalDate;
@@ -27,6 +28,9 @@ public class EstornoService {
      */
     public void estornarItem(Connection c, int vendaId, VendaItemModel item, int qtdEstorno) throws Exception {
         if (qtdEstorno <= 0) return;
+
+        LogService.audit("ESTORNO_ITEM_INICIO", "venda", String.valueOf(vendaId),
+                "produto=" + item.getProdutoId() + " qtd=" + qtdEstorno);
 
         VendaDevolucaoModel dev = new VendaDevolucaoModel();
         dev.setVendaId(vendaId);
@@ -65,20 +69,28 @@ public class EstornoService {
                     c);
 
             devolucaoLoteDAO.inserir(devolucaoId, consumo.loteId, qtd, consumo.custoUnit, c);
+            LogService.audit("ESTORNO_LOTE", "lote", String.valueOf(consumo.loteId),
+                    "venda=" + vendaId + " produto=" + item.getProdutoId() + " qtd=" + qtd);
             restante -= qtd;
         }
 
         if (restante > 0) {
             throw new Exception("Quantidade estornada excede o consumido nos lotes");
         }
+
+        LogService.audit("ESTORNO_ITEM_OK", "venda", String.valueOf(vendaId),
+                "produto=" + item.getProdutoId() + " qtd=" + qtdEstorno);
     }
 
     /**
      * Registra estorno total de todos os itens da venda.
      */
     public void estornarVendaCompleta(Connection c, int vendaId, List<VendaItemModel> itens) throws Exception {
+        LogService.audit("ESTORNO_VENDA_INICIO", "venda", String.valueOf(vendaId),
+                "itens=" + (itens != null ? itens.size() : 0));
         for (VendaItemModel item : itens) {
             estornarItem(c, vendaId, item, item.getQtd());
         }
+        LogService.audit("ESTORNO_VENDA_OK", "venda", String.valueOf(vendaId), "ok");
     }
 }

@@ -3,6 +3,7 @@ package ui.venda.dialog;
 import dao.ProdutoDAO;
 import model.ProdutoModel;
 import util.AlertUtils;
+import util.LogService;
 import util.ScannerUtils;
 import util.UiKit;
 
@@ -337,6 +338,8 @@ public class SelectProdutoDialog extends JDialog {
 
             List<ProdutoModel> encontrados = produtoDAO.findByCodigoBarrasList(codigo, false);
 
+            LogService.audit("BARCODE_SCAN", "produto", null, "codigo=" + codigo + " encontrados=" + encontrados.size());
+
             if (encontrados.isEmpty()) {
                 AlertUtils.warn("Nenhum produto com este codigo de barras foi encontrado.");
                 return;
@@ -350,6 +353,8 @@ public class SelectProdutoDialog extends JDialog {
             }
 
             if (escolhido != null) {
+                LogService.audit("BARCODE_SELECT", "produto", escolhido.getId(),
+                        "codigo=" + codigo + " nome=" + escolhido.getNome());
                 marcarProdutoNaTabela(escolhido);
             }
         });

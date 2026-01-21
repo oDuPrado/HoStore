@@ -45,6 +45,7 @@ public class VendaService {
             int vendaId;
 
             try {
+                LogService.audit("VENDA_INICIO", "venda", null, "itens=" + itens.size());
                 String fpRaw = venda.getFormaPagamento();
                 String fp = (fpRaw == null) ? "" : fpRaw.trim().toUpperCase();
 
@@ -94,7 +95,7 @@ public class VendaService {
                 }
 
                 c.commit();
-                LogService.info("Venda " + vendaId + " finalizada com sucesso");
+                LogService.audit("VENDA_OK", "venda", String.valueOf(vendaId), "finalizada");
 
                 // Fora da transação: contas a receber
                 gerarContasReceberSafe(venda, vendaId);
@@ -115,7 +116,7 @@ public class VendaService {
                 } catch (Exception rbEx) {
                     LogService.error("Falha ao dar rollback na venda", rbEx);
                 }
-                LogService.error("Erro ao finalizar venda", e);
+                LogService.auditError("VENDA_ERRO", "venda", null, "falha ao finalizar", e);
                 throw e;
             }
         }
@@ -175,6 +176,8 @@ public class VendaService {
             c.setAutoCommit(false);
 
             try {
+                LogService.audit("DEVOLUCAO_INICIO", "venda", String.valueOf(devolucao.getVendaId()),
+                        "produto=" + devolucao.getProdutoId() + " qtd=" + devolucao.getQuantidade());
                 String usuario = (devolucao.getUsuario() != null && !devolucao.getUsuario().isBlank())
                         ? devolucao.getUsuario()
                         : "sistema";
@@ -222,7 +225,7 @@ public class VendaService {
                 }
 
                 c.commit();
-                LogService.info("Devolucao registrada para venda " + devolucao.getVendaId());
+                LogService.audit("DEVOLUCAO_OK", "venda", String.valueOf(devolucao.getVendaId()), "devolucao registrada");
 
             } catch (Exception e) {
                 try {
@@ -230,7 +233,7 @@ public class VendaService {
                 } catch (Exception rbEx) {
                     LogService.error("Falha ao dar rollback na devolucao", rbEx);
                 }
-                LogService.error("Erro ao registrar devolucao", e);
+                LogService.auditError("DEVOLUCAO_ERRO", "venda", String.valueOf(devolucao.getVendaId()), "falha ao registrar devolucao", e);
                 throw e;
             }
         }

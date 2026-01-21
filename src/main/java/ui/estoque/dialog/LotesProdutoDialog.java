@@ -4,6 +4,7 @@ import dao.EstoqueLoteDAO;
 import model.ProdutoModel;
 import service.ProdutoEstoqueService;
 import util.DB;
+import util.LogService;
 import util.UiKit;
 
 import javax.swing.*;
@@ -200,6 +201,8 @@ public class LotesProdutoDialog extends JDialog {
             c.setAutoCommit(false);
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             service.ajustarLote(produto.getId(), loteId, delta, motivo.trim(), "sistema", c);
+            LogService.audit("UI_AJUSTE_LOTE", "lote", String.valueOf(loteId),
+                    "produto=" + produto.getId() + " delta=" + delta + " motivo=" + motivo.trim());
             c.commit();
             carregarLotes();
         } catch (Exception ex) {
@@ -237,6 +240,8 @@ public class LotesProdutoDialog extends JDialog {
             c.setAutoCommit(false);
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             service.criarLoteAjuste(produto.getId(), qtd, motivo.trim(), "sistema", c);
+            LogService.audit("UI_AJUSTE_GERAL", "produto", produto.getId(),
+                    "qtd=" + qtd + " motivo=" + motivo.trim());
             c.commit();
             carregarLotes();
         } catch (Exception ex) {

@@ -13,6 +13,7 @@ import util.DB;
 
 import service.MovimentacaoEstoqueService;
 import model.MovimentacaoEstoqueModel;
+import util.LogService;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.sql.Connection;
@@ -163,6 +164,7 @@ public class ProdutoEstoqueService {
 
     public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
+        LogService.audit("ESTOQUE_ENTRADA", "produto", produtoId, "qtd=" + quantidade + " motivo=" + motivo);
         ProdutoModel produto = dao.findById(produtoId, c);
         if (produto == null)
             throw new Exception("Produto nao encontrado!");
@@ -198,6 +200,7 @@ public class ProdutoEstoqueService {
 
     public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
+        LogService.audit("ESTOQUE_SAIDA", "produto", produtoId, "qtd=" + quantidade + " motivo=" + motivo);
         ProdutoModel produto = dao.findById(produtoId, c);
         if (produto == null)
             throw new Exception("Produto nao encontrado!");
@@ -245,6 +248,8 @@ public class ProdutoEstoqueService {
                 break;
             int consumir = Math.min(restante, lote.qtdDisponivel);
             loteDAO.consumirDoLote(lote.loteId, consumir, c);
+            LogService.audit("LOTE_SAIDA", "lote", String.valueOf(lote.loteId),
+                    "produto=" + produtoId + " qtd=" + consumir + " motivo=" + motivo);
             MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
                     produtoId, lote.loteId, "saida", consumir, motivo, usuario);
             mov.setData(LocalDateTime.now());
@@ -265,6 +270,8 @@ public class ProdutoEstoqueService {
         if (quantidade <= 0)
             throw new Exception("Quantidade invalida: " + quantidade);
         loteDAO.reporNoLote(loteId, quantidade, c);
+        LogService.audit("LOTE_ENTRADA", "lote", String.valueOf(loteId),
+                "produto=" + produtoId + " qtd=" + quantidade + " motivo=" + motivo);
         MovimentacaoEstoqueModel mov = new MovimentacaoEstoqueModel(
                 produtoId, loteId, "entrada", quantidade, motivo, usuario);
         mov.setData(LocalDateTime.now());
@@ -276,6 +283,9 @@ public class ProdutoEstoqueService {
             throws Exception {
         if (delta == 0)
             throw new Exception("Quantidade invalida: 0");
+
+        LogService.audit("LOTE_AJUSTE", "lote", String.valueOf(loteId),
+                "produto=" + produtoId + " delta=" + delta + " motivo=" + motivo);
 
         int qtd = Math.abs(delta);
         if (delta > 0) {
@@ -293,6 +303,8 @@ public class ProdutoEstoqueService {
 
     public int criarLoteAjuste(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
+        LogService.audit("LOTE_AJUSTE_GERAL", "produto", produtoId,
+                "qtd=" + quantidade + " motivo=" + motivo);
         if (quantidade <= 0)
             throw new Exception("Quantidade invalida: " + quantidade);
 

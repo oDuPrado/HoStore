@@ -2,6 +2,7 @@ package ui.ajustes.dialog;
 
 import dao.UsuarioDAO;
 import model.UsuarioModel;
+import util.LogService;
 import util.UiKit;
 
 import javax.swing.*;
@@ -140,6 +141,7 @@ public class LoginDialog extends JDialog {
         char[] pwdChars = pfSenha.getPassword();
 
         try {
+            LogService.audit("LOGIN_ATTEMPT", "usuario", null, "tentativa user=" + (usr.isEmpty() ? "-" : usr));
             if (usr.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                         "Informe o usuário.",
@@ -159,8 +161,11 @@ public class LoginDialog extends JDialog {
             usuarioLogado = dao.buscarPorUsuarioESenha(usr, pwd);
 
             if (usuarioLogado != null) {
+                LogService.audit("LOGIN_OK", "usuario", usuarioLogado.getId(),
+                        "login ok user=" + usuarioLogado.getUsuario());
                 dispose();
             } else {
+                LogService.audit("LOGIN_FAIL", "usuario", null, "login fail user=" + usr);
                 JOptionPane.showMessageDialog(this,
                         "Usuário ou senha inválidos.",
                         "Login", JOptionPane.ERROR_MESSAGE);
@@ -170,6 +175,7 @@ public class LoginDialog extends JDialog {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            LogService.auditError("LOGIN_ERROR", "usuario", null, "erro ao autenticar user=" + usr, ex);
             JOptionPane.showMessageDialog(this,
                     "Erro ao autenticar:\n" + ex.getMessage(),
                     "Login", JOptionPane.ERROR_MESSAGE);

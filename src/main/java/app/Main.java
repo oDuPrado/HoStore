@@ -9,6 +9,7 @@ import ui.ajustes.dialog.LoginDialog;
 import ui.ajustes.painel.CategoriaProdutoPainel;
 import util.BackupUtils;
 import util.DB;
+import util.LogService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -34,6 +35,7 @@ public class Main {
                         // 2) Inicialização única do banco: só aqui.
                         DB.prepararBancoSeNecessario();
                         publish("Banco OK.");
+                        LogService.audit("APP_DB_OK", "sistema", null, "banco pronto");
                     } catch (Exception e) {
                         initException = e;
                     }
@@ -53,6 +55,8 @@ public class Main {
 
                     if (initException != null) {
                         initException.printStackTrace();
+                        LogService.auditError("APP_DB_ERRO", "sistema", null,
+                                "falha ao inicializar banco", initException);
                         JOptionPane.showMessageDialog(
                                 null,
                                 "Erro ao inicializar o banco de dados:\n" + initException.getMessage(),
@@ -69,27 +73,31 @@ public class Main {
 
                     UsuarioModel usuarioLogado = login.getUsuarioLogado();
                     if (usuarioLogado == null) {
+                        LogService.audit("LOGIN_CANCEL", "usuario", null, "login cancelado");
                         System.exit(0);
                         return;
                     }
 
                     SessaoService.login(usuarioLogado);
 
-                    // 4) Backup automático (não pode derrubar o app)
+                    // 4) Backup automatico (nao pode derrubar o app)
                     try {
                         BackupUtils.applyConfig(BackupUtils.loadConfig());
                     } catch (Exception e) {
-                        System.err.println("Falha ao aplicar configuração de backup: " + e.getMessage());
+                        LogService.auditError("BACKUP_CONFIG_ERRO", "sistema", null,
+                                "falha ao aplicar config de backup", e);
                     }
 
-                    // 5) Carta fake (se isso falhar, também não deveria derrubar o sistema)
+                    // 5) Carta fake (se isso falhar, nao deveria derrubar o sistema)
                     try {
                         new CartaDAO().inserirCartaFake();
                     } catch (Exception e) {
-                        System.err.println("Falha ao inserir carta fake: " + e.getMessage());
+                        LogService.auditError("CARTA_FAKE_ERRO", "sistema", null,
+                                "falha ao inserir carta fake", e);
                     }
 
                     // 6) Abre janela principal
+                    LogService.audit("APP_START", "sistema", null, "app iniciado");
                     new TelaPrincipal();
                 }
             }.execute();
@@ -107,7 +115,7 @@ public class Main {
             try {
                 UIManager.setLookAndFeel(new FlatLightLaf());
             } catch (Exception ignored) {}
-            System.err.println("Falha ao aplicar tema: " + e.getMessage());
+            LogService.auditError("APP_TEMA_ERRO", "sistema", null, "falha ao aplicar tema", e);
         }
     }
 
