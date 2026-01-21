@@ -47,7 +47,8 @@ public class DashboardPanel extends JPanel {
     private final JButton alFiscal = new JButton("⚠ Fiscal pendente: ...");
 
     // Cards KPI
-    private final DashboardCard cFat = new DashboardCard("Faturamento (período)");
+    private final DashboardCard cFat = new DashboardCard("Faturamento líquido (período)");
+    private final DashboardCard cFatBruto = new DashboardCard("Faturamento bruto (período)");
     private final DashboardCard cLucro = new DashboardCard("Lucro estimado (período)");
     private final DashboardCard cMargem = new DashboardCard("Margem % (período)");
     private final DashboardCard cTicket = new DashboardCard("Ticket médio (período)");
@@ -188,7 +189,7 @@ public class DashboardPanel extends JPanel {
         kpiGrid.add(cDev);
         kpiGrid.add(cEst);
         kpiGrid.add(cCanc);
-        kpiGrid.add(new JPanel()); // slot vazio
+        kpiGrid.add(cFatBruto);
 
         // Tabs de listas
         JTabbedPane tabs = new JTabbedPane();
@@ -230,6 +231,7 @@ public class DashboardPanel extends JPanel {
 
         // drill-down nos cards
         cFat.setOnClick(this::abrirFechamentoPeriodo);
+        cFatBruto.setOnClick(this::abrirFechamentoPeriodo);
         cLucro.setOnClick(this::abrirFechamentoPeriodo);
         cMargem.setOnClick(this::abrirFechamentoPeriodo);
         cTicket.setOnClick(this::abrirFechamentoPeriodo);
@@ -244,20 +246,25 @@ public class DashboardPanel extends JPanel {
         cCanc.setOnClick(this::abrirFechamentoPeriodo);
 
         // info “ⓘ fonte do dado”
-        cFat.setOnInfo(() -> info("Faturamento", """
+        cFat.setOnInfo(() -> info("Faturamento líquido", """
+            Líquido do período.
+            Regra: vendas.total_liquido - devoluções - estornos (na data do evento)
+            Filtros: venda não cancelada; data entre início e fim (ISO)
+        """));
+        cFatBruto.setOnInfo(() -> info("Faturamento bruto", """
             Fonte: vendas.total_liquido
             Filtro: vendas.status <> 'cancelada'
             Período: date(vendas.data_venda) entre início e fim (ISO)
         """));
         cLucro.setOnInfo(() -> info("Lucro estimado", """
             Fonte: vendas_itens.preco, produtos.preco_compra
-            Regra: SUM((vi.preco - COALESCE(p.preco_compra,0)) * vi.qtd)
+            Regra: SUM((vi.preco - COALESCE(p.preco_compra,0)) * vi.qtd) - devoluções do período
             Filtro: venda não cancelada + período
             Observação: se custo por lote existir, substitui o custo aqui.
         """));
         cMargem.setOnInfo(() -> info("Margem", """
-            Regra: lucro_estimado / faturamento
-            Se faturamento = 0 => margem = 0
+            Regra: lucro_estimado / faturamento líquido
+            Se faturamento líquido = 0 => margem = 0
         """));
         cTaxa.setOnInfo(() -> info("Taxa cartão (estimada)", """
             Estimativa simples (limitação do modelo atual):
@@ -268,11 +275,11 @@ public class DashboardPanel extends JPanel {
         cDev.setOnInfo(() -> info("Devoluções", """
             Fonte: vendas_devolucoes (qtd, valor_unit)
             Regra: SUM(qtd * valor_unit)
-            Observação: se valor_unit vier 0, seu fluxo ainda está gravando errado.
+            Observação: usa data da devolução; se valor_unit vier 0, seu fluxo ainda está gravando errado.
         """));
         cEst.setOnInfo(() -> info("Estornos", """
             Fonte: vendas_estornos_pagamentos.valor_estornado
-            Regra: SUM(valor_estornado) no período
+            Regra: SUM(valor_estornado) no período (data do estorno)
         """));
         cCanc.setOnInfo(() -> info("Cancelamentos", """
             Fonte: vendas.status='cancelada' no período
@@ -352,7 +359,8 @@ public class DashboardPanel extends JPanel {
         DashboardKpisModel k = home.kpis;
 
         // Cards principais
-        cFat.setMoney(k.faturamento);
+        cFat.setMoney(k.faturamentoLiquido);
+        cFatBruto.setMoney(k.faturamentoBruto);
         cLucro.setMoney(k.lucroEstimado);
         cMargem.setPercent(k.margemPct);
         cTicket.setMoney(k.ticketMedio);
@@ -447,7 +455,8 @@ public class DashboardPanel extends JPanel {
                     RelatorioTabelaDialog d = new RelatorioTabelaDialog(owner, titulo,
                             new Object[]{"Métrica", "Valor"});
                     List<Object[]> rows = new ArrayList<>();
-                    rows.add(new Object[]{"Faturamento", MoedaUtil.brl(k.faturamento)});
+                    rows.add(new Object[]{"Faturamento líquido", MoedaUtil.brl(k.faturamentoLiquido)});
+                    rows.add(new Object[]{"Faturamento bruto", MoedaUtil.brl(k.faturamentoBruto)});
                     rows.add(new Object[]{"Lucro estimado", MoedaUtil.brl(k.lucroEstimado)});
                     rows.add(new Object[]{"Margem", MoedaUtil.pct(k.margemPct)});
                     rows.add(new Object[]{"Vendas", k.qtdVendas});

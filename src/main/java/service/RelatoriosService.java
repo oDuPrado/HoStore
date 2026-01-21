@@ -40,7 +40,7 @@ public class RelatoriosService {
             PeriodoFiltro anterior = periodo.periodoAnteriorMesmoTamanho();
             DashboardKpisModel ant = dao.carregarKpisPeriodo(anterior);
 
-            atual.cmpFaturamento = ComparativoModel.of(atual.faturamento, ant.faturamento);
+            atual.cmpFaturamento = ComparativoModel.of(atual.faturamentoLiquido, ant.faturamentoLiquido);
             atual.cmpLucro = ComparativoModel.of(atual.lucroEstimado, ant.lucroEstimado);
 
             home.kpis = atual;

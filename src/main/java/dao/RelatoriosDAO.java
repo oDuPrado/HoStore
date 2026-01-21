@@ -19,16 +19,15 @@ public class RelatoriosDAO {
 
         try (Connection c = DB.get()) {
 
-            // Faturamento, qtd vendas, ticket, descontos, acréscimos, cancelamentos
+            // Faturamento bruto, qtd vendas, descontos, acréscimos, cancelamentos
             try (PreparedStatement ps = c.prepareStatement("""
                 SELECT
-                  COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN total_liquido ELSE 0 END), 0) AS faturamento,
+                  COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN total_liquido ELSE 0 END), 0) AS faturamento_bruto,
                   COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN total_bruto ELSE 0 END), 0) AS bruto,
                   COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN desconto ELSE 0 END), 0) AS desconto_total,
                   COALESCE(SUM(CASE WHEN status <> 'cancelada' THEN acrescimo ELSE 0 END), 0) AS acrescimo_total,
                   SUM(CASE WHEN status='cancelada' THEN 1 ELSE 0 END) AS cancelamentos_qtd,
-                  SUM(CASE WHEN status <> 'cancelada' THEN 1 ELSE 0 END) AS vendas_qtd,
-                  COALESCE(AVG(CASE WHEN status <> 'cancelada' THEN total_liquido END), 0) AS ticket_medio
+                  SUM(CASE WHEN status <> 'cancelada' THEN 1 ELSE 0 END) AS vendas_qtd
                 FROM vendas
                 WHERE date(data_venda) BETWEEN date(?) AND date(?)
             """)) {
@@ -36,9 +35,8 @@ public class RelatoriosDAO {
                 ps.setString(2, periodo.getFimIso());
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        k.faturamento = rs.getDouble("faturamento");
+                        k.faturamentoBruto = rs.getDouble("faturamento_bruto");
                         k.qtdVendas = rs.getInt("vendas_qtd");
-                        k.ticketMedio = rs.getDouble("ticket_medio");
                         k.descontoTotal = rs.getDouble("desconto_total");
                         k.acrescimoTotal = rs.getDouble("acrescimo_total");
                         k.cancelamentosQtd = rs.getInt("cancelamentos_qtd");
@@ -46,7 +44,9 @@ public class RelatoriosDAO {
                 }
             }
 
-            // Itens vendidos (apenas vendas não canceladas)
+            // Itens vendidos líquidos (vendas - devoluções no período)
+            int itensVendas = 0;
+            int itensDevolvidos = 0;
             try (PreparedStatement ps = c.prepareStatement("""
                 SELECT COALESCE(SUM(vi.qtd), 0) AS itens
                 FROM vendas_itens vi
@@ -57,11 +57,27 @@ public class RelatoriosDAO {
                 ps.setString(1, periodo.getInicioIso());
                 ps.setString(2, periodo.getFimIso());
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) k.itensVendidos = rs.getInt("itens");
+                    if (rs.next()) itensVendas = rs.getInt("itens");
                 }
             }
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT COALESCE(SUM(d.qtd), 0) AS itens
+                FROM vendas_devolucoes d
+                JOIN vendas v ON v.id = d.venda_id
+                WHERE v.status <> 'cancelada'
+                  AND date(COALESCE(d.data, v.data_venda)) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) itensDevolvidos = rs.getInt("itens");
+                }
+            }
+            k.itensVendidos = Math.max(0, itensVendas - itensDevolvidos);
 
-            // Lucro estimado (preço real do item - custo do produto)
+            // Lucro estimado líquido (vendas - devoluções no período)
+            double lucroBruto = 0.0;
+            double lucroDevolucao = 0.0;
             try (PreparedStatement ps = c.prepareStatement("""
                 SELECT COALESCE(SUM((vi.preco - COALESCE(p.preco_compra,0)) * vi.qtd), 0) AS lucro
                 FROM vendas_itens vi
@@ -73,11 +89,24 @@ public class RelatoriosDAO {
                 ps.setString(1, periodo.getInicioIso());
                 ps.setString(2, periodo.getFimIso());
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) k.lucroEstimado = rs.getDouble("lucro");
+                    if (rs.next()) lucroBruto = rs.getDouble("lucro");
                 }
             }
-
-            k.margemPct = (Math.abs(k.faturamento) < 0.0000001) ? 0 : (k.lucroEstimado / k.faturamento);
+            try (PreparedStatement ps = c.prepareStatement("""
+                SELECT COALESCE(SUM((COALESCE(d.valor_unit,0) - COALESCE(p.preco_compra,0)) * d.qtd), 0) AS lucro
+                FROM vendas_devolucoes d
+                JOIN vendas v ON v.id = d.venda_id
+                JOIN produtos p ON p.id = d.produto_id
+                WHERE v.status <> 'cancelada'
+                  AND date(COALESCE(d.data, v.data_venda)) BETWEEN date(?) AND date(?)
+            """)) {
+                ps.setString(1, periodo.getInicioIso());
+                ps.setString(2, periodo.getFimIso());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) lucroDevolucao = rs.getDouble("lucro");
+                }
+            }
+            k.lucroEstimado = lucroBruto - lucroDevolucao;
 
             // Devoluções (qtd e valor)
             // OBS: vendas_devolucoes tem valor_unit. Se estiver 0, você já sabe que ainda tem bug em algum fluxo.
@@ -88,7 +117,7 @@ public class RelatoriosDAO {
                 FROM vendas_devolucoes d
                 JOIN vendas v ON v.id = d.venda_id
                 WHERE v.status <> 'cancelada'
-                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                  AND date(COALESCE(d.data, v.data_venda)) BETWEEN date(?) AND date(?)
             """)) {
                 ps.setString(1, periodo.getInicioIso());
                 ps.setString(2, periodo.getFimIso());
@@ -106,7 +135,7 @@ public class RelatoriosDAO {
                 FROM vendas_estornos_pagamentos e
                 JOIN vendas v ON v.id = e.venda_id
                 WHERE v.status <> 'cancelada'
-                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                  AND date(COALESCE(e.data, v.data_venda)) BETWEEN date(?) AND date(?)
             """)) {
                 ps.setString(1, periodo.getInicioIso());
                 ps.setString(2, periodo.getFimIso());
@@ -114,6 +143,10 @@ public class RelatoriosDAO {
                     if (rs.next()) k.estornosValor = rs.getDouble("valor");
                 }
             }
+
+            k.faturamentoLiquido = k.faturamentoBruto - k.devolucoesValor - k.estornosValor;
+            k.ticketMedio = (k.qtdVendas <= 0) ? 0 : (k.faturamentoLiquido / k.qtdVendas);
+            k.margemPct = (Math.abs(k.faturamentoLiquido) < 0.0000001) ? 0 : (k.lucroEstimado / k.faturamentoLiquido);
 
             // Mix de pagamentos (vendas_pagamentos)
             double totalPag = queryDouble(c, """
@@ -236,23 +269,50 @@ public class RelatoriosDAO {
         List<ProdutoVendaResumoModel> list = new ArrayList<>();
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement("""
+                WITH vendas_cte AS (
+                    SELECT vi.produto_id AS produto_id,
+                           COALESCE(SUM(vi.qtd),0) AS qtd,
+                           COALESCE(SUM(vi.total_item),0) AS total
+                    FROM vendas_itens vi
+                    JOIN vendas v ON v.id = vi.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                    GROUP BY vi.produto_id
+                ),
+                dev AS (
+                    SELECT d.produto_id AS produto_id,
+                           COALESCE(SUM(d.qtd),0) AS qtd,
+                           COALESCE(SUM(d.qtd * COALESCE(d.valor_unit,0)),0) AS total
+                    FROM vendas_devolucoes d
+                    JOIN vendas v ON v.id = d.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(COALESCE(d.data, v.data_venda)) BETWEEN date(?) AND date(?)
+                    GROUP BY d.produto_id
+                ),
+                ids AS (
+                    SELECT produto_id FROM vendas_cte
+                    UNION
+                    SELECT produto_id FROM dev
+                )
                 SELECT
-                  vi.produto_id AS produto_id,
+                  i.produto_id AS produto_id,
                   COALESCE(p.nome, '[Produto removido]') AS nome,
-                  COALESCE(SUM(vi.qtd),0) AS qtd,
-                  COALESCE(SUM(vi.total_item),0) AS total
-                FROM vendas_itens vi
-                JOIN vendas v ON v.id = vi.venda_id
-                LEFT JOIN produtos p ON p.id = vi.produto_id
-                WHERE v.status <> 'cancelada'
-                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
-                GROUP BY vi.produto_id
+                  (COALESCE(v.qtd,0) - COALESCE(d.qtd,0)) AS qtd,
+                  (COALESCE(v.total,0) - COALESCE(d.total,0)) AS total
+                FROM ids i
+                LEFT JOIN vendas_cte v ON v.produto_id = i.produto_id
+                LEFT JOIN dev d ON d.produto_id = i.produto_id
+                LEFT JOIN produtos p ON p.id = i.produto_id
+                WHERE (COALESCE(v.qtd,0) - COALESCE(d.qtd,0)) > 0
+                   OR (COALESCE(v.total,0) - COALESCE(d.total,0)) > 0
                 ORDER BY qtd DESC, total DESC
                 LIMIT ?
              """)) {
             ps.setString(1, periodo.getInicioIso());
             ps.setString(2, periodo.getFimIso());
-            ps.setInt(3, limit);
+            ps.setString(3, periodo.getInicioIso());
+            ps.setString(4, periodo.getFimIso());
+            ps.setInt(5, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new ProdutoVendaResumoModel(
@@ -273,23 +333,50 @@ public class RelatoriosDAO {
         List<ProdutoVendaResumoModel> list = new ArrayList<>();
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement("""
+                WITH vendas_cte AS (
+                    SELECT vi.produto_id AS produto_id,
+                           COALESCE(SUM(vi.qtd),0) AS qtd,
+                           COALESCE(SUM(vi.total_item),0) AS total
+                    FROM vendas_itens vi
+                    JOIN vendas v ON v.id = vi.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                    GROUP BY vi.produto_id
+                ),
+                dev AS (
+                    SELECT d.produto_id AS produto_id,
+                           COALESCE(SUM(d.qtd),0) AS qtd,
+                           COALESCE(SUM(d.qtd * COALESCE(d.valor_unit,0)),0) AS total
+                    FROM vendas_devolucoes d
+                    JOIN vendas v ON v.id = d.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(COALESCE(d.data, v.data_venda)) BETWEEN date(?) AND date(?)
+                    GROUP BY d.produto_id
+                ),
+                ids AS (
+                    SELECT produto_id FROM vendas_cte
+                    UNION
+                    SELECT produto_id FROM dev
+                )
                 SELECT
-                  vi.produto_id AS produto_id,
+                  i.produto_id AS produto_id,
                   COALESCE(p.nome, '[Produto removido]') AS nome,
-                  COALESCE(SUM(vi.qtd),0) AS qtd,
-                  COALESCE(SUM(vi.total_item),0) AS total
-                FROM vendas_itens vi
-                JOIN vendas v ON v.id = vi.venda_id
-                LEFT JOIN produtos p ON p.id = vi.produto_id
-                WHERE v.status <> 'cancelada'
-                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
-                GROUP BY vi.produto_id
+                  (COALESCE(v.qtd,0) - COALESCE(d.qtd,0)) AS qtd,
+                  (COALESCE(v.total,0) - COALESCE(d.total,0)) AS total
+                FROM ids i
+                LEFT JOIN vendas_cte v ON v.produto_id = i.produto_id
+                LEFT JOIN dev d ON d.produto_id = i.produto_id
+                LEFT JOIN produtos p ON p.id = i.produto_id
+                WHERE (COALESCE(v.qtd,0) - COALESCE(d.qtd,0)) > 0
+                   OR (COALESCE(v.total,0) - COALESCE(d.total,0)) > 0
                 ORDER BY total DESC, qtd DESC
                 LIMIT ?
              """)) {
             ps.setString(1, periodo.getInicioIso());
             ps.setString(2, periodo.getFimIso());
-            ps.setInt(3, limit);
+            ps.setString(3, periodo.getInicioIso());
+            ps.setString(4, periodo.getFimIso());
+            ps.setInt(5, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new ProdutoVendaResumoModel(
@@ -310,17 +397,47 @@ public class RelatoriosDAO {
         List<SerieDiariaModel> list = new ArrayList<>();
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement("""
-                SELECT date(v.data_venda) AS dia,
-                       COUNT(*) AS qtd_vendas,
-                       COALESCE(SUM(v.total_liquido),0) AS total
-                FROM vendas v
-                WHERE v.status <> 'cancelada'
-                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
-                GROUP BY date(v.data_venda)
-                ORDER BY date(v.data_venda) ASC
+                WITH vendas_cte AS (
+                    SELECT date(v.data_venda) AS dia,
+                           COUNT(*) AS qtd_vendas,
+                           COALESCE(SUM(v.total_liquido),0) AS total
+                    FROM vendas v
+                    WHERE v.status <> 'cancelada'
+                      AND date(v.data_venda) BETWEEN date(?) AND date(?)
+                    GROUP BY date(v.data_venda)
+                ),
+                dev AS (
+                    SELECT date(COALESCE(d.data, v.data_venda)) AS dia,
+                           COALESCE(SUM(d.qtd * COALESCE(d.valor_unit,0)),0) AS total
+                    FROM vendas_devolucoes d
+                    JOIN vendas v ON v.id = d.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(COALESCE(d.data, v.data_venda)) BETWEEN date(?) AND date(?)
+                    GROUP BY date(COALESCE(d.data, v.data_venda))
+                ),
+                est AS (
+                    SELECT date(COALESCE(e.data, v.data_venda)) AS dia,
+                           COALESCE(SUM(e.valor_estornado),0) AS total
+                    FROM vendas_estornos_pagamentos e
+                    JOIN vendas v ON v.id = e.venda_id
+                    WHERE v.status <> 'cancelada'
+                      AND date(COALESCE(e.data, v.data_venda)) BETWEEN date(?) AND date(?)
+                    GROUP BY date(COALESCE(e.data, v.data_venda))
+                )
+                SELECT v.dia AS dia,
+                       v.qtd_vendas AS qtd_vendas,
+                       (COALESCE(v.total,0) - COALESCE(d.total,0) - COALESCE(e.total,0)) AS total
+                FROM vendas_cte v
+                LEFT JOIN dev d ON d.dia = v.dia
+                LEFT JOIN est e ON e.dia = v.dia
+                ORDER BY v.dia ASC
              """)) {
             ps.setString(1, periodo.getInicioIso());
             ps.setString(2, periodo.getFimIso());
+            ps.setString(3, periodo.getInicioIso());
+            ps.setString(4, periodo.getFimIso());
+            ps.setString(5, periodo.getInicioIso());
+            ps.setString(6, periodo.getFimIso());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(new SerieDiariaModel(rs.getString("dia"), rs.getInt("qtd_vendas"), rs.getDouble("total")));

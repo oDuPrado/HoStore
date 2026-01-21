@@ -8,9 +8,10 @@ public class DashboardKpisModel {
     public PeriodoFiltro periodo;
 
     // KPIs principais (período)
-    public double faturamento;
+    public double faturamentoLiquido;
+    public double faturamentoBruto;
     public double lucroEstimado;
-    public double margemPct;        // lucro/faturamento
+    public double margemPct;        // lucro/faturamento liquido
     public int qtdVendas;
     public double ticketMedio;
     public int itensVendidos;

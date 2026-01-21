@@ -117,3 +117,18 @@
 2026-01-21T19:08:12.159Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
 2026-01-21T19:08:12.174Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
 2026-01-21T19:08:12.250Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T19:14:35.205Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T19:14:38.973Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T19:14:38.978Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T19:14:38.996Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T19:14:39.066Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T19:38:13.329Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T19:38:16.948Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T19:38:16.955Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T19:38:16.973Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T19:38:17.051Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-21T19:40:15.965Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-21T19:40:19.444Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-21T19:40:19.451Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T19:40:19.468Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
+2026-01-21T19:40:19.537Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
