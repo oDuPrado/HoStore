@@ -12,6 +12,7 @@ import model.JogoModel;
 import model.NcmModel;
 import service.NcmService;
 import service.ProdutoEstoqueService;
+import ui.ajustes.dialog.FornecedorDialog;
 import util.MaskUtils;
 import util.ScannerUtils;
 import util.UiKit;
@@ -203,7 +204,16 @@ public class CadastroEtbDialog extends JDialog {
                 lblFornecedor.setText(f.getNome());
             }
         });
-        fornRow.add(btnFornecedor, BorderLayout.EAST);
+        
+        JPanel fornButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        fornButtons.setOpaque(false);
+        fornButtons.add(btnFornecedor);
+        
+        JButton btnNovoFornec = new JButton("➕ Criar");
+        btnNovoFornec.addActionListener(e -> criarNovoFornecedor(owner));
+        fornButtons.add(btnNovoFornec);
+        
+        fornRow.add(fornButtons, BorderLayout.EAST);
 
         addField(form, g, r++, "Fornecedor:", fornRow);
 
@@ -629,5 +639,10 @@ public class CadastroEtbDialog extends JDialog {
         p.add(new JLabel(label), BorderLayout.WEST);
         p.add(field, BorderLayout.CENTER);
         return p;
+    }
+
+    private void criarNovoFornecedor(JFrame owner) {
+        FornecedorDialog dlg = new FornecedorDialog(owner, null);
+        dlg.setVisible(true);
     }
 }

@@ -219,18 +219,23 @@ public class ClienteCadastroDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Nome é obrigatório!");
             return;
         }
-        if (cpf.length() != 11) {
+        
+        // CPF agora é opcional
+        if (!cpf.isEmpty() && cpf.length() != 11) {
             JOptionPane.showMessageDialog(this, "CPF inválido.");
             return;
         }
-
-        List<ClienteModel> todos = ClienteService.loadAll();
-        boolean duplicado = todos.stream()
-                .anyMatch(c -> c.getCpf().replaceAll("\\D", "").equals(cpf)
-                        && !c.getId().equals(clienteModel.getId()));
-        if (duplicado) {
-            JOptionPane.showMessageDialog(this, "CPF já cadastrado para outro cliente.");
-            return;
+        
+        // Valida duplicação apenas se CPF foi preenchido
+        if (!cpf.isEmpty()) {
+            List<ClienteModel> todos = ClienteService.loadAll();
+            boolean duplicado = todos.stream()
+                    .anyMatch(c -> c.getCpf().replaceAll("\\D", "").equals(cpf)
+                            && !c.getId().equals(clienteModel.getId()));
+            if (duplicado) {
+                JOptionPane.showMessageDialog(this, "CPF já cadastrado para outro cliente.");
+                return;
+            }
         }
 
         clienteModel.setNome(nome);

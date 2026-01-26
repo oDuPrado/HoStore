@@ -7,6 +7,7 @@ import dao.ColecaoDAO;
 import dao.CadastroGenericoDAO;
 import model.ColecaoModel;
 import model.FornecedorModel;
+import ui.ajustes.dialog.FornecedorDialog;
 import util.FormatterFactory;
 import util.UiKit;
 import java.awt.event.KeyEvent;
@@ -355,7 +356,16 @@ public class CadastroCartaDialog extends JDialog {
         lblFornecedor.setBorder(new EmptyBorder(2, 6, 2, 6));
         line.add(new JLabel("Selecionado:"));
         line.add(lblFornecedor);
-        line.add(btnSelectFornec);
+        
+        JPanel fornButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        fornButtons.setOpaque(false);
+        fornButtons.add(btnSelectFornec);
+        
+        JButton btnNovoFornec = new JButton("➕ Criar");
+        btnNovoFornec.addActionListener(e -> criarNovoFornecedor((JFrame) getOwner()));
+        fornButtons.add(btnNovoFornec);
+        
+        line.add(fornButtons);
 
         card.add(line, BorderLayout.CENTER);
         return card;
@@ -805,5 +815,10 @@ public class CadastroCartaDialog extends JDialog {
             ex.printStackTrace(System.out);
             System.out.println("[LOG] Exceção ao salvar carta: " + ex.getMessage());
         }
+    }
+
+    private void criarNovoFornecedor(JFrame owner) {
+        FornecedorDialog dlg = new FornecedorDialog(owner, null);
+        dlg.setVisible(true);
     }
 }

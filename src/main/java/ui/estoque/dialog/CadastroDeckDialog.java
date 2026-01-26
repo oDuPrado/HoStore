@@ -6,6 +6,7 @@ import model.DeckModel;
 import model.JogoModel;
 import model.FornecedorModel;
 import service.ProdutoEstoqueService;
+import ui.ajustes.dialog.FornecedorDialog;
 import util.MaskUtils;
 import util.ScannerUtils;
 import util.UiKit;
@@ -116,7 +117,16 @@ public class CadastroDeckDialog extends JDialog {
         JPanel fornRow = new JPanel(new BorderLayout(8, 0));
         fornRow.setOpaque(false);
         fornRow.add(lblFornecedor, BorderLayout.CENTER);
-        fornRow.add(btnSelectFornec, BorderLayout.EAST);
+        
+        JPanel fornButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        fornButtons.setOpaque(false);
+        fornButtons.add(btnSelectFornec);
+        
+        JButton btnNovoFornec = new JButton("➕ Criar");
+        btnNovoFornec.addActionListener(e -> criarNovoFornecedor((JFrame) getOwner()));
+        fornButtons.add(btnNovoFornec);
+        
+        fornRow.add(fornButtons, BorderLayout.EAST);
         addField(form, g, r++, "Fornecedor:", fornRow);
 
         btnSelectFornec.addActionListener(e -> {
@@ -323,5 +333,10 @@ public class CadastroDeckDialog extends JDialog {
         p.add(new JLabel(label), BorderLayout.WEST);
         p.add(field, BorderLayout.CENTER);
         return p;
+    }
+
+    private void criarNovoFornecedor(JFrame owner) {
+        FornecedorDialog dlg = new FornecedorDialog(owner, null);
+        dlg.setVisible(true);
     }
 }

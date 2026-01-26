@@ -372,8 +372,10 @@ public class VendaNovaDialog extends JDialog {
         InputMap im = field.getInputMap(JComponent.WHEN_FOCUSED);
         ActionMap am = field.getActionMap();
 
-        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "commitAndFinalize");
-        am.put("commitAndFinalize", new AbstractAction() {
+        // ALTERADO: ENTER agora apenas confirma a edição e move para próximo campo
+        // Removido: finaliza venda automaticamente (era confuso para o usuário)
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "commitAndMove");
+        am.put("commitAndMove", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -381,20 +383,16 @@ public class VendaNovaDialog extends JDialog {
                 } catch (Exception ignored) {
                 }
 
-                // encerra edição do JTable
+                // encerra edição do JTable apenas
                 if (carrinhoTable.isEditing()) {
                     try {
                         carrinhoTable.getCellEditor().stopCellEditing();
                     } catch (Exception ignored) {
                     }
                 }
-
-                // e finaliza (conforme o hint)
-                if (btnFinalizar != null) {
-                    btnFinalizar.doClick();
-                } else {
-                    finalizarVenda();
-                }
+                
+                // Move para próximo componente em vez de finalizar a venda
+                field.transferFocus();
             }
         });
     }

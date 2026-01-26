@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
@@ -210,9 +211,12 @@ public class SelectProdutoDialog extends JDialog {
     private void personalizarTabela() {
         TableColumnModel cols = table.getColumnModel();
 
-        // checkbox estreito
-        cols.getColumn(0).setMaxWidth(42);
-        cols.getColumn(0).setMinWidth(42);
+        // ComboBox para Sim/Não
+        TableColumn checkboxCol = cols.getColumn(0);
+        checkboxCol.setMaxWidth(100);
+        checkboxCol.setMinWidth(100);
+        checkboxCol.setCellRenderer(new ComboBoxSimNaoRenderer());
+        checkboxCol.setCellEditor(new ComboBoxSimNaoEditor());
 
         // “ocultar” ID sem removeColumn (evita treta entre model e view)
         TableColumn idCol = cols.getColumn(1);
@@ -449,5 +453,59 @@ public class SelectProdutoDialog extends JDialog {
             l.setText(cf.format(v));
             return l;
         };
+    }
+
+    /**
+     * Renderer para exibir "Sim" ou "Não" em vez de true/false
+     */
+    private static class ComboBoxSimNaoRenderer extends JComboBox<String> implements TableCellRenderer {
+        public ComboBoxSimNaoRenderer() {
+            super(new String[]{"Não", "Sim"});
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, 
+                                                       boolean hasFocus, int row, int column) {
+            boolean boolValue = Boolean.TRUE.equals(value);
+            setSelectedIndex(boolValue ? 1 : 0);
+            
+            if (isSelected) {
+                setBackground(table.getSelectionBackground());
+                setForeground(table.getSelectionForeground());
+            } else {
+                setBackground(table.getBackground());
+                setForeground(table.getForeground());
+            }
+            
+            return this;
+        }
+    }
+
+    /**
+     * Editor para editar com ComboBox Sim/Não
+     */
+    private static class ComboBoxSimNaoEditor extends DefaultCellEditor {
+        private final JComboBox<String> comboBox;
+
+        public ComboBoxSimNaoEditor() {
+            super(new JComboBox<>(new String[]{"Não", "Sim"}));
+            this.comboBox = (JComboBox<String>) editorComponent;
+            this.comboBox.setOpaque(true);
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            // Retorna true se "Sim" está selecionado (índice 1), false caso contrário
+            return comboBox.getSelectedIndex() == 1;
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, 
+                                                     int row, int column) {
+            boolean boolValue = Boolean.TRUE.equals(value);
+            comboBox.setSelectedIndex(boolValue ? 1 : 0);
+            return comboBox;
+        }
     }
 }

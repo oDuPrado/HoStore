@@ -6,6 +6,7 @@ import model.FornecedorModel;
 import model.NcmModel;
 import service.NcmService;
 import service.ProdutoEstoqueService;
+import ui.ajustes.dialog.FornecedorDialog;
 import util.FormatterFactory;
 import util.ScannerUtils;
 import util.UiKit;
@@ -195,8 +196,17 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
         fornRow.setOpaque(false);
         fornRow.add(lblFornecedor, BorderLayout.CENTER);
 
+        JPanel fornButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        fornButtons.setOpaque(false);
+        
         btnSelectFornec.setText("Selecionar…");
-        fornRow.add(btnSelectFornec, BorderLayout.EAST);
+        fornButtons.add(btnSelectFornec);
+        
+        JButton btnNovoFornec = new JButton("➕ Criar");
+        btnNovoFornec.addActionListener(e -> criarNovoFornecedor(owner));
+        fornButtons.add(btnNovoFornec);
+        
+        fornRow.add(fornButtons, BorderLayout.EAST);
 
         addField(form, g, r++, "Fornecedor:", fornRow);
 
@@ -256,6 +266,13 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                 lblFornecedor.setText(f.getNome());
             }
         });
+    }
+
+    private void criarNovoFornecedor(JFrame owner) {
+        FornecedorDialog dlg = new FornecedorDialog(owner, null);
+        dlg.setVisible(true);
+        // Após criar, recarrega a lista e seleciona o novo fornecedor se houver
+        // (FornecedorDialog salva automaticamente)
     }
 
     private void setCodigoBarras(String codigo) {
@@ -420,6 +437,7 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
             JOptionPane.showMessageDialog(this, "Selecione um fornecedor.");
             return;
         }
+        // Lote agora é opcional - removido check
         if ("Outros".equals(cbMarca.getSelectedItem()) && tfMarcaOutro.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Informe a marca.");
             return;

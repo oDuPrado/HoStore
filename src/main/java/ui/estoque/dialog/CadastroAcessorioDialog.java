@@ -7,6 +7,7 @@ import model.FornecedorModel;
 import model.NcmModel;
 import service.NcmService;
 import service.ProdutoEstoqueService;
+import ui.ajustes.dialog.FornecedorDialog;
 import util.FormatterFactory;
 import util.ScannerUtils;
 import util.UiKit;
@@ -168,6 +169,9 @@ public class CadastroAcessorioDialog extends JDialog {
         fornRow.setOpaque(false);
         fornRow.add(lblFornecedor, BorderLayout.CENTER);
 
+        JPanel fornButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+        fornButtons.setOpaque(false);
+        
         JButton btEscolher = UiKit.ghost("Selecionar…");
         btEscolher.addActionListener(e -> {
             FornecedorSelectionDialog dlg = new FornecedorSelectionDialog(owner);
@@ -178,8 +182,13 @@ public class CadastroAcessorioDialog extends JDialog {
                 lblFornecedor.setText(f.getNome());
             }
         });
-
-        fornRow.add(btEscolher, BorderLayout.EAST);
+        fornButtons.add(btEscolher);
+        
+        JButton btnNovoFornec = new JButton("➕ Criar");
+        btnNovoFornec.addActionListener(e -> criarNovoFornecedor(owner));
+        fornButtons.add(btnNovoFornec);
+        
+        fornRow.add(fornButtons, BorderLayout.EAST);
         addField(formCard, g, r++, "Fornecedor:", fornRow);
 
         // Scroll pra não quebrar em telas menores
@@ -405,5 +414,10 @@ public class CadastroAcessorioDialog extends JDialog {
                     "Erro ao salvar Acessório:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void criarNovoFornecedor(JFrame owner) {
+        FornecedorDialog dlg = new FornecedorDialog(owner, null);
+        dlg.setVisible(true);
     }
 }
