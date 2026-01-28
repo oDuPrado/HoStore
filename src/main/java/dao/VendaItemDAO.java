@@ -17,8 +17,8 @@ public class VendaItemDAO {
 
     public int insert(VendaItemModel it, int vendaId, Connection c) throws SQLException {
         String sql = "INSERT INTO vendas_itens " +
-                "(venda_id, produto_id, qtd, preco, desconto, total_item) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
+                "(venda_id, produto_id, qtd, preco, desconto, total_item, promocao_id, desconto_origem, desconto_valor, desconto_tipo) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, vendaId);
@@ -27,6 +27,13 @@ public class VendaItemDAO {
             ps.setDouble(4, it.getPreco());
             ps.setDouble(5, it.getDesconto());
             ps.setDouble(6, it.getTotalItem());
+            ps.setString(7, it.getPromocaoId());
+            ps.setString(8, it.getDescontoOrigem() == null ? "MANUAL" : it.getDescontoOrigem());
+            double descVal = (it.getDescontoValor() != null)
+                    ? it.getDescontoValor()
+                    : (it.getQtd() * it.getPreco() * it.getDesconto() / 100.0);
+            ps.setDouble(9, descVal);
+            ps.setString(10, it.getDescontoTipo());
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
@@ -57,6 +64,10 @@ public class VendaItemDAO {
                 item.setPreco(rs.getDouble("preco"));
                 item.setDesconto(rs.getDouble("desconto"));
                 item.setTotalItem(rs.getDouble("total_item"));
+                item.setPromocaoId(rs.getString("promocao_id"));
+                item.setDescontoOrigem(rs.getString("desconto_origem"));
+                item.setDescontoValor(rs.getDouble("desconto_valor"));
+                item.setDescontoTipo(rs.getString("desconto_tipo"));
 
                 itens.add(item);
             }

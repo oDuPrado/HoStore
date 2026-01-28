@@ -46,4 +46,35 @@ public class PromocaoProdutoDAO {
         }
         return lista;
     }
+
+    public List<PromocaoProdutoModel> listarPorProduto(String produtoId) throws Exception {
+        List<PromocaoProdutoModel> lista = new ArrayList<>();
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT * FROM promocao_produtos WHERE produto_id = ?")) {
+            ps.setString(1, produtoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    PromocaoProdutoModel m = new PromocaoProdutoModel();
+                    m.setId(rs.getString("id"));
+                    m.setPromocaoId(rs.getString("promocao_id"));
+                    m.setProdutoId(rs.getString("produto_id"));
+                    lista.add(m);
+                }
+            }
+        }
+        return lista;
+    }
+
+    public boolean existeVinculo(String promocaoId, String produtoId) throws Exception {
+        try (Connection c = DB.get();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT 1 FROM promocao_produtos WHERE promocao_id = ? AND produto_id = ? LIMIT 1")) {
+            ps.setString(1, promocaoId);
+            ps.setString(2, produtoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
 }

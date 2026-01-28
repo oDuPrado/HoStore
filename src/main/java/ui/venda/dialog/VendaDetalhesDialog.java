@@ -87,7 +87,7 @@ public class VendaDetalhesDialog extends JDialog {
         // Models das abas
         // =========================
         DefaultTableModel itensModel = new DefaultTableModel(
-                new String[] { "Produto", "Tipo", "Lote", "Qtd", "V.Unit.", "Preco Lote", "Desc (%)", "Total" }, 0) {
+                new String[] { "Produto", "Tipo", "Lote", "Qtd", "V.Unit.", "Preco Lote", "Desc (%)", "Promo", "Total" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
                 return false;
@@ -301,10 +301,12 @@ public class VendaDetalhesDialog extends JDialog {
             java.util.Set<Integer> itensAdicionados = new java.util.HashSet<>();
             try (PreparedStatement pi = c.prepareStatement(
                     "SELECT vi.id AS venda_item_id, vi.*, p.nome, p.tipo, " +
+                            "pr.nome AS promo_nome, " +
                             "vil.lote_id AS lote_id, vil.qtd AS qtd_lote, vil.custo_unit AS custo_lote, " +
                             "l.codigo_lote, l.preco_venda_unit AS preco_lote, l.origem AS origem_lote, l.legado AS lote_legado, l.data_entrada " +
                             "FROM vendas_itens vi " +
                             "JOIN produtos p ON vi.produto_id = p.id " +
+                            "LEFT JOIN promocoes pr ON pr.id = vi.promocao_id " +
                             "LEFT JOIN vendas_itens_lotes vil ON vil.venda_item_id = vi.id " +
                             "LEFT JOIN estoque_lotes l ON l.id = vil.lote_id " +
                             "WHERE vi.venda_id = ? " +
@@ -332,7 +334,9 @@ public class VendaDetalhesDialog extends JDialog {
                         double totalIt = (preco * qtdLote) * (1 - desconto / 100.0);
 
                         int row = itensModel.getRowCount();
-                        itensModel.addRow(new Object[] { nome, tipo, loteLabel, qtdLote, preco, precoLote, desconto, totalIt });
+                        String promoNome = ri.getString("promo_nome");
+                        String promoLabel = (promoNome != null && !promoNome.isBlank()) ? promoNome : "";
+                        itensModel.addRow(new Object[] { nome, tipo, loteLabel, qtdLote, preco, precoLote, desconto, promoLabel, totalIt });
                         if (pedidoId != null) {
                             pedidoIdPorRow.put(row, pedidoId);
                         }
@@ -536,7 +540,7 @@ public class VendaDetalhesDialog extends JDialog {
             // V.Unit, Preco Lote, Total
             t.getColumnModel().getColumn(4).setCellRenderer(currencyZebra(zebra));
             t.getColumnModel().getColumn(5).setCellRenderer(currencyZebra(zebra));
-            t.getColumnModel().getColumn(7).setCellRenderer(currencyZebra(zebra));
+            t.getColumnModel().getColumn(8).setCellRenderer(currencyZebra(zebra));
 
             // % desc
             t.getColumnModel().getColumn(6).setCellRenderer(percentZebra(zebra));
@@ -544,6 +548,7 @@ public class VendaDetalhesDialog extends JDialog {
             // qtd central
             DefaultTableCellRenderer centerZebra = centerZebra(zebra);
             t.getColumnModel().getColumn(3).setCellRenderer(centerZebra);
+            t.getColumnModel().getColumn(7).setCellRenderer(centerZebra);
 
             // lote link + tooltip
             t.getColumnModel().getColumn(2).setCellRenderer(loteLinkRenderer(zebra));

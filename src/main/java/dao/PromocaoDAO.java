@@ -22,8 +22,8 @@ public class PromocaoDAO {
     public void inserir(PromocaoModel p) throws Exception {
         String sql = """
             INSERT INTO promocoes
-              (id, nome, desconto, tipo_desconto, aplica_em, tipo_id, data_inicio, data_fim, observacoes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+              (id, nome, desconto, tipo_desconto, aplica_em, tipo_id, categoria, data_inicio, data_fim, ativo, prioridade, observacoes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -34,9 +34,20 @@ public class PromocaoDAO {
             ps.setString(4, p.getTipoDesconto().name());
             ps.setString(5, p.getAplicaEm().name());
             ps.setString(6, p.getTipoId());
-            ps.setDate(7, new java.sql.Date(p.getDataInicio().getTime()));
-            ps.setDate(8, new java.sql.Date(p.getDataFim().getTime()));
-            ps.setString(9, p.getObservacoes());
+            ps.setString(7, p.getCategoria());
+            if (p.getDataInicio() != null) {
+                ps.setDate(8, new java.sql.Date(p.getDataInicio().getTime()));
+            } else {
+                ps.setNull(8, Types.DATE);
+            }
+            if (p.getDataFim() != null) {
+                ps.setDate(9, new java.sql.Date(p.getDataFim().getTime()));
+            } else {
+                ps.setNull(9, Types.DATE);
+            }
+            ps.setInt(10, p.getAtivo() == null ? 1 : p.getAtivo());
+            ps.setInt(11, p.getPrioridade() == null ? 0 : p.getPrioridade());
+            ps.setString(12, p.getObservacoes());
             ps.execute();
         }
     }
@@ -48,7 +59,7 @@ public class PromocaoDAO {
         String sql = """
             UPDATE promocoes SET
               nome = ?, desconto = ?, tipo_desconto = ?, aplica_em = ?,
-              tipo_id = ?, data_inicio = ?, data_fim = ?, observacoes = ?
+              tipo_id = ?, categoria = ?, data_inicio = ?, data_fim = ?, ativo = ?, prioridade = ?, observacoes = ?
             WHERE id = ?
             """;
         try (Connection c = DB.get();
@@ -59,10 +70,21 @@ public class PromocaoDAO {
             ps.setString(3, p.getTipoDesconto().name());
             ps.setString(4, p.getAplicaEm().name());
             ps.setString(5, p.getTipoId());
-            ps.setDate(6, new java.sql.Date(p.getDataInicio().getTime()));
-            ps.setDate(7, new java.sql.Date(p.getDataFim().getTime()));
-            ps.setString(8, p.getObservacoes());
-            ps.setString(9, p.getId());
+            ps.setString(6, p.getCategoria());
+            if (p.getDataInicio() != null) {
+                ps.setDate(7, new java.sql.Date(p.getDataInicio().getTime()));
+            } else {
+                ps.setNull(7, Types.DATE);
+            }
+            if (p.getDataFim() != null) {
+                ps.setDate(8, new java.sql.Date(p.getDataFim().getTime()));
+            } else {
+                ps.setNull(8, Types.DATE);
+            }
+            ps.setInt(9, p.getAtivo() == null ? 1 : p.getAtivo());
+            ps.setInt(10, p.getPrioridade() == null ? 0 : p.getPrioridade());
+            ps.setString(11, p.getObservacoes());
+            ps.setString(12, p.getId());
             ps.execute();
         }
     }
@@ -120,8 +142,10 @@ public class PromocaoDAO {
         List<PromocaoModel> lista = new ArrayList<>();
         String sql = """
             SELECT * FROM promocoes
-            WHERE CURRENT_DATE BETWEEN data_inicio AND data_fim
-            ORDER BY nome
+            WHERE COALESCE(ativo,1) = 1
+              AND (data_inicio IS NULL OR date(data_inicio) <= date('now'))
+              AND (data_fim IS NULL OR date(data_fim) >= date('now'))
+            ORDER BY prioridade DESC, nome
             """;
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement(sql);
@@ -145,8 +169,13 @@ public class PromocaoDAO {
         p.setTipoDesconto(TipoDesconto.valueOf(rs.getString("tipo_desconto")));
         p.setAplicaEm(AplicaEm.valueOf(rs.getString("aplica_em")));
         p.setTipoId(rs.getString("tipo_id"));
+        p.setCategoria(rs.getString("categoria"));
         p.setDataInicio(rs.getDate("data_inicio"));
         p.setDataFim(rs.getDate("data_fim"));
+        p.setAtivo(rs.getInt("ativo"));
+        if (rs.wasNull()) p.setAtivo(1);
+        p.setPrioridade(rs.getInt("prioridade"));
+        if (rs.wasNull()) p.setPrioridade(0);
         p.setObservacoes(rs.getString("observacoes"));
         return p;
     }

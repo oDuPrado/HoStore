@@ -26,7 +26,7 @@ public class ProdutoDAO {
     public void insert(ProdutoModel p) throws SQLException {
         String sql = """
                     INSERT INTO produtos
-                    (id, nome, jogo_id, tipo, quantidade, preco_compra, preco_venda, codigo_barras,
+                    (id, nome, jogo_id, tipo, categoria, quantidade, preco_compra, preco_venda, codigo_barras,
                      ncm, cfop, csosn, origem, unidade, criado_em, alterado_em, fornecedor_id, ativo)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
@@ -40,7 +40,7 @@ public class ProdutoDAO {
     public void update(ProdutoModel p) throws SQLException {
         String sql = """
                     UPDATE produtos SET
-                        nome = ?, jogo_id = ?, tipo = ?, quantidade = ?, preco_compra = ?, preco_venda = ?,
+                        nome = ?, jogo_id = ?, tipo = ?, categoria = ?, quantidade = ?, preco_compra = ?, preco_venda = ?,
                         codigo_barras = ?, ncm = ?, cfop = ?, csosn = ?, origem = ?, unidade = ?,
                         fornecedor_id = ?, alterado_em = ?
                     WHERE id = ?
@@ -55,7 +55,7 @@ public class ProdutoDAO {
     public void update(ProdutoModel p, Connection c) throws SQLException {
         String sql = """
                     UPDATE produtos SET
-                        nome = ?, jogo_id = ?, tipo = ?, quantidade = ?, preco_compra = ?, preco_venda = ?,
+                        nome = ?, jogo_id = ?, tipo = ?, categoria = ?, quantidade = ?, preco_compra = ?, preco_venda = ?,
                         codigo_barras = ?, ncm = ?, cfop = ?, csosn = ?, origem = ?, unidade = ?,
                         fornecedor_id = ?, alterado_em = ?
                     WHERE id = ?
@@ -300,6 +300,7 @@ public class ProdutoDAO {
         p.setCsosn(rs.getString("csosn"));
         p.setOrigem(rs.getString("origem"));
         p.setUnidade(rs.getString("unidade"));
+        p.setCategoria(rs.getString("categoria"));
         p.setFornecedorId(rs.getString("fornecedor_id"));
 
         return p;
@@ -310,6 +311,27 @@ public class ProdutoDAO {
         ps.setString(2, p.getNome());
         ps.setString(3, p.getJogoId());
         ps.setString(4, p.getTipo());
+        ps.setString(5, p.getCategoria());
+        ps.setInt(6, p.getQuantidade());
+        ps.setDouble(7, p.getPrecoCompra());
+        ps.setDouble(8, p.getPrecoVenda());
+        ps.setString(9, p.getCodigoBarras());
+        ps.setString(10, p.getNcm());
+        ps.setString(11, p.getCfop());
+        ps.setString(12, p.getCsosn());
+        ps.setString(13, p.getOrigem());
+        ps.setString(14, p.getUnidade());
+        ps.setString(15, p.getCriadoEm().toString());
+        ps.setString(16, p.getAlteradoEm().toString());
+        ps.setString(17, p.getFornecedorId());
+        ps.setInt(18, 1);
+    }
+
+    private void bindUpdate(PreparedStatement ps, ProdutoModel p) throws SQLException {
+        ps.setString(1, p.getNome());
+        ps.setString(2, p.getJogoId());
+        ps.setString(3, p.getTipo());
+        ps.setString(4, p.getCategoria());
         ps.setInt(5, p.getQuantidade());
         ps.setDouble(6, p.getPrecoCompra());
         ps.setDouble(7, p.getPrecoVenda());
@@ -319,28 +341,9 @@ public class ProdutoDAO {
         ps.setString(11, p.getCsosn());
         ps.setString(12, p.getOrigem());
         ps.setString(13, p.getUnidade());
-        ps.setString(14, p.getCriadoEm().toString());
+        ps.setString(14, p.getFornecedorId());
         ps.setString(15, p.getAlteradoEm().toString());
-        ps.setString(16, p.getFornecedorId());
-        ps.setInt(17, 1);
-    }
-
-    private void bindUpdate(PreparedStatement ps, ProdutoModel p) throws SQLException {
-        ps.setString(1, p.getNome());
-        ps.setString(2, p.getJogoId());
-        ps.setString(3, p.getTipo());
-        ps.setInt(4, p.getQuantidade());
-        ps.setDouble(5, p.getPrecoCompra());
-        ps.setDouble(6, p.getPrecoVenda());
-        ps.setString(7, p.getCodigoBarras());
-        ps.setString(8, p.getNcm());
-        ps.setString(9, p.getCfop());
-        ps.setString(10, p.getCsosn());
-        ps.setString(11, p.getOrigem());
-        ps.setString(12, p.getUnidade());
-        ps.setString(13, p.getFornecedorId());
-        ps.setString(14, p.getAlteradoEm().toString());
-        ps.setString(15, p.getId());
+        ps.setString(16, p.getId());
     }
 
 }

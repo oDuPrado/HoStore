@@ -719,3 +719,21 @@
 2026-01-28T19:28:55.668Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
 2026-01-28T19:28:55.668Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
 2026-01-28T19:28:55.668Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T20:22:27.854Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T20:22:31.812Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T20:22:31.818Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T20:22:31.834Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T20:22:32.068Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T20:22:32.069Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T20:25:20.325Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T20:25:20.330Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T20:25:20.330Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T20:36:42.056Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T20:36:46.387Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T20:36:46.395Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T20:36:46.410Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T20:36:46.676Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T20:36:46.676Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T20:38:26.657Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T20:38:26.657Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T20:38:26.657Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin

@@ -86,7 +86,7 @@ public class VerProdutosVinculadosDialog extends JDialog {
     private void carregarCategorias() {
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement(
-                     "SELECT DISTINCT categoria FROM produtos ORDER BY categoria");
+                     "SELECT DISTINCT COALESCE(categoria, tipo) AS categoria FROM produtos ORDER BY categoria");
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) cbCategoria.addItem(rs.getString("categoria"));
         } catch (Exception e) {
@@ -104,7 +104,7 @@ public class VerProdutosVinculadosDialog extends JDialog {
 
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement(
-                     "SELECT id,nome FROM produtos WHERE categoria=? ORDER BY nome")) {
+                     "SELECT id,nome FROM produtos WHERE COALESCE(categoria, tipo)=? ORDER BY nome")) {
             ps.setString(1, categoria);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {

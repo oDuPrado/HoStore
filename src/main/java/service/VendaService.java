@@ -7,6 +7,7 @@ import dao.VendaDevolucaoDAO;
 import dao.VendaDevolucaoLoteDAO;
 import dao.ProdutoDAO;
 import dao.ConfigNfceDAO;
+import dao.PromocaoAplicacaoDAO;
 
 import model.VendaItemModel;
 import model.VendaModel;
@@ -15,6 +16,7 @@ import model.ProdutoModel;
 import model.ConfigNfceModel;
 import model.DocumentoFiscalAmbiente;
 import model.DocumentoFiscalModel;
+import model.PromocaoAplicacaoModel;
 
 import util.DB;
 import util.LogService;
@@ -22,9 +24,11 @@ import util.PDFGenerator;
 
 import java.sql.Connection;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Serviço transacional:
@@ -41,6 +45,7 @@ public class VendaService {
     private final VendaDevolucaoDAO devolucaoDAO = new VendaDevolucaoDAO();
     private final ContaReceberService contaReceberService = new ContaReceberService();
     private final ProdutoDAO produtoDAO = new ProdutoDAO();
+    private final PromocaoAplicacaoDAO promoAplicacaoDAO = new PromocaoAplicacaoDAO();
 
     public int finalizarVenda(VendaModel venda, List<VendaItemModel> itens) throws Exception {
 
@@ -86,6 +91,24 @@ public class VendaService {
 
                 for (VendaItemModel it : itens) {
                     int vendaItemId = itemDAO.insert(it, vendaId, c);
+
+                    if (it.getPromocaoId() != null && it.getDescontoValor() != null && it.getDescontoValor() > 0) {
+                        PromocaoAplicacaoModel pa = new PromocaoAplicacaoModel();
+                        pa.setId(UUID.randomUUID().toString());
+                        pa.setPromocaoId(it.getPromocaoId());
+                        pa.setVendaId(vendaId);
+                        pa.setVendaItemId(vendaItemId);
+                        pa.setProdutoId(it.getProdutoId());
+                        pa.setClienteId(venda.getClienteId());
+                        pa.setQtd(it.getQtd());
+                        double bruto = it.getQtd() * it.getPreco();
+                        pa.setPrecoOriginal(bruto);
+                        pa.setDescontoValor(it.getDescontoValor());
+                        pa.setPrecoFinal(it.getTotalItem());
+                        pa.setDescontoTipo(it.getDescontoTipo());
+                        pa.setDataAplicacao(LocalDateTime.now().toString());
+                        promoAplicacaoDAO.inserir(pa, c);
+                    }
 
                     if (!naoEstoque.getOrDefault(it.getProdutoId(), false)) {
                         List<ProdutoEstoqueService.LoteConsumo> consumos = produtoEstoqueService.consumirFIFO(

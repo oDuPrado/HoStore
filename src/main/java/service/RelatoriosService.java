@@ -1,6 +1,7 @@
 package service;
 
 import dao.RelatoriosDAO;
+import dao.PromocaoAplicacaoDAO;
 import model.*;
 
 import java.time.Instant;
@@ -10,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RelatoriosService {
 
     private final RelatoriosDAO dao = new RelatoriosDAO();
+    private final PromocaoAplicacaoDAO promoDAO = new PromocaoAplicacaoDAO();
 
     // Cache simples (evita martelar o SQLite se o usuário ficar clicando em tudo)
     private static final long TTL_MS = 60_000; // 60s
@@ -51,6 +53,17 @@ public class RelatoriosService {
             home.encalhados = dao.listarEncalhados(periodo, 20);
 
             return home;
+        });
+    }
+
+    public java.util.List<PromocaoDesempenhoModel> listarDesempenhoPromocoes(PeriodoFiltro periodo) {
+        String key = "promos:" + periodo.getInicioIso() + ":" + periodo.getFimIso();
+        return cached(key, () -> {
+            try {
+                return promoDAO.listarDesempenho(periodo.getInicioIso(), periodo.getFimIso());
+            } catch (Exception e) {
+                throw new RuntimeException("Falha ao listar promocoes: " + e.getMessage(), e);
+            }
         });
     }
 

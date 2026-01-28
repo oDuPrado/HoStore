@@ -7,6 +7,7 @@ public class ProdutoModel {
     private String id; // mesmo id da entidade detalhada (ex: carta.id)
     private String nome;
     private String tipo; // "Carta", "Booster", etc.
+    private String categoria; // categoria opcional
     private String jogoId;
     private String codigoBarras;
     private String fornecedorId; // ID do fornecedor associado a este produto
@@ -59,6 +60,14 @@ public class ProdutoModel {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public String getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
     public int getQuantidade() {

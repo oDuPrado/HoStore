@@ -39,6 +39,7 @@ public class ConfigLojaModel {
     private String csc;                        // Código de Segurança do Contribuinte
     private String tokenCsc;                   // Token do CSC (quando aplicável)
     private String certificadoPath;            // Caminho para arquivo .pfx do Certificado Digital A1
+    private String certificadoDir;             // Diretorio do ultimo certificado selecionado
     private String certificadoSenha;           // Senha do certificado digital
 
     // ========== Impressão ==========
@@ -79,6 +80,7 @@ public class ConfigLojaModel {
             String csc,
             String tokenCsc,
             String certificadoPath,
+            String certificadoDir,
             String certificadoSenha,
             String nomeImpressora,
             String textoRodapeNota,
@@ -111,6 +113,7 @@ public class ConfigLojaModel {
         this.csc                   = csc;
         this.tokenCsc              = tokenCsc;
         this.certificadoPath       = certificadoPath;
+        this.certificadoDir        = certificadoDir;
         this.certificadoSenha      = certificadoSenha;
         this.nomeImpressora        = nomeImpressora;
         this.textoRodapeNota       = textoRodapeNota;
@@ -148,6 +151,7 @@ public class ConfigLojaModel {
             String csc,
             String tokenCsc,
             String certificadoPath,
+            String certificadoDir,
             String certificadoSenha,
             String nomeImpressora,
             String textoRodapeNota,
@@ -180,6 +184,7 @@ public class ConfigLojaModel {
              csc,
              tokenCsc,
              certificadoPath,
+             certificadoDir,
              certificadoSenha,
              nomeImpressora,
              textoRodapeNota,
@@ -348,6 +353,13 @@ public class ConfigLojaModel {
     }
     public void setCertificadoPath(String certificadoPath) {
         this.certificadoPath = certificadoPath;
+    }
+
+    public String getCertificadoDir() {
+        return certificadoDir;
+    }
+    public void setCertificadoDir(String certificadoDir) {
+        this.certificadoDir = certificadoDir;
     }
 
     public String getCertificadoSenha() {

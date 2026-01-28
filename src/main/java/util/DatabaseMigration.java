@@ -541,6 +541,50 @@ public class DatabaseMigration {
                 ALTER TABLE vendas_estornos_pagamentos ADD COLUMN taxa_quem TEXT;
                 """
         ));
+
+        // V016: Promo??es completas (categoria, aplica??o e hist?rico)
+        migrations.add(new Migration(
+            "016",
+            "Promo??es: categoria, hist?rico e itens",
+            "Adiciona categoria em produtos e promocoes, hist?rico de aplica??o e campos em vendas_itens",
+            """
+                ALTER TABLE produtos ADD COLUMN categoria TEXT;
+                ALTER TABLE promocoes ADD COLUMN categoria TEXT;
+                ALTER TABLE promocoes ADD COLUMN ativo INTEGER DEFAULT 1;
+                ALTER TABLE promocoes ADD COLUMN prioridade INTEGER DEFAULT 0;
+
+                ALTER TABLE vendas_itens ADD COLUMN promocao_id TEXT;
+                ALTER TABLE vendas_itens ADD COLUMN desconto_origem TEXT;
+                ALTER TABLE vendas_itens ADD COLUMN desconto_valor REAL;
+                ALTER TABLE vendas_itens ADD COLUMN desconto_tipo TEXT;
+
+                CREATE TABLE IF NOT EXISTS promocoes_aplicacoes (
+                  id TEXT PRIMARY KEY,
+                  promocao_id TEXT,
+                  venda_id INTEGER,
+                  venda_item_id INTEGER,
+                  produto_id TEXT,
+                  cliente_id TEXT,
+                  qtd INTEGER,
+                  preco_original REAL,
+                  desconto_valor REAL,
+                  preco_final REAL,
+                  desconto_tipo TEXT,
+                  data_aplicacao TEXT
+                );
+                """
+        ));
+
+        // V017: Persistir pasta do certificado
+        migrations.add(new Migration(
+            "017",
+            "Salvar diret?rio do certificado",
+            "Adiciona coluna certificado_dir em config_loja",
+            """
+                ALTER TABLE config_loja ADD COLUMN certificado_dir TEXT;
+                """
+        ));
+
         return migrations;
     }
 

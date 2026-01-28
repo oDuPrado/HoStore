@@ -5,10 +5,12 @@ import model.TipoDesconto;
 import model.AplicaEm;
 import model.TipoPromocaoModel;
 import dao.PromocaoDAO;
+import dao.PromocaoAplicacaoDAO;
 import dao.TipoPromocaoDAO;
 import ui.ajustes.dialog.PromocaoDialog;
 import ui.ajustes.dialog.VincularProdutosDialog;
 import ui.ajustes.dialog.VerProdutosVinculadosDialog;
+import ui.relatorios.dialog.RelatorioTabelaDialog;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -17,6 +19,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import util.MoedaUtil;
 import java.util.List;
 
 /**
@@ -30,6 +33,7 @@ public class PromocaoPainel extends AbstractCrudPainel {
     private final PromocaoDAO dao = new PromocaoDAO();
     // Formatter para exibir datas no padrão dd/MM/yyyy
     private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final JButton btnHist = new JButton("ðŸ“Š Historico");
 
     public PromocaoPainel() {
         super();
@@ -44,12 +48,14 @@ public class PromocaoPainel extends AbstractCrudPainel {
 
         JButton btnTipo = new JButton("🧩 Tipos de Promoção");
         btnTipo.addActionListener(e -> new TipoPromocaoPainel().abrir());
+        btnHist.addActionListener(e -> onHistorico());
 
         // Adiciona os botões ao painel de ações
         JPanel painelBotoes = (JPanel) getComponent(1);
         painelBotoes.add(btnVincular);
         painelBotoes.add(btnVer);
         painelBotoes.add(btnTipo);
+        painelBotoes.add(btnHist);
     }
 
     @Override
@@ -65,7 +71,9 @@ public class PromocaoPainel extends AbstractCrudPainel {
                 "Tipo Desc",
                 "Valor Desc",
                 "Aplica em",
+                "Categoria",
                 "Tipo Promo",
+                "Ativo",
                 "Início",
                 "Fim",
                 "Duração (dias)"
@@ -91,17 +99,25 @@ public class PromocaoPainel extends AbstractCrudPainel {
             List<PromocaoModel> lista = dao.listarTodos();
             for (PromocaoModel p : lista) {
                 // converte Date para LocalDate
-                LocalDate ini = p.getDataInicio().toInstant()
-                        .atZone(ZoneId.systemDefault()).toLocalDate();
-                LocalDate fim = p.getDataFim().toInstant()
-                        .atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalDate ini = null;
+                LocalDate fim = null;
+                if (p.getDataInicio() != null) {
+                    ini = p.getDataInicio().toInstant()
+                            .atZone(ZoneId.systemDefault()).toLocalDate();
+                }
+                if (p.getDataFim() != null) {
+                    fim = p.getDataFim().toInstant()
+                            .atZone(ZoneId.systemDefault()).toLocalDate();
+                }
                 // formata datas
-                String d1 = ini.format(fmt);
-                String d2 = fim.format(fmt);
+                String d1 = (ini != null) ? ini.format(fmt) : "-";
+                String d2 = (fim != null) ? fim.format(fmt) : "-";
 
                 // calcula duração em dias (inclusive), ou marca "Acabou"/"Inválida"
                 String dur;
-                if (ini.isAfter(fim)) {
+                if (ini == null || fim == null) {
+                    dur = "—";
+                } else if (ini.isAfter(fim)) {
                     dur = "Inválida";
                 } else if (LocalDate.now().isAfter(fim)) {
                     dur = "Acabou";
@@ -124,7 +140,9 @@ public class PromocaoPainel extends AbstractCrudPainel {
                         p.getTipoDesconto().name(),
                         p.getDesconto() + (p.getTipoDesconto() == TipoDesconto.PORCENTAGEM ? "%" : " R$"),
                         p.getAplicaEm().name(),
+                        p.getCategoria() != null ? p.getCategoria() : "?",
                         nomeTipo,
+                        (p.getAtivo() == null || p.getAtivo() == 1) ? "Sim" : "N?o",
                         d1, d2, dur
                 });
             }
@@ -240,4 +258,54 @@ public class PromocaoPainel extends AbstractCrudPainel {
                     "Erro ao ver produtos vinculados:\n" + e.getMessage());
         }
     }
+
+    private void onHistorico() {
+        int row = tabela.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this, "Selecione uma promo??o primeiro.");
+            return;
+        }
+        String nome = modelo.getValueAt(row, 0).toString();
+        try {
+            PromocaoModel promo = null;
+            for (PromocaoModel p : dao.listarTodos()) {
+                if (p.getNome().equals(nome)) {
+                    promo = p;
+                    break;
+                }
+            }
+            if (promo == null) {
+                JOptionPane.showMessageDialog(this, "Promo??o n?o encontrada.");
+                return;
+            }
+
+            PromocaoAplicacaoDAO apDao = new PromocaoAplicacaoDAO();
+            java.util.List<model.PromocaoAplicacaoModel> hist = apDao.listarPorPromocao(promo.getId());
+
+            RelatorioTabelaDialog d = new RelatorioTabelaDialog(
+                    SwingUtilities.getWindowAncestor(this),
+                    "Hist?rico da Promo??o: " + promo.getNome(),
+                    new Object[]{"Data", "Venda", "Item", "Produto", "Cliente", "Qtd", "Pre?o", "Desconto", "Final", "Tipo"});
+            java.util.List<Object[]> rows = new java.util.ArrayList<>();
+            for (model.PromocaoAplicacaoModel a : hist) {
+                rows.add(new Object[]{
+                        a.getDataAplicacao(),
+                        a.getVendaId(),
+                        a.getVendaItemId(),
+                        a.getProdutoId(),
+                        a.getClienteId(),
+                        a.getQtd(),
+                        MoedaUtil.brl(a.getPrecoOriginal()),
+                        MoedaUtil.brl(a.getDescontoValor()),
+                        MoedaUtil.brl(a.getPrecoFinal()),
+                        a.getDescontoTipo()
+                });
+            }
+            d.setRows(rows);
+            d.setVisible(true);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao abrir historico:\n" + e.getMessage());
+        }
+    }
+
 }

@@ -19,6 +19,12 @@ public class VendaItemModel {
     private double desconto;    // % (0-100)
     private double totalItem;   // calculado
 
+    private String promocaoId;
+    private String promocaoNome;
+    private String descontoOrigem; // PROMO ou MANUAL
+    private Double descontoValor;
+    private String descontoTipo;
+
     /* ---------- Construtores ---------- */
 public VendaItemModel() {
     // necessário para instanciar vazio e preencher com setters
@@ -62,6 +68,21 @@ public VendaItemModel() {
 
     public double getTotalItem()        { return totalItem; }
     public void   setTotalItem(double t){ this.totalItem = t; }
+
+    public String getPromocaoId() { return promocaoId; }
+    public void setPromocaoId(String promocaoId) { this.promocaoId = promocaoId; }
+
+    public String getPromocaoNome() { return promocaoNome; }
+    public void setPromocaoNome(String promocaoNome) { this.promocaoNome = promocaoNome; }
+
+    public String getDescontoOrigem() { return descontoOrigem; }
+    public void setDescontoOrigem(String descontoOrigem) { this.descontoOrigem = descontoOrigem; }
+
+    public Double getDescontoValor() { return descontoValor; }
+    public void setDescontoValor(Double descontoValor) { this.descontoValor = descontoValor; }
+
+    public String getDescontoTipo() { return descontoTipo; }
+    public void setDescontoTipo(String descontoTipo) { this.descontoTipo = descontoTipo; }
 
     public void setProdutoId(String produtoId) {
     this.produtoId = produtoId;

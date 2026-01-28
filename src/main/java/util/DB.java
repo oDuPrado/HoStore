@@ -502,6 +502,7 @@ public class DB {
                                                         "nome TEXT NOT NULL, " +
                                                         "jogo_id TEXT, " +
                                                         "tipo TEXT NOT NULL, " +
+                                                        "categoria TEXT, " +
                                                         "quantidade INTEGER NOT NULL DEFAULT 0, " +
                                                         "preco_compra REAL, " +
                                                         "preco_venda REAL, " +
@@ -823,6 +824,10 @@ public class DB {
                                                         "desconto REAL DEFAULT 0, " +
                                                         "acrescimo REAL DEFAULT 0, " +
                                                         "total_item REAL NOT NULL, " +
+                                                        "promocao_id TEXT, " +
+                                                        "desconto_origem TEXT, " +
+                                                        "desconto_valor REAL, " +
+                                                        "desconto_tipo TEXT, " +
                                                         "observacoes TEXT, " +
                                                         "FOREIGN KEY (venda_id) REFERENCES vendas(id)" +
                                                         ")",
@@ -1215,6 +1220,7 @@ public class DB {
                                                         "csc TEXT, " +
                                                         "token_csc TEXT, " +
                                                         "certificado_path TEXT, " +
+                                                        "certificado_dir TEXT, " +
                                                         "certificado_senha TEXT, " +
                                                         "nome_impressora TEXT, " +
                                                         "texto_rodape_nota TEXT, " +
@@ -1242,8 +1248,11 @@ public class DB {
                                                         "tipo_desconto TEXT NOT NULL, " +
                                                         "aplica_em TEXT NOT NULL, " +
                                                         "tipo_id TEXT, " +
-                                                        "data_inicio TEXT NOT NULL, " +
-                                                        "data_fim TEXT NOT NULL, " +
+                                                        "categoria TEXT, " +
+                                                        "data_inicio TEXT, " +
+                                                        "data_fim TEXT, " +
+                                                        "ativo INTEGER DEFAULT 1, " +
+                                                        "prioridade INTEGER DEFAULT 0, " +
                                                         "observacoes TEXT, " +
                                                         "FOREIGN KEY(tipo_id) REFERENCES tipos_promocao(id)" +
                                                         ")",
@@ -1260,6 +1269,27 @@ public class DB {
                                                         +
                                                         ")",
                                         "promocao_produtos");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS promocoes_aplicacoes (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "promocao_id TEXT, " +
+                                                        "venda_id INTEGER, " +
+                                                        "venda_item_id INTEGER, " +
+                                                        "produto_id TEXT, " +
+                                                        "cliente_id TEXT, " +
+                                                        "qtd INTEGER, " +
+                                                        "preco_original REAL, " +
+                                                        "desconto_valor REAL, " +
+                                                        "preco_final REAL, " +
+                                                        "desconto_tipo TEXT, " +
+                                                        "data_aplicacao TEXT, " +
+                                                        "FOREIGN KEY(promocao_id) REFERENCES promocoes(id), " +
+                                                        "FOREIGN KEY(venda_id) REFERENCES vendas(id), " +
+                                                        "FOREIGN KEY(venda_item_id) REFERENCES vendas_itens(id), " +
+                                                        "FOREIGN KEY(produto_id) REFERENCES produtos(id)" +
+                                                        ")",
+                                        "promocoes_aplicacoes");
 
                         executeComLog(st,
                                         "CREATE TABLE IF NOT EXISTS clientes_vip (" +

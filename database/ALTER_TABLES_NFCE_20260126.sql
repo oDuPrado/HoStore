@@ -164,6 +164,13 @@ CREATE TABLE IF NOT EXISTS config_fiscal_default (
 );
 
 -- ============================================================================
+-- 12. CAMPOS EXTRAS (QUALIDADE DE VIDA)
+-- ============================================================================
+
+-- Persistir última pasta do certificado (.pfx/.p12)
+ALTER TABLE config_loja ADD COLUMN certificado_dir TEXT;
+
+-- ============================================================================
 -- 5. TABELA DE SEQUÊNCIAS FISCAIS
 -- ============================================================================
 
@@ -544,3 +551,32 @@ ALTER TABLE vendas_pagamentos ADD COLUMN taxa_quem TEXT;
 -- ============================================================================
 ALTER TABLE vendas_estornos_pagamentos ADD COLUMN tipo_estorno TEXT;
 ALTER TABLE vendas_estornos_pagamentos ADD COLUMN taxa_quem TEXT;
+
+
+-- ============================================================================
+-- V012: PROMOCOES COMPLETAS (categoria, hist?rico e itens)
+-- ============================================================================
+ALTER TABLE produtos ADD COLUMN categoria TEXT;
+ALTER TABLE promocoes ADD COLUMN categoria TEXT;
+ALTER TABLE promocoes ADD COLUMN ativo INTEGER DEFAULT 1;
+ALTER TABLE promocoes ADD COLUMN prioridade INTEGER DEFAULT 0;
+
+ALTER TABLE vendas_itens ADD COLUMN promocao_id TEXT;
+ALTER TABLE vendas_itens ADD COLUMN desconto_origem TEXT;
+ALTER TABLE vendas_itens ADD COLUMN desconto_valor REAL;
+ALTER TABLE vendas_itens ADD COLUMN desconto_tipo TEXT;
+
+CREATE TABLE IF NOT EXISTS promocoes_aplicacoes (
+  id TEXT PRIMARY KEY,
+  promocao_id TEXT,
+  venda_id INTEGER,
+  venda_item_id INTEGER,
+  produto_id TEXT,
+  cliente_id TEXT,
+  qtd INTEGER,
+  preco_original REAL,
+  desconto_valor REAL,
+  preco_final REAL,
+  desconto_tipo TEXT,
+  data_aplicacao TEXT
+);

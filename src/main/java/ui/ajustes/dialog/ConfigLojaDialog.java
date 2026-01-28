@@ -10,14 +10,19 @@ import util.UiKit;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.sql.SQLException;
+import java.util.Locale;
 
 /**
  * ConfigLojaDialog - visual remodelado com UiKit (sem mudar lógica).
  */
 public class ConfigLojaDialog extends JDialog {
+
+    private static File lastCertDir = null;
 
     // ===== Campos cadastrais =====
     private final JTextField tfNome = new JTextField(25);
@@ -328,7 +333,13 @@ public class ConfigLojaDialog extends JDialog {
         addRow(form, g, y++, "CSC:", tfCsc);
         addRow(form, g, y++, "Token CSC:", tfTokenCsc);
 
-        addRow(form, g, y++, "Certificado (PFX) - Caminho:", tfCertificadoPath);
+        JPanel certRow = new JPanel(new BorderLayout(6, 0));
+        certRow.setOpaque(false);
+        JButton btnBrowseCert = UiKit.ghost("Procurar...");
+        btnBrowseCert.addActionListener(e -> escolherCertificado());
+        certRow.add(tfCertificadoPath, BorderLayout.CENTER);
+        certRow.add(btnBrowseCert, BorderLayout.EAST);
+        addRow(form, g, y++, "Certificado (PFX) - Caminho:", certRow);
 
         // Senha certificado
         addRow(form, g, y++, "Senha do Certificado:", tfCertificadoSenha);
@@ -537,6 +548,13 @@ public class ConfigLojaDialog extends JDialog {
                 tfTokenCsc.setText(currentConfig.getTokenCsc());
                 tfCertificadoPath.setText(currentConfig.getCertificadoPath());
                 tfCertificadoSenha.setText(currentConfig.getCertificadoSenha());
+                String certDir = currentConfig.getCertificadoDir();
+                if (certDir != null && !certDir.isBlank()) {
+                    File dir = new File(certDir);
+                    if (dir.isDirectory()) {
+                        lastCertDir = dir;
+                    }
+                }
 
                 tfNomeImpressora.setText(currentConfig.getNomeImpressora());
                 tfTextoRodapeNota.setText(currentConfig.getTextoRodapeNota());
@@ -594,6 +612,16 @@ public class ConfigLojaDialog extends JDialog {
         String tokenCsc = tfTokenCsc.getText().trim();
         String certificadoPath = tfCertificadoPath.getText().trim();
         String certificadoSenha = new String(tfCertificadoSenha.getPassword()).trim();
+        String certificadoDir = null;
+        if (lastCertDir != null) {
+            certificadoDir = lastCertDir.getAbsolutePath();
+        } else if (!certificadoPath.isEmpty()) {
+            File f = new File(certificadoPath);
+            File parent = f.getParentFile();
+            if (parent != null) {
+                certificadoDir = parent.getAbsolutePath();
+            }
+        }
 
         String nomeImpressora = tfNomeImpressora.getText().trim();
         String textoRodapeNota = tfTextoRodapeNota.getText().trim();
@@ -662,6 +690,7 @@ public class ConfigLojaDialog extends JDialog {
                         csc,
                         tokenCsc,
                         certificadoPath,
+                        certificadoDir,
                         certificadoSenha,
                         nomeImpressora,
                         textoRodapeNota,
@@ -698,6 +727,7 @@ public class ConfigLojaDialog extends JDialog {
                 currentConfig.setCsc(csc);
                 currentConfig.setTokenCsc(tokenCsc);
                 currentConfig.setCertificadoPath(certificadoPath);
+                currentConfig.setCertificadoDir(certificadoDir);
                 currentConfig.setCertificadoSenha(certificadoSenha);
 
                 currentConfig.setNomeImpressora(nomeImpressora);
@@ -723,6 +753,30 @@ public class ConfigLojaDialog extends JDialog {
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar configuração:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void escolherCertificado() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Selecionar certificado (.pfx/.p12)");
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(true);
+        chooser.addChoosableFileFilter(new FileNameExtensionFilter("Certificados (*.pfx, *.p12)", "pfx", "p12"));
+        if (lastCertDir != null) {
+            chooser.setCurrentDirectory(lastCertDir);
+        }
+        int result = chooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION && chooser.getSelectedFile() != null) {
+            File selected = chooser.getSelectedFile();
+            String name = selected.getName().toLowerCase(Locale.ROOT);
+            if (!(name.endsWith(".pfx") || name.endsWith(".p12"))) {
+                JOptionPane.showMessageDialog(this,
+                        "Arquivo inv\u00e1lido. Selecione um certificado .pfx ou .p12.",
+                        "Certificado", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            lastCertDir = selected.getParentFile();
+            tfCertificadoPath.setText(selected.getAbsolutePath());
         }
     }
 

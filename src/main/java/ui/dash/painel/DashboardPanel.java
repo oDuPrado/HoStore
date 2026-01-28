@@ -43,6 +43,7 @@ public class DashboardPanel extends JPanel {
     private final JButton btPendFiscal = new JButton("Pendências Fiscais");
     private final JButton btRankingProd = new JButton("Ranking Produtos");
     private final JButton btAuditoriaEst = new JButton("Auditoria Estoque");
+    private final JButton btPromos = new JButton("Promocoes");
 
     // Alertas clicáveis
     private final JButton alEstoque = new JButton("⚠ Estoque crítico: ...");
@@ -153,6 +154,7 @@ public class DashboardPanel extends JPanel {
         actions.add(btPendFiscal);
         actions.add(btRankingProd);
         actions.add(btAuditoriaEst);
+        actions.add(btPromos);
 
         JPanel line1 = new JPanel(new BorderLayout());
         line1.setOpaque(false);
@@ -239,6 +241,7 @@ public class DashboardPanel extends JPanel {
         btPendFiscal.addActionListener(e -> abrirPendenciasFiscais());
         btRankingProd.addActionListener(e -> abrirRankingProdutos());
         btAuditoriaEst.addActionListener(e -> abrirAuditoriaEstoque());
+        btPromos.addActionListener(e -> abrirRelatorioPromocoes());
 
         // alertas clicáveis -> mesmos drilldowns
         alEstoque.addActionListener(e -> abrirEstoqueCritico());
@@ -669,4 +672,37 @@ cDev.setOnInfo(() -> info("Devoluções", """
             }
         }.execute();
     }
+
+    private void abrirRelatorioPromocoes() {
+        PeriodoFiltro p = resolvePeriodo();
+        new SwingWorker<java.util.List<PromocaoDesempenhoModel>, Void>() {
+            @Override protected java.util.List<PromocaoDesempenhoModel> doInBackground() {
+                return service.listarDesempenhoPromocoes(p);
+            }
+            @Override protected void done() {
+                try {
+                    java.util.List<PromocaoDesempenhoModel> list = get();
+                    RelatorioTabelaDialog d = new RelatorioTabelaDialog(owner,
+                            "Desempenho de Promocoes (" + p + ")",
+                            new Object[]{"Promocao", "Qtd Itens", "Desconto", "Faturamento", "Preco Medio"});
+                    java.util.List<Object[]> rows = new java.util.ArrayList<>();
+                    for (PromocaoDesempenhoModel m : list) {
+                        rows.add(new Object[]{
+                                m.nome,
+                                m.qtdItens,
+                                MoedaUtil.brl(m.descontoTotal),
+                                MoedaUtil.brl(m.faturamentoGerado),
+                                MoedaUtil.brl(m.precoMedio)
+                        });
+                    }
+                    d.setRows(rows);
+                    d.setVisible(true);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(DashboardPanel.this, "Erro: " + ex.getMessage(),
+                            "Promocoes", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
+    }
+
 }

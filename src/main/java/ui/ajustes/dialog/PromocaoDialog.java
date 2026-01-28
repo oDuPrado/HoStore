@@ -27,7 +27,10 @@ public class PromocaoDialog extends JDialog {
     private final JComboBox<TipoDesconto> cbTipoDesconto = new JComboBox<>();
     private final JTextField tfDesconto = new JTextField();
     private final JComboBox<AplicaEm> cbAplicaEm = new JComboBox<>();
+    private final JTextField tfCategoria = new JTextField();
     private final JComboBox<TipoPromocaoModel> cbTipoDef = new JComboBox<>();
+    private final JCheckBox chkAtivo = new JCheckBox("Ativa");
+    private final JSpinner spPrioridade = new JSpinner(new SpinnerNumberModel(0, -999, 999, 1));
     private final JDateChooser dcInicio = new JDateChooser();
     private final JDateChooser dcFim = new JDateChooser();
     private final JTextArea taObs = new JTextArea(3, 20);
@@ -73,6 +76,7 @@ public class PromocaoDialog extends JDialog {
         tfDesconto.setPreferredSize(new Dimension(120, 28));
         cbTipoDesconto.setPreferredSize(new Dimension(150, 28));
         cbAplicaEm.setPreferredSize(new Dimension(150, 28));
+        tfCategoria.setPreferredSize(new Dimension(160, 28));
         cbTipoDef.setPreferredSize(new Dimension(150, 28));
         dcInicio.setPreferredSize(new Dimension(140, 28));
         dcFim.setPreferredSize(new Dimension(140, 28));
@@ -149,6 +153,10 @@ public class PromocaoDialog extends JDialog {
             cbTipoDesconto.setSelectedItem(p.getTipoDesconto());
             tfDesconto.setText(p.getDesconto().toString());
             cbAplicaEm.setSelectedItem(p.getAplicaEm());
+            tfCategoria.setText(p.getCategoria() != null ? p.getCategoria() : "");
+            tfCategoria.setEnabled(AplicaEm.CATEGORIA.equals(cbAplicaEm.getSelectedItem()));
+            chkAtivo.setSelected(p.getAtivo() == null || p.getAtivo() == 1);
+            spPrioridade.setValue(p.getPrioridade() == null ? 0 : p.getPrioridade());
             // seleciona o TipoPromocaoModel correto
             for (int i = 0; i < cbTipoDef.getItemCount(); i++) {
                 if (cbTipoDef.getItemAt(i).getId().equals(p.getTipoId())) {
@@ -174,6 +182,11 @@ public class PromocaoDialog extends JDialog {
         JPanel rodape = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         rodape.add(btnSalvar);
 
+        cbAplicaEm.addActionListener(e -> {
+            boolean cat = AplicaEm.CATEGORIA.equals(cbAplicaEm.getSelectedItem());
+            tfCategoria.setEnabled(cat);
+        });
+
         add(form, BorderLayout.CENTER);
         add(rodape, BorderLayout.SOUTH);
     }
@@ -190,9 +203,14 @@ public class PromocaoDialog extends JDialog {
         p.setTipoDesconto((TipoDesconto) cbTipoDesconto.getSelectedItem());
         p.setDesconto(Double.parseDouble(tfDesconto.getText().trim()));
         p.setAplicaEm((AplicaEm) cbAplicaEm.getSelectedItem());
+        String cat = tfCategoria.getText().trim();
+        if (p.getAplicaEm() != AplicaEm.CATEGORIA) cat = null;
+        p.setCategoria(cat == null || cat.isBlank() ? null : cat);
         p.setTipoId(((TipoPromocaoModel) cbTipoDef.getSelectedItem()).getId());
         p.setDataInicio(dcInicio.getDate());
         p.setDataFim(dcFim.getDate());
+        p.setAtivo(chkAtivo.isSelected() ? 1 : 0);
+        p.setPrioridade((Integer) spPrioridade.getValue());
         p.setObservacoes(taObs.getText().trim());
 
         if (isEdicao) {

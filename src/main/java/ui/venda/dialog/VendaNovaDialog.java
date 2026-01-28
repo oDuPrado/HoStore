@@ -6,6 +6,7 @@ import dao.ClienteDAO;
 import dao.ProdutoDAO;
 import model.ProdutoModel;
 import model.VendaItemModel;
+import service.PromocaoService;
 import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
 import util.UiKit;
@@ -25,6 +26,7 @@ import java.util.Locale;
 
 import ui.clientes.dialog.ClienteCadastroDialog;
 import ui.dialog.SelectCartaDialog;
+import ui.eventos.dialog.SelectProdutoDialog;
 
 public class VendaNovaDialog extends JDialog {
 
@@ -33,12 +35,13 @@ public class VendaNovaDialog extends JDialog {
     private final ProdutoDAO produtoDAO = new ProdutoDAO(); // (mantido, mesmo que você não use aqui ainda)
     private final VendaController controller = new VendaController();
     private final PainelVendas painelPai;
+    private final PromocaoService promoService = new PromocaoService();
 
     /* ---------- Combos e tabela ---------- */
     private final JComboBox<String> clienteCombo;
 
     private final DefaultTableModel carrinhoModel = new DefaultTableModel(
-            new String[] { "Produto", "Qtd", "R$ Unit.", "% Desc", "R$ Total", "R$ Desc", "" }, 0) {
+            new String[] { "Produto", "Qtd", "R$ Unit.", "% Desc", "R$ Total", "R$ Desc", "Promo" }, 0) {
         @Override
         public boolean isCellEditable(int r, int c) {
             return (c >= 1 && c <= 3) || c == 5; // qtd, unit, desconto% e desconto valor
@@ -71,6 +74,9 @@ public class VendaNovaDialog extends JDialog {
             int col = e.getColumn();
             if (col == 5) {
                 syncPercentFromValue(e.getFirstRow());
+            }
+            if (col == 3 || col == 5) {
+                marcarDescontoManual(e.getFirstRow());
             }
             if (col >= 1 && col <= 3 || col == 5) {
                 // evita recalcular dentro do mesmo "ciclo" de stopCellEditing
@@ -500,16 +506,17 @@ public class VendaNovaDialog extends JDialog {
     /* ==================================================================== */
 
     private void abrirSelectProduto() {
-        SelectProdutoDialog dlg = new SelectProdutoDialog((JFrame) getOwner());
+        SelectProdutoDialog dlg = new SelectProdutoDialog(getOwner(), "PRODUTO");
         dlg.setVisible(true);
-
-        List<ProdutoModel> prod = dlg.getSelecionados();
-        for (ProdutoModel p : prod) {
+        ProdutoModel p = dlg.getSelecionado();
+        if (p != null) {
             controller.adicionarItem(new VendaItemModel(p.getId(), 1, p.getPrecoVenda(), 0));
             carrinhoModel.addRow(new Object[] {
                     p.getNome(), 1, p.getPrecoVenda(), 0.0,
                     p.getPrecoVenda(), 0.0, ""
             });
+            int row = carrinhoModel.getRowCount() - 1;
+            aplicarPromocaoLinha(row, p, true);
         }
         atualizarTodosTotais();
     }
@@ -524,6 +531,11 @@ public class VendaNovaDialog extends JDialog {
                     c.getNome(), 1, c.getPrecoLoja(), 0.0,
                     c.getPrecoLoja(), 0.0, ""
             });
+            int row = carrinhoModel.getRowCount() - 1;
+            try {
+                ProdutoModel p = produtoDAO.findById(c.getId());
+                if (p != null) aplicarPromocaoLinha(row, p, true);
+            } catch (Exception ignored) {}
         });
 
         atualizarTodosTotais();
@@ -546,6 +558,67 @@ public class VendaNovaDialog extends JDialog {
         updating = false;
     }
 
+    private void marcarDescontoManual(int row) {
+        if (row < 0 || row >= controller.getCarrinho().size())
+            return;
+        VendaItemModel m = controller.getCarrinho().get(row);
+        m.setDescontoOrigem("MANUAL");
+        m.setPromocaoId(null);
+        m.setPromocaoNome(null);
+        m.setDescontoValor(null);
+        m.setDescontoTipo(null);
+        if (row < carrinhoModel.getRowCount()) {
+            carrinhoModel.setValueAt("", row, 6);
+        }
+    }
+
+    private String resolverClienteId() {
+        String nomeCliente = ((String) clienteCombo.getEditor().getItem()).trim();
+        if (nomeCliente.isBlank()) return null;
+        return clienteDAO.obterIdPorNome(nomeCliente);
+    }
+
+    private void aplicarPromocaoLinha(int row, ProdutoModel p, boolean forcar) {
+        if (row < 0 || row >= controller.getCarrinho().size() || p == null)
+            return;
+        VendaItemModel m = controller.getCarrinho().get(row);
+        if (!forcar && "MANUAL".equalsIgnoreCase(m.getDescontoOrigem()))
+            return;
+
+        int qtd = safeInt(carrinhoModel.getValueAt(row, 1));
+        double unit = safeDouble(carrinhoModel.getValueAt(row, 2));
+
+        try {
+            java.util.Optional<PromocaoService.PromocaoAplicada> ap = promoService.calcularPromocao(p, qtd, unit, resolverClienteId());
+            if (ap.isPresent()) {
+                PromocaoService.PromocaoAplicada promo = ap.get();
+                m.setDesconto(promo.descontoPercent);
+                m.setPromocaoId(promo.promocaoId);
+                m.setPromocaoNome(promo.promocaoNome);
+                m.setDescontoOrigem("PROMO");
+                m.setDescontoValor(promo.descontoValor);
+                m.setDescontoTipo(promo.tipoDesconto.name());
+                updating = true;
+                carrinhoModel.setValueAt(promo.descontoPercent, row, 3);
+                carrinhoModel.setValueAt("PROMO", row, 6);
+                updating = false;
+            } else if ("PROMO".equalsIgnoreCase(m.getDescontoOrigem())) {
+                m.setDesconto(0.0);
+                m.setPromocaoId(null);
+                m.setPromocaoNome(null);
+                m.setDescontoOrigem(null);
+                m.setDescontoValor(null);
+                m.setDescontoTipo(null);
+                updating = true;
+                carrinhoModel.setValueAt(0.0, row, 3);
+                carrinhoModel.setValueAt("", row, 6);
+                updating = false;
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+
     private void atualizarTodosTotais() {
         double totalVenda = 0, totalDesc = 0;
 
@@ -554,6 +627,17 @@ public class VendaNovaDialog extends JDialog {
             int qtd = safeInt(carrinhoModel.getValueAt(r, 1));
             double unit = safeDouble(carrinhoModel.getValueAt(r, 2));
             double pct = safeDouble(carrinhoModel.getValueAt(r, 3));
+
+            if (r < controller.getCarrinho().size()) {
+                VendaItemModel m = controller.getCarrinho().get(r);
+                if (m != null && !"MANUAL".equalsIgnoreCase(m.getDescontoOrigem())) {
+                    try {
+                        ProdutoModel p = produtoDAO.findById(m.getProdutoId());
+                        aplicarPromocaoLinha(r, p, false);
+                        pct = safeDouble(carrinhoModel.getValueAt(r, 3));
+                    } catch (Exception ignored) {}
+                }
+            }
 
             double bruto = qtd * unit;
             double descV = bruto * pct / 100.0;
@@ -611,6 +695,19 @@ public class VendaNovaDialog extends JDialog {
         atualizarResumo();
     }
 
+    private void aplicarPromocoesCarrinho() {
+        for (int r = 0; r < carrinhoModel.getRowCount(); r++) {
+            if (r >= controller.getCarrinho().size()) continue;
+            VendaItemModel m = controller.getCarrinho().get(r);
+            if (m == null) continue;
+            if ("MANUAL".equalsIgnoreCase(m.getDescontoOrigem())) continue;
+            try {
+                ProdutoModel p = produtoDAO.findById(m.getProdutoId());
+                aplicarPromocaoLinha(r, p, false);
+            } catch (Exception ignored) {}
+        }
+    }
+
     private void finalizarVenda() {
         if (carrinhoTable.isEditing()) {
             try {
@@ -623,6 +720,8 @@ public class VendaNovaDialog extends JDialog {
             AlertUtils.error("Carrinho vazio!");
             return;
         }
+
+        aplicarPromocoesCarrinho();
 
         String nomeCliente = ((String) clienteCombo.getEditor().getItem()).trim();
         String clienteId = clienteDAO.obterIdPorNome(nomeCliente);

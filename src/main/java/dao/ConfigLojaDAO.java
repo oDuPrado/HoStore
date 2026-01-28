@@ -49,6 +49,7 @@ public class ConfigLojaDAO {
                 String csc                 = rs.getString("csc");
                 String tokenCsc            = rs.getString("token_csc");
                 String certificadoPath     = rs.getString("certificado_path");
+                String certificadoDir      = rs.getString("certificado_dir");
                 String certificadoSenha    = rs.getString("certificado_senha");
 
                 String nomeImpressora      = rs.getString("nome_impressora");
@@ -84,6 +85,7 @@ public class ConfigLojaDAO {
                         csc,
                         tokenCsc,
                         certificadoPath,
+                        certificadoDir,
                         certificadoSenha,
                         nomeImpressora,
                         textoRodapeNota,
@@ -108,9 +110,9 @@ public class ConfigLojaDAO {
                 "endereco_logradouro, endereco_numero, endereco_complemento, endereco_bairro, " +
                 "endereco_municipio, endereco_uf, endereco_cep, " +
                 "telefone, email, " +
-                "modelo_nota, serie_nota, numero_inicial_nota, ambiente_nfce, csc, token_csc, certificado_path, certificado_senha, " +
+                "modelo_nota, serie_nota, numero_inicial_nota, ambiente_nfce, csc, token_csc, certificado_path, certificado_dir, certificado_senha, " +
                 "nome_impressora, texto_rodape_nota, url_webservice_nfce, proxy_host, proxy_port, proxy_usuario, proxy_senha" +
-                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DB.get();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -141,6 +143,7 @@ public class ConfigLojaDAO {
             ps.setString(idx++, cfg.getCsc());
             ps.setString(idx++, cfg.getTokenCsc());
             ps.setString(idx++, cfg.getCertificadoPath());
+            ps.setString(idx++, cfg.getCertificadoDir());
             ps.setString(idx++, cfg.getCertificadoSenha());
 
             ps.setString(idx++, cfg.getNomeImpressora());
@@ -184,6 +187,7 @@ public class ConfigLojaDAO {
                 "csc = ?, " +
                 "token_csc = ?, " +
                 "certificado_path = ?, " +
+                "certificado_dir = ?, " +
                 "certificado_senha = ?, " +
                 "nome_impressora = ?, " +
                 "texto_rodape_nota = ?, " +
@@ -222,6 +226,7 @@ public class ConfigLojaDAO {
             ps.setString(idx++, cfg.getCsc());
             ps.setString(idx++, cfg.getTokenCsc());
             ps.setString(idx++, cfg.getCertificadoPath());
+            ps.setString(idx++, cfg.getCertificadoDir());
             ps.setString(idx++, cfg.getCertificadoSenha());
 
             ps.setString(idx++, cfg.getNomeImpressora());
@@ -271,6 +276,7 @@ public class ConfigLojaDAO {
                     cfg.getCsc(),
                     cfg.getTokenCsc(),
                     cfg.getCertificadoPath(),
+                    cfg.getCertificadoDir(),
                     cfg.getCertificadoSenha(),
                     cfg.getNomeImpressora(),
                     cfg.getTextoRodapeNota(),
