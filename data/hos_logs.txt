@@ -536,3 +536,186 @@
 2026-01-28T14:12:45.290Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
 2026-01-28T14:12:45.290Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
 2026-01-28T14:12:45.290Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T14:16:35.250Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T14:16:39.103Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T14:16:39.109Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T14:16:39.129Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T14:16:39.233Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T14:16:39.234Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T14:17:06.694Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T14:17:06.694Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T14:17:06.694Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T14:18:40.946Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T14:18:44.802Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T14:18:44.809Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T14:18:44.831Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T14:18:44.939Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T14:18:44.939Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T14:18:58.127Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T14:18:58.127Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T14:18:58.127Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T14:27:07.242Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T14:27:12.604Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T14:27:12.610Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T14:27:12.626Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T14:27:12.710Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T14:27:12.711Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T14:28:04.527Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T14:28:04.527Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T14:28:04.527Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T15:13:20.588Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T15:13:22.277Z | INFO | user=anon action=LOGIN_CANCEL entity=usuario id=- msg=login cancelado
+2026-01-28T15:15:08.929Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T15:15:13.228Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T15:15:13.233Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T15:15:13.249Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T15:15:13.434Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T15:15:13.435Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T15:16:23.325Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T15:16:23.325Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T15:16:23.325Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T17:45:26.048Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T17:45:32.631Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T17:45:32.636Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T17:45:32.653Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T17:45:32.873Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T17:45:32.873Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T17:47:32.221Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T17:47:32.223Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T17:47:32.223Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T17:58:34.724Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T17:58:39.517Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T17:58:39.523Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T17:58:39.541Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T17:58:39.678Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T17:58:39.678Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T17:58:51.433Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T17:58:51.434Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T17:58:51.434Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T18:45:04.332Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T18:45:09.095Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T18:45:09.101Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T18:45:09.118Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T18:45:09.255Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T18:45:09.255Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T18:49:34.641Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T18:49:34.643Z | INFO | FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+2026-01-28T18:49:34.646Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=60.0 parcelas=1 venc=null intervaloDias=0
+2026-01-28T18:49:34.664Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=4 msg=produto=b55299d8-8162-4e33-b978-7916f724a0da qtd=1 motivo=Venda #8
+2026-01-28T18:49:34.676Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=8 msg=finalizada
+2026-01-28T18:49:34.676Z | INFO | Contas a receber não gerado: formaPagamento='MULTI' (norm='MULTI') e dados de parcelamento incompletos.
+2026-01-28T18:49:34.703Z | INFO | [NFCE] Criando documento pendente venda=8 amb=HOMOLOG
+2026-01-28T18:49:34.718Z | INFO | [NFCE] Documento criado id=06a7c94b-ce67-4735-ae80-5ee32d3f855d numero=8
+2026-01-28T18:49:34.726Z | INFO | [NFCE] Gerando XML para doc=06a7c94b-ce67-4735-ae80-5ee32d3f855d
+2026-01-28T18:49:34.806Z | INFO | [NFCE] XML gerado doc=06a7c94b-ce67-4735-ae80-5ee32d3f855d tam=2475
+2026-01-28T18:49:34.807Z | INFO | NFC-e criada para venda 8 (ambiente=homologacao)
+2026-01-28T18:50:09.474Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T18:50:09.474Z | INFO | FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+2026-01-28T18:50:09.474Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=1000.0 parcelas=1 venc=null intervaloDias=0
+2026-01-28T18:50:09.475Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=5 motivo=Venda #9
+2026-01-28T18:50:09.476Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=9 msg=finalizada
+2026-01-28T18:50:09.476Z | INFO | Contas a receber não gerado: formaPagamento='MULTI' (norm='MULTI') e dados de parcelamento incompletos.
+2026-01-28T18:50:09.488Z | INFO | [NFCE] Criando documento pendente venda=9 amb=HOMOLOG
+2026-01-28T18:50:09.490Z | INFO | [NFCE] Documento criado id=7790b5d2-e9d7-481e-a0c4-04d22c42fc7e numero=9
+2026-01-28T18:50:09.497Z | INFO | [NFCE] Gerando XML para doc=7790b5d2-e9d7-481e-a0c4-04d22c42fc7e
+2026-01-28T18:50:09.503Z | INFO | [NFCE] XML gerado doc=7790b5d2-e9d7-481e-a0c4-04d22c42fc7e tam=2484
+2026-01-28T18:50:09.503Z | INFO | NFC-e criada para venda 9 (ambiente=homologacao)
+2026-01-28T18:50:29.668Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T18:50:29.668Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T18:50:29.668Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T18:50:36.371Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T18:50:40.369Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T18:50:40.374Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T18:50:40.392Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T18:50:40.474Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T18:50:40.474Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T18:51:40.140Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T18:51:40.140Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T18:51:40.141Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T19:11:40.867Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T19:11:51.988Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T19:11:52Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:11:52.019Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:11:52.133Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T19:11:52.133Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T19:12:19.650Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T19:12:19.650Z | INFO | FinalizarVenda: formaPagamento(raw)='MULTI' norm='MULTI'
+2026-01-28T19:12:19.654Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=240.0 parcelas=1 venc=null intervaloDias=0
+2026-01-28T19:12:19.659Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=4 msg=produto=b55299d8-8162-4e33-b978-7916f724a0da qtd=4 motivo=Venda #10
+2026-01-28T19:12:19.664Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=10 msg=finalizada
+2026-01-28T19:12:19.664Z | INFO | Contas a receber não gerado: formaPagamento='MULTI' (norm='MULTI') e dados de parcelamento incompletos.
+2026-01-28T19:12:19.687Z | INFO | [NFCE] Criando documento pendente venda=10 amb=HOMOLOG
+2026-01-28T19:12:19.692Z | INFO | [NFCE] Documento criado id=e5677300-8f12-40ca-a2b0-d2d7e008bddd numero=10
+2026-01-28T19:12:19.700Z | INFO | [NFCE] Gerando XML para doc=e5677300-8f12-40ca-a2b0-d2d7e008bddd
+2026-01-28T19:12:19.717Z | INFO | [NFCE] XML gerado doc=e5677300-8f12-40ca-a2b0-d2d7e008bddd tam=2482
+2026-01-28T19:12:19.717Z | INFO | NFC-e criada para venda 10 (ambiente=homologacao)
+2026-01-28T19:12:59.566Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T19:12:59.566Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T19:12:59.566Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T19:13:03.901Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T19:13:08.029Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T19:13:08.035Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:13:08.049Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:13:08.115Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T19:13:08.115Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T19:13:51.637Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T19:13:51.637Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T19:13:51.637Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T19:21:05.956Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T19:21:10.245Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T19:21:10.282Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:21:10.288Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:21:11.007Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T19:21:11.007Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T19:21:43.747Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T19:21:43.748Z | INFO | FinalizarVenda: formaPagamento(raw)='CARTAO' norm='CARTAO'
+2026-01-28T19:21:43.750Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=200.0 parcelas=1 venc=2026-01-28 intervaloDias=30
+2026-01-28T19:21:43.755Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=1 motivo=Venda #11
+2026-01-28T19:21:43.759Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=11 msg=finalizada
+2026-01-28T19:21:43.794Z | INFO | [NFCE] Criando documento pendente venda=11 amb=HOMOLOG
+2026-01-28T19:21:43.799Z | INFO | [NFCE] Documento criado id=019a4c13-782b-4351-9260-a62f898abd6d numero=11
+2026-01-28T19:21:43.817Z | INFO | [NFCE] Gerando XML para doc=019a4c13-782b-4351-9260-a62f898abd6d
+2026-01-28T19:21:43.836Z | INFO | [NFCE] XML gerado doc=019a4c13-782b-4351-9260-a62f898abd6d tam=2481
+2026-01-28T19:21:43.836Z | INFO | NFC-e criada para venda 11 (ambiente=homologacao)
+2026-01-28T19:21:59.241Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T19:21:59.241Z | INFO | FinalizarVenda: formaPagamento(raw)='CARTAO' norm='CARTAO'
+2026-01-28T19:21:59.241Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=800.0 parcelas=1 venc=2026-01-28 intervaloDias=30
+2026-01-28T19:21:59.242Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=4 motivo=Venda #12
+2026-01-28T19:21:59.243Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=12 msg=finalizada
+2026-01-28T19:21:59.269Z | INFO | [NFCE] Criando documento pendente venda=12 amb=HOMOLOG
+2026-01-28T19:21:59.270Z | INFO | [NFCE] Documento criado id=7f41426d-3dd2-4171-a723-0993dd5d6063 numero=12
+2026-01-28T19:21:59.277Z | INFO | [NFCE] Gerando XML para doc=7f41426d-3dd2-4171-a723-0993dd5d6063
+2026-01-28T19:21:59.283Z | INFO | [NFCE] XML gerado doc=7f41426d-3dd2-4171-a723-0993dd5d6063 tam=2480
+2026-01-28T19:21:59.283Z | INFO | NFC-e criada para venda 12 (ambiente=homologacao)
+2026-01-28T19:22:44.980Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T19:22:44.981Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T19:22:44.981Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-28T19:26:42.809Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-28T19:26:49.481Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-28T19:26:49.489Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:26:49.518Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-28T19:26:49.603Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-28T19:26:49.603Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-28T19:27:21.804Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T19:27:21.804Z | INFO | FinalizarVenda: formaPagamento(raw)='CARTAO' norm='CARTAO'
+2026-01-28T19:27:21.807Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=2800.0 parcelas=2 venc=2026-02-27 intervaloDias=30
+2026-01-28T19:27:21.811Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=14 motivo=Venda #13
+2026-01-28T19:27:21.814Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=13 msg=finalizada
+2026-01-28T19:27:21.855Z | INFO | [NFCE] Criando documento pendente venda=13 amb=HOMOLOG
+2026-01-28T19:27:21.857Z | INFO | [NFCE] Documento criado id=f2ed85d8-0cd7-4fdc-88eb-78d63e430257 numero=13
+2026-01-28T19:27:21.868Z | INFO | [NFCE] Gerando XML para doc=f2ed85d8-0cd7-4fdc-88eb-78d63e430257
+2026-01-28T19:27:21.886Z | INFO | [NFCE] XML gerado doc=f2ed85d8-0cd7-4fdc-88eb-78d63e430257 tam=2487
+2026-01-28T19:27:21.886Z | INFO | NFC-e criada para venda 13 (ambiente=homologacao)
+2026-01-28T19:27:52.881Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-28T19:27:52.881Z | INFO | FinalizarVenda: formaPagamento(raw)='CARTAO' norm='CARTAO'
+2026-01-28T19:27:52.881Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=809.84 parcelas=1 venc=2026-02-27 intervaloDias=30
+2026-01-28T19:27:52.882Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=4 motivo=Venda #14
+2026-01-28T19:27:52.883Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=14 msg=finalizada
+2026-01-28T19:27:52.914Z | INFO | [NFCE] Criando documento pendente venda=14 amb=HOMOLOG
+2026-01-28T19:27:52.915Z | INFO | [NFCE] Documento criado id=11676400-af8f-4344-9b36-174caf450b7f numero=14
+2026-01-28T19:27:52.924Z | INFO | [NFCE] Gerando XML para doc=11676400-af8f-4344-9b36-174caf450b7f
+2026-01-28T19:27:52.932Z | INFO | [NFCE] XML gerado doc=11676400-af8f-4344-9b36-174caf450b7f tam=2481
+2026-01-28T19:27:52.932Z | INFO | NFC-e criada para venda 14 (ambiente=homologacao)
+2026-01-28T19:28:55.668Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-28T19:28:55.668Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-28T19:28:55.668Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin

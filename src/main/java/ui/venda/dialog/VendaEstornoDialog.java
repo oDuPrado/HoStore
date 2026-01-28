@@ -9,7 +9,6 @@ import dao.VendaEstornoFinanceiroDAO;
 import model.ProdutoModel;
 import model.VendaDevolucaoModel;
 import model.VendaItemModel;
-import model.VendaPagamentoModel;
 import service.EstornoService;
 import util.AlertUtils;
 import util.DB;
@@ -36,7 +35,7 @@ public class VendaEstornoDialog extends JDialog {
      * ------------------------------------------------------------------ */
     private final int vendaId;
     private final List<VendaItemModel> itensDaVenda;
-    private final List<VendaPagamentoModel> pagamentosDaVenda = new ArrayList<>();
+    private final List<EstornoLinha> pagamentosDaVenda = new ArrayList<>();
 
     private JTable itensTable;
     private JTable pagamentosTable;
@@ -48,6 +47,34 @@ public class VendaEstornoDialog extends JDialog {
     private final VendaDevolucaoDAO devolucaoDAO     = new VendaDevolucaoDAO();
     private final VendaEstornoFinanceiroDAO finDAO   = new VendaEstornoFinanceiroDAO();
     private final EstornoService estornoService      = new EstornoService();
+
+    private static class EstornoLinha {
+        final int pagamentoId;
+        final String tipoPagamento;
+        final String tipoEstorno; // LIQUIDO ou TAXA
+        final String taxaQuem; // CLIENTE/LOJISTA/null
+
+        EstornoLinha(int pagamentoId, String tipoPagamento, String tipoEstorno, String taxaQuem) {
+            this.pagamentoId = pagamentoId;
+            this.tipoPagamento = tipoPagamento;
+            this.tipoEstorno = tipoEstorno;
+            this.taxaQuem = taxaQuem;
+        }
+    }
+
+    private static class EstornoSelecionado {
+        final int pagamentoId;
+        final double valor;
+        final String tipoEstorno;
+        final String taxaQuem;
+
+        EstornoSelecionado(int pagamentoId, double valor, String tipoEstorno, String taxaQuem) {
+            this.pagamentoId = pagamentoId;
+            this.valor = valor;
+            this.tipoEstorno = tipoEstorno;
+            this.taxaQuem = taxaQuem;
+        }
+    }
 
     /* ------------------------------------------------------------------
      * 2. Construtor
@@ -154,7 +181,7 @@ public class VendaEstornoDialog extends JDialog {
 
         try (Connection c = DB.get();
              PreparedStatement ps =
-                     c.prepareStatement("SELECT id,tipo,valor FROM vendas_pagamentos WHERE venda_id=?")){
+                     c.prepareStatement("SELECT id,tipo,valor,taxa_valor,taxa_quem FROM vendas_pagamentos WHERE venda_id=?")){
 
             ps.setInt(1, vendaId);
             try (ResultSet rs = ps.executeQuery()){
@@ -162,12 +189,25 @@ public class VendaEstornoDialog extends JDialog {
                     int    id   = rs.getInt("id");
                     String tipo = rs.getString("tipo");
                     double val  = rs.getDouble("valor");
-                    double jaEst = finDAO.obterTotalEstornadoPorPagamento(id);
+                    double taxaValor = rs.getDouble("taxa_valor");
+                    if (rs.wasNull()) taxaValor = 0.0;
+                    String taxaQuem = rs.getString("taxa_quem");
 
-                    VendaPagamentoModel vp = new VendaPagamentoModel(id,tipo,val,jaEst);
-                    pagamentosDaVenda.add(vp);
+                    double base = val;
+                    if ("CARTAO".equalsIgnoreCase(tipo) && "CLIENTE".equalsIgnoreCase(taxaQuem) && taxaValor > 0) {
+                        base = Math.max(0.0, val - taxaValor);
+                    }
 
-                    pagamentosModel.addRow(new Object[]{ tipo, val, jaEst, 0.0 });
+                    double jaEstLiq = finDAO.obterTotalEstornadoPorPagamentoTipo(id, "LIQUIDO");
+                    pagamentosDaVenda.add(new EstornoLinha(id, tipo, "LIQUIDO", taxaQuem));
+                    pagamentosModel.addRow(new Object[]{ tipo + " (Liquido)", base, jaEstLiq, 0.0 });
+
+                    if ("CARTAO".equalsIgnoreCase(tipo) && taxaValor > 0) {
+                        double jaEstTaxa = finDAO.obterTotalEstornadoPorPagamentoTipo(id, "TAXA");
+                        String label = "CARTAO (Taxa" + (taxaQuem != null ? " - " + taxaQuem : "") + ")";
+                        pagamentosDaVenda.add(new EstornoLinha(id, tipo, "TAXA", taxaQuem));
+                        pagamentosModel.addRow(new Object[]{ label, taxaValor, jaEstTaxa, 0.0 });
+                    }
                 }
             }
         }catch(Exception ex){
@@ -207,12 +247,16 @@ public class VendaEstornoDialog extends JDialog {
         }
 
         /* --- ler seleção de pagamentos --- */
-        Map<Integer,Double> pagEstorno = new HashMap<>();
+        List<EstornoSelecionado> pagEstorno = new ArrayList<>();
         for (int r=0;r<pagamentosModel.getRowCount();r++){
             double v = (Double) pagamentosModel.getValueAt(r,3);
             if (v>0){
-                int pagId = pagamentosDaVenda.get(r).getId();
-                pagEstorno.put(pagId,v);
+                EstornoLinha linha = pagamentosDaVenda.get(r);
+                pagEstorno.add(new EstornoSelecionado(
+                        linha.pagamentoId,
+                        v,
+                        linha.tipoEstorno,
+                        linha.taxaQuem));
             }
         }
 
@@ -243,9 +287,9 @@ public class VendaEstornoDialog extends JDialog {
             }
 
             // Pagamentos
-            for (Map.Entry<Integer,Double> e: pagEstorno.entrySet()){
-                finDAO.inserirEstorno(e.getKey(), vendaId, e.getValue(),
-                        LocalDate.now(),"Estorno manual");
+            for (EstornoSelecionado e: pagEstorno){
+                finDAO.inserirEstorno(e.pagamentoId, vendaId, e.valor,
+                        LocalDate.now(), "Estorno manual", e.tipoEstorno, e.taxaQuem);
             }
 
             c.commit();

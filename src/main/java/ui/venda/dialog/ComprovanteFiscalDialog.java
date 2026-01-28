@@ -21,7 +21,8 @@ public class ComprovanteFiscalDialog extends JDialog {
             int vendaId,
             List<VendaItemModel> itens,
             TableModel pagamentos,
-            CupomFiscalFormatter.ParcelamentoInfo parcelamento) {
+            CupomFiscalFormatter.ParcelamentoInfo parcelamento,
+            double acrescimo) {
         super(owner, "Comprovante Fiscal - Venda #" + vendaId, ModalityType.APPLICATION_MODAL);
         UiKit.applyDialogBase(this);
 
@@ -40,7 +41,8 @@ public class ComprovanteFiscalDialog extends JDialog {
                 vendaId,
                 itens,
                 CupomFiscalFormatter.fromTableModel(pagamentos),
-                parcelamento);
+                parcelamento,
+                acrescimo);
 
         ta.setText(texto);
         ta.setCaretPosition(0);
@@ -67,7 +69,7 @@ public class ComprovanteFiscalDialog extends JDialog {
                     pasta.mkdirs();
                 java.io.File destino = new java.io.File(pasta, nomeArquivo);
 
-                PDFGenerator.gerarComprovanteVenda(vm, itens, pagamentos, parcelamento, destino.getAbsolutePath());
+                PDFGenerator.gerarComprovanteVenda(vm, itens, pagamentos, parcelamento, acrescimo, destino.getAbsolutePath());
 
                 JOptionPane.showMessageDialog(this,
                         "PDF gerado:\n" + destino.getPath(),
@@ -91,7 +93,7 @@ public class ComprovanteFiscalDialog extends JDialog {
                         null);
                 vm.setItens(itens);
 
-                PDFGenerator.imprimirCupomFiscal(vm, itens, pagamentos, parcelamento);
+                PDFGenerator.imprimirCupomFiscal(vm, itens, pagamentos, parcelamento, acrescimo);
 
             } catch (Exception ex) {
                 ex.printStackTrace();

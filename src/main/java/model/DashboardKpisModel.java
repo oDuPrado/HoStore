@@ -29,6 +29,8 @@ public class DashboardKpisModel {
     // mix de pagamento
     public List<PagamentoMixItemModel> mixPagamentos = new ArrayList<>();
     public double taxaCartaoEstimada; // simplificado
+    public double taxaCartaoLojista;
+    public double taxaCartaoCliente;
 
     // alertas (gerais)
     public int docsFiscaisPendentes;

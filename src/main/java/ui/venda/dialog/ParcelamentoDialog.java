@@ -28,8 +28,10 @@ public class ParcelamentoDialog extends JDialog {
     /** Retorna config final ao chamar getConfig() após isOk()==true */
     public static class ParcelamentoConfig {
         public int parcelas; // ex: 3
-        public double juros; // ex: 2.5 (%)
+        public double juros; // taxa % do cartão
         public int intervaloDias; // ex: 30
+        public String bandeira;
+        public String tipo; // CREDITO/DEBITO
     }
 
     private final ParcelamentoConfig config;
@@ -216,6 +218,8 @@ public class ParcelamentoDialog extends JDialog {
             config.parcelas = (Integer) spParcelas.getValue();
             config.juros = safeDouble(ftJuros.getValue());
             config.intervaloDias = Integer.parseInt(((String) cbIntervalo.getSelectedItem()).split(" ")[0]);
+            config.bandeira = (String) cbBandeira.getSelectedItem();
+            config.tipo = "CREDITO";
             ok = true;
             dispose();
         });
@@ -329,7 +333,7 @@ public class ParcelamentoDialog extends JDialog {
         // fórmula atual: juros por parcela (simples). Mantive pra não mudar tua regra
         // do nada.
         double base = totalVenda / parcelas;
-        double valorParc = base * (1 + jurosPct / 100.0);
+        double valorParc = base;
 
         LocalDate hoje = LocalDate.now();
         DateTimeFormatter dtFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");

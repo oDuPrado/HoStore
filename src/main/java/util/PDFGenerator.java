@@ -453,6 +453,7 @@ public class PDFGenerator {
             List<VendaItemModel> itens,
             TableModel pagamentos,
             CupomFiscalFormatter.ParcelamentoInfo parcelamento,
+            double acrescimo,
             String caminhoCompleto) throws Exception {
 
         int vendaId = getVendaIdAsInt(venda);
@@ -461,7 +462,8 @@ public class PDFGenerator {
                 vendaId,
                 itens,
                 CupomFiscalFormatter.fromTableModel(pagamentos),
-                parcelamento);
+                parcelamento,
+                acrescimo);
 
         PDDocument doc = new PDDocument();
         PDPage page = new PDPage(PDRectangle.A4);
@@ -491,7 +493,8 @@ public static void imprimirCupomFiscal(
         VendaModel venda,
         List<VendaItemModel> itens,
         TableModel pagamentos,
-        CupomFiscalFormatter.ParcelamentoInfo parcelamento) {
+        CupomFiscalFormatter.ParcelamentoInfo parcelamento,
+        double acrescimo) {
     try {
         int vendaId = getVendaIdAsInt(venda);
 
@@ -499,7 +502,8 @@ public static void imprimirCupomFiscal(
                 vendaId,
                 itens,
                 CupomFiscalFormatter.fromTableModel(pagamentos),
-                parcelamento
+                parcelamento,
+                acrescimo
         );
 
         ByteArrayInputStream stream = new ByteArrayInputStream(texto.getBytes(StandardCharsets.UTF_8));

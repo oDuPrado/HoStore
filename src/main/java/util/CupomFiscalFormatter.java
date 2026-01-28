@@ -63,7 +63,8 @@ public class CupomFiscalFormatter {
             int vendaId,
             List<VendaItemModel> itens,
             List<PagamentoLinha> pagamentos,
-            ParcelamentoInfo parcelamento) {
+            ParcelamentoInfo parcelamento,
+            double acrescimo) {
         ConfigLojaModel cfg = carregarConfigLojaSilencioso();
 
         String nomeLoja = safe(cfg != null ? cfg.getNome() : null, "Loja");
@@ -189,6 +190,10 @@ public class CupomFiscalFormatter {
         if (totDesconto > 0)
             sb.append(totalLine("DESCONTOS", totDesconto)).append('\n');
         sb.append(line('-')).append('\n');
+        if (acrescimo > 0) {
+            sb.append(totalLine("ACRESCIMO", acrescimo)).append('\n');
+            totLiquido += acrescimo;
+        }
         sb.append(totalLineBold("TOTAL A PAGAR", totLiquido)).append('\n');
         sb.append(line('-')).append('\n');
 
@@ -206,10 +211,8 @@ public class CupomFiscalFormatter {
         sb.append(line('-')).append('\n');
 
         double diff = pago - totLiquido;
-        if (diff >= 0) {
+        if (diff > 0) {
             sb.append(totalLine("TROCO", diff)).append('\n');
-        } else {
-            sb.append(totalLine("FALTA", Math.abs(diff))).append('\n');
         }
 
         // Parcelamento (se houver)

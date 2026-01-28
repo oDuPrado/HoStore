@@ -24,6 +24,7 @@ import ui.eventos.painel.PainelEventos;
 
 // ✅ NOVO
 import ui.comandas.painel.PainelComandas;
+import ui.rh.painel.PainelRH;
 
 public class TelaPrincipal extends JFrame {
 
@@ -175,10 +176,10 @@ public class TelaPrincipal extends JFrame {
         JButton tabEventos = criarTab("🏆 Eventos/Liga", new PainelEventos());
         JButton tabRelatorios = criarTab("📊 Relatórios", new DashboardPanel());
         JButton tabAjustes = criarTab("⚙️ Ajustes", new AjustesPanel());
-        JButton tabBuscar = criarTab("🤖 HoRadars", null);
+        JButton tabRh = criarTab("👥 RH", new PainelRH());
         JButton tabFinanceiro = criarTab("🧾 Financeiro", new PainelFinanceiro());
 
-        tabBuscar.addActionListener(e -> JOptionPane.showMessageDialog(this, "Em desenvolvimento…"));
+        // RH agora ativo
 
         tabBar.add(tabEstoque);
         tabBar.add(tabClientes);
@@ -187,7 +188,7 @@ public class TelaPrincipal extends JFrame {
         tabBar.add(tabEventos);
         tabBar.add(tabRelatorios);
         tabBar.add(tabAjustes);
-        tabBar.add(tabBuscar);
+        tabBar.add(tabRh);
         tabBar.add(tabFinanceiro);
 
         return tabBar;

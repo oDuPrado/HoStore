@@ -10,6 +10,7 @@ import util.PDFGenerator;
 import model.VendaItemModel;
 import model.VendaModel;
 import service.CreditoLojaService;
+import service.ContaReceberService;
 import ui.venda.painel.PainelVendas;
 import ui.venda.dialog.ComprovanteFiscalDialog;
 import util.CupomFiscalFormatter;
@@ -52,6 +53,7 @@ public class VendaFinalizarDialog extends JDialog {
     /* ======= Resumo (labels) ======= */
     private final JLabel lblBruto = new JLabel();
     private final JLabel lblDesc = new JLabel();
+    private final JLabel lblTaxaCliente = new JLabel();
     private final JLabel lblLiquido = new JLabel();
 
     /* ======= Pagamentos (UI) ======= */
@@ -70,12 +72,17 @@ public class VendaFinalizarDialog extends JDialog {
     // Configuração de parcelamento – populada quando o usuário fecha o
     // ParcelamentoDialog em OK
     private ParcelamentoDialog.ParcelamentoConfig parcelamentoConfig = new ParcelamentoDialog.ParcelamentoConfig();
+    private final JCheckBox chkTaxaCliente = new JCheckBox("Taxa do cliente");
 
     /* ---- Rodapé ---- */
     private final JLabel lblPago = new JLabel();
     private final JLabel lblTroco = new JLabel();
     private final JLabel lblRestante = new JLabel();
     private Integer vendaIdGerada = null;
+    private double totalBrutoBase = 0.0;
+    private double totalDescontoBase = 0.0;
+    private double totalLiquidoBase = 0.0;
+    private double acrescimoTaxaCliente = 0.0;
 
     public Integer getVendaIdGerada() {
         return vendaIdGerada;
@@ -132,6 +139,9 @@ public class VendaFinalizarDialog extends JDialog {
             descV += b * it.getDesconto() / 100.0;
         }
         double liquido = bruto - descV;
+        totalBrutoBase = bruto;
+        totalDescontoBase = descV;
+        totalLiquidoBase = liquido;
 
         NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
@@ -147,6 +157,10 @@ public class VendaFinalizarDialog extends JDialog {
         double pct = (bruto > 0) ? (descV / bruto * 100.0) : 0.0;
         lblDesc.setText(String.format(new Locale("pt", "BR"), "%.2f%%  (%s)", pct, moeda.format(descV)));
         lblDesc.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JLabel lbTaxa = new JLabel("Taxa cartão cliente:");
+        lblTaxaCliente.setText(moeda.format(0.0));
+        lblTaxaCliente.setHorizontalAlignment(SwingConstants.RIGHT);
 
         JLabel lbTotal = new JLabel("Total Líquido:");
         lblLiquido.setText(moeda.format(liquido));
@@ -179,7 +193,16 @@ public class VendaFinalizarDialog extends JDialog {
         gc.weightx = 1;
         card.add(lblDesc, gc);
 
-        // linha 4 (destaque)
+        // linha 4 (taxa cliente)
+        gc.gridy++;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        card.add(lbTaxa, gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        card.add(lblTaxaCliente, gc);
+
+        // linha 5 (destaque)
         gc.gridy++;
         gc.gridx = 0;
         gc.weightx = 0;
@@ -272,6 +295,13 @@ public class VendaFinalizarDialog extends JDialog {
         gcCard.weightx = 0;
         cardCartao.add(btnParcelamento, gcCard);
 
+        gcCard.gridy++;
+        gcCard.gridx = 0;
+        gcCard.gridwidth = 7;
+        chkTaxaCliente.setOpaque(false);
+        cardCartao.add(chkTaxaCliente, gcCard);
+        gcCard.gridwidth = 1;
+
         linha2.add(cardCartao, BorderLayout.CENTER);
 
         // escondido até escolher CARTAO
@@ -290,7 +320,6 @@ public class VendaFinalizarDialog extends JDialog {
 
         btnParcelamento.addActionListener(e -> {
             // total líquido atual para pré-cálculo
-            // Calcula total da venda
             double totalVenda = 0;
             for (VendaItemModel it : itens)
                 totalVenda += it.getQtd() * it.getPreco() * (1 - it.getDesconto() / 100.0);
@@ -304,27 +333,14 @@ public class VendaFinalizarDialog extends JDialog {
             // Valor restante a pagar (usado como base do parcelamento)
             double valorRestante = Math.max(0, totalVenda - totalPagos);
 
-            // Abre o diálogo de parcelamento
-            ParcelamentoDialog dlg = new ParcelamentoDialog(
-                    SwingUtilities.getWindowAncestor(this),
-                    parcelamentoConfig,
-                    valorRestante);
-
-            dlg.setVisible(true);
-
-            if (dlg.isOk()) {
-                // Atualiza a configuração
-                parcelamentoConfig = dlg.getConfig();
-
-                // Preenche os campos visuais (informativos)
-                txtParcelas.setText(String.valueOf(parcelamentoConfig.parcelas));
-                txtJuros.setValue(parcelamentoConfig.juros);
-                cboPeriodo.setSelectedItem(parcelamentoConfig.intervaloDias + " dias");
-
+            if (abrirParcelamento(valorRestante)) {
                 // Preenche o campo de valor com o valor restante (ajustado)
                 txtValor.setValue(valorRestante);
+                atualizarValores();
             }
         });
+
+        chkTaxaCliente.addActionListener(e -> atualizarValores());
 
         painel.add(linha1, BorderLayout.NORTH);
         painel.add(linha2, BorderLayout.AFTER_LINE_ENDS);
@@ -464,6 +480,15 @@ public class VendaFinalizarDialog extends JDialog {
         }
 
         if ("CARTAO".equalsIgnoreCase(forma)) {
+            // evita duplicar cartão (config é única)
+            for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
+                String tipo = (String) pagamentosModel.getValueAt(i, 0);
+                if ("CARTAO".equalsIgnoreCase(tipo)) {
+                    AlertUtils.error("Já existe pagamento em cartão. Remova a linha e adicione novamente se precisar.");
+                    return;
+                }
+            }
+
             // 1. Calcula valor total da venda
             double totalVenda = 0;
             for (VendaItemModel it : itens)
@@ -486,9 +511,15 @@ public class VendaFinalizarDialog extends JDialog {
                 return;
             }
 
-            // 4. Aplica juros somente sobre esse valor
-            double juros = parcelamentoConfig.juros;
-            valor = valorBaseCartao * (1 + juros / 100.0);
+            if (!parcelamentoConfigOk()) {
+                if (!abrirParcelamento(valorBaseCartao)) {
+                    return;
+                }
+            }
+
+            // 4. Taxa do cartao: lojista paga por padrÃ£o. Se taxa do cliente, soma na cobranÃ§a.
+            double taxaValor = valorBaseCartao * (parcelamentoConfig.juros / 100.0);
+            valor = chkTaxaCliente.isSelected() ? (valorBaseCartao + taxaValor) : valorBaseCartao;
 
         } else {
             String rawText = txtValor.getText();
@@ -506,7 +537,35 @@ public class VendaFinalizarDialog extends JDialog {
         atualizarValores();
     }
 
+    private boolean parcelamentoConfigOk() {
+        if (parcelamentoConfig == null) return false;
+        if (parcelamentoConfig.parcelas <= 0) return false;
+        if (parcelamentoConfig.intervaloDias <= 0) return false;
+        if (parcelamentoConfig.bandeira == null || parcelamentoConfig.bandeira.isBlank()) return false;
+        return true;
+    }
+
+    private boolean abrirParcelamento(double valorBase) {
+        ParcelamentoDialog dlg = new ParcelamentoDialog(
+                SwingUtilities.getWindowAncestor(this),
+                parcelamentoConfig,
+                valorBase);
+
+        dlg.setVisible(true);
+
+        if (!dlg.isOk()) return false;
+
+        parcelamentoConfig = dlg.getConfig();
+
+        txtParcelas.setText(String.valueOf(parcelamentoConfig.parcelas));
+        txtJuros.setValue(parcelamentoConfig.juros);
+        cboPeriodo.setSelectedItem(parcelamentoConfig.intervaloDias + " dias");
+        return true;
+    }
+
     private void atualizarValores() {
+        ajustarPagamentoCartao();
+        recalcularResumo();
         double liquido = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"))
                 .parse(lblLiquido.getText(), new java.text.ParsePosition(0)).doubleValue();
         double pago = 0;
@@ -527,25 +586,107 @@ public class VendaFinalizarDialog extends JDialog {
         }
     }
 
+    private void ajustarPagamentoCartao() {
+        int cardRow = -1;
+        double outros = 0.0;
+        for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
+            String tipo = (String) pagamentosModel.getValueAt(i, 0);
+            double v = (Double) pagamentosModel.getValueAt(i, 1);
+            if ("CARTAO".equalsIgnoreCase(tipo)) {
+                cardRow = i;
+            } else {
+                outros += v;
+            }
+        }
+        if (cardRow < 0) {
+            acrescimoTaxaCliente = 0.0;
+            return;
+        }
+
+        double baseCartao = Math.max(0, totalLiquidoBase - outros);
+        double taxaValor = baseCartao * (parcelamentoConfig.juros / 100.0);
+        acrescimoTaxaCliente = chkTaxaCliente.isSelected() ? taxaValor : 0.0;
+        double novoValor = chkTaxaCliente.isSelected() ? (baseCartao + taxaValor) : baseCartao;
+        pagamentosModel.setValueAt(novoValor, cardRow, 1);
+    }
+
+    private void recalcularResumo() {
+        NumberFormat moeda = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        lblBruto.setText(moeda.format(totalBrutoBase));
+        lblDesc.setText(String.format(new Locale("pt", "BR"), "%.2f%%  (%s)",
+                (totalBrutoBase > 0 ? (totalDescontoBase / totalBrutoBase * 100.0) : 0.0),
+                moeda.format(totalDescontoBase)));
+
+        if (!chkTaxaCliente.isSelected()) {
+            acrescimoTaxaCliente = 0.0;
+        }
+        lblTaxaCliente.setText(moeda.format(acrescimoTaxaCliente));
+        lblLiquido.setText(moeda.format(totalLiquidoBase + acrescimoTaxaCliente));
+    }
+
     private void onConfirm() {
         try {
+            atualizarValores();
+            if (pagamentosModel.getRowCount() == 0) {
+                onAddPagamento();
+                if (pagamentosModel.getRowCount() == 0) {
+                    AlertUtils.error("Adicione pelo menos um pagamento antes de finalizar.");
+                    return;
+                }
+            }
+            boolean temCartao = false;
+            double totalCartao = 0.0;
+            for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
+                String tipo = (String) pagamentosModel.getValueAt(i, 0);
+                if ("CARTAO".equalsIgnoreCase(tipo)) {
+                    temCartao = true;
+                    totalCartao += (Double) pagamentosModel.getValueAt(i, 1);
+                }
+            }
+
             /* --- formaPagamento + parcelas --- */
             String formaFinal;
-            int parcelas = parcelamentoConfig.parcelas;
+            int parcelas = temCartao ? parcelamentoConfig.parcelas : 1;
+            int intervalo = temCartao ? parcelamentoConfig.intervaloDias : 0;
+            double juros = temCartao ? parcelamentoConfig.juros : 0.0;
 
-            if (pagamentosModel.getRowCount() == 1) {
-                formaFinal = (String) pagamentosModel.getValueAt(0, 0);
+            if (temCartao) {
+                if (parcelas <= 0) parcelas = 1;
+                if (intervalo <= 0) intervalo = 30;
+            }
+            String dataVenc = (temCartao && parcelas > 0 && intervalo > 0)
+                    ? calcularDataPrimeiroVencimentoISO()
+                    : null;
+
+            java.util.Set<String> formas = new java.util.HashSet<>();
+            for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
+                Object raw = pagamentosModel.getValueAt(i, 0);
+                if (raw != null) {
+                    String f = raw.toString().trim();
+                    if (!f.isEmpty()) formas.add(f.toUpperCase());
+                }
+            }
+            if (formas.size() == 1) {
+                formaFinal = formas.iterator().next();
             } else {
                 formaFinal = "MULTI";
+                // evita gerar contas a receber pelo total da venda
+                parcelas = 1;
+                intervalo = 0;
+                juros = 0.0;
+                dataVenc = null;
             }
 
             /* 1) Grava venda */
+            double acrescimo = chkTaxaCliente.isSelected() ? acrescimoTaxaCliente : 0.0;
             int vendaId = controller.finalizar(
                     clienteId,
                     formaFinal,
                     parcelas,
-                    parcelamentoConfig.intervaloDias,
-                    calcularDataPrimeiroVencimentoISO());
+                    intervalo,
+                    dataVenc,
+                    juros,
+                    acrescimo);
 
             this.vendaIdGerada = vendaId;
 
@@ -563,12 +704,51 @@ public class VendaFinalizarDialog extends JDialog {
 
                     // Insere no vendas_pagamentos
                     try (PreparedStatement ps = c.prepareStatement(
-                            "INSERT INTO vendas_pagamentos(venda_id,tipo,valor) VALUES (?,?,?)")) {
+                            "INSERT INTO vendas_pagamentos(venda_id,tipo,valor,bandeira,tipo_cartao,parcelas,intervalo_dias,taxa_pct,taxa_valor,taxa_quem) " +
+                            "VALUES (?,?,?,?,?,?,?,?,?,?)")) {
                         ps.setInt(1, vendaId);
                         ps.setString(2, formaPgto);
                         ps.setDouble(3, valorPgto);
+                        if ("CARTAO".equalsIgnoreCase(formaPgto)) {
+                            ps.setString(4, parcelamentoConfig.bandeira);
+                            ps.setString(5, parcelamentoConfig.tipo);
+                            ps.setInt(6, parcelamentoConfig.parcelas);
+                            ps.setInt(7, parcelamentoConfig.intervaloDias);
+                            ps.setDouble(8, parcelamentoConfig.juros);
+                            double base = chkTaxaCliente.isSelected()
+                                    ? (valorPgto / (1 + parcelamentoConfig.juros / 100.0))
+                                    : valorPgto;
+                            ps.setDouble(9, base * parcelamentoConfig.juros / 100.0);
+                            ps.setString(10, chkTaxaCliente.isSelected() ? "CLIENTE" : "LOJISTA");
+                        } else {
+                            ps.setString(4, null);
+                            ps.setString(5, null);
+                            ps.setNull(6, java.sql.Types.INTEGER);
+                            ps.setNull(7, java.sql.Types.INTEGER);
+                            ps.setNull(8, java.sql.Types.REAL);
+                            ps.setNull(9, java.sql.Types.REAL);
+                            ps.setString(10, null);
+                        }
                         ps.executeUpdate();
                     }
+                }
+            }
+
+            // Se for MULTI com cartao, cria contas a receber só do cartão
+            if ("MULTI".equalsIgnoreCase(formaFinal) && temCartao
+                    && parcelamentoConfig.parcelas > 0
+                    && parcelamentoConfig.intervaloDias > 0) {
+                try {
+                    ContaReceberService cr = new ContaReceberService();
+                    cr.criarTituloParcelado(
+                            clienteId,
+                            totalCartao,
+                            parcelamentoConfig.parcelas,
+                            calcularDataPrimeiroVencimentoISO(),
+                            parcelamentoConfig.intervaloDias,
+                            "venda-" + vendaId + "-cartao");
+                } catch (Exception ex) {
+                    AlertUtils.error("Venda finalizada, mas erro ao gerar parcelas do cartão:\n" + ex.getMessage());
                 }
             }
 
@@ -597,9 +777,6 @@ public class VendaFinalizarDialog extends JDialog {
             }
 
             /* 4) Comprovante */
-            double juros = parcelamentoConfig.juros;
-            String periodo = parcelamentoConfig.intervaloDias + " dias";
-
             CupomFiscalFormatter.ParcelamentoInfo parc = null;
             if (parcelamentoConfig != null && parcelamentoConfig.parcelas > 1) {
                 parc = new CupomFiscalFormatter.ParcelamentoInfo(
@@ -613,7 +790,8 @@ public class VendaFinalizarDialog extends JDialog {
                     vendaId,
                     itens,
                     pagamentosModel,
-                    parc).setVisible(true);
+                    parc,
+                    acrescimo).setVisible(true);
 
         } catch (Exception ex) {
             AlertUtils.error("Erro ao finalizar venda:\n" + ex.getMessage());

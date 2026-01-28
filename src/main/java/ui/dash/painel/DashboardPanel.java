@@ -2,6 +2,9 @@ package ui.dash.painel;
 
 import util.UiKit;
 import model.*;
+import dao.RhComissaoDAO;
+import dao.RhFolhaDAO;
+import dao.RhFuncionarioDAO;
 import service.RelatoriosService;
 import ui.dash.DashboardNavigator;
 import ui.dash.component.DashboardCard;
@@ -30,6 +33,7 @@ public class DashboardPanel extends JPanel {
     private final JFormattedTextField tfIni = new JFormattedTextField(DateTimeFormatter.ofPattern("dd/MM/yyyy").toFormat());
     private final JFormattedTextField tfFim = new JFormattedTextField(DateTimeFormatter.ofPattern("dd/MM/yyyy").toFormat());
     private final JButton btAtualizar = new JButton("Atualizar");
+    private PeriodoFiltro periodoAtual = PeriodoFiltro.mesAtual();
 
     // Ações rápidas
     private final JButton btFechDia = new JButton("Fechamento do Dia");
@@ -55,7 +59,7 @@ public class DashboardPanel extends JPanel {
     private final DashboardCard cVendas = new DashboardCard("Vendas (período)");
     private final DashboardCard cItens = new DashboardCard("Itens vendidos (período)");
     private final DashboardCard cDesc = new DashboardCard("Descontos (período)");
-    private final DashboardCard cTaxa = new DashboardCard("Taxa cartão estimada");
+    private final DashboardCard cTaxa = new DashboardCard("Taxa cart?o (lojista)");
 
     private final DashboardCard cDev = new DashboardCard("Devoluções (R$)");
     private final DashboardCard cEst = new DashboardCard("Estornos (R$)");
@@ -91,6 +95,17 @@ public class DashboardPanel extends JPanel {
         @Override public boolean isCellEditable(int r, int c) { return false; }
     };
     private final JTable tbMix = new JTable(tmMix);
+
+    // RH
+    private final DefaultTableModel tmRhFolha = new DefaultTableModel(new Object[]{"Funcionario", "Salario", "Comissao", "Total"}, 0) {
+        @Override public boolean isCellEditable(int r, int c) { return false; }
+    };
+    private final JTable tbRhFolha = new JTable(tmRhFolha);
+
+    private final DefaultTableModel tmRhComissao = new DefaultTableModel(new Object[]{"Funcionario", "Venda", "Valor", "Data"}, 0) {
+        @Override public boolean isCellEditable(int r, int c) { return false; }
+    };
+    private final JTable tbRhComissao = new JTable(tmRhComissao);
 
     public DashboardPanel(Window owner, DashboardNavigator navigator) {
         UiKit.applyPanelBase(this);
@@ -199,6 +214,8 @@ public class DashboardPanel extends JPanel {
         tabs.addTab("Mix pagamentos", wrapTable(tbMix));
         tabs.addTab("Estoque baixo", wrapTable(tbEstoqueBaixo));
         tabs.addTab("Encalhados", wrapTable(tbEncalhados));
+        tabs.addTab("RH - Folha", wrapTable(tbRhFolha));
+        tabs.addTab("RH - Comissões", wrapTable(tbRhComissao));
 
         center.add(kpiGrid, BorderLayout.NORTH);
         center.add(tabs, BorderLayout.CENTER);
@@ -266,13 +283,13 @@ public class DashboardPanel extends JPanel {
             Regra: lucro_estimado / faturamento líquido
             Se faturamento líquido = 0 => margem = 0
         """));
-        cTaxa.setOnInfo(() -> info("Taxa cartão (estimada)", """
-            Estimativa simples (limitação do modelo atual):
-            - Sem bandeira/tipo/parcelas por pagamento, não dá precisão total.
-            - Usa taxa média do mês em taxas_cartao + total de vendas com forma_pagamento contendo 'CARTAO'.
-            Para 100% real: salvar metadados no pagamento (bandeira/tipo/parcelas).
+        cTaxa.setOnInfo(() -> info("Taxa cart?o", """
+            Regra:
+            - Taxa do lojista: soma taxa_valor com taxa_quem = LOJISTA.
+            - Taxa do cliente: soma taxa_valor com taxa_quem = CLIENTE.
+            - Se n?o houver registros, estima pela taxa m?dia do m?s em taxas_cartao.
         """));
-        cDev.setOnInfo(() -> info("Devoluções", """
+cDev.setOnInfo(() -> info("Devoluções", """
             Fonte: vendas_devolucoes (qtd, valor_unit)
             Regra: SUM(qtd * valor_unit)
             Observação: usa data da devolução; se valor_unit vier 0, seu fluxo ainda está gravando errado.
@@ -331,6 +348,7 @@ public class DashboardPanel extends JPanel {
         btAtualizar.setEnabled(false);
 
         PeriodoFiltro periodo = resolvePeriodo();
+        periodoAtual = periodo;
         int threshold = 5;
 
         new SwingWorker<DashboardHomeModel, Void>() {
@@ -367,7 +385,7 @@ public class DashboardPanel extends JPanel {
         cVendas.setNumber(k.qtdVendas);
         cItens.setNumber(k.itensVendidos);
         cDesc.setMoney(k.descontoTotal);
-        cTaxa.setMoney(k.taxaCartaoEstimada);
+        cTaxa.setMoney(k.taxaCartaoLojista);
 
         cDev.setMoney(k.devolucoesValor);
         cEst.setMoney(k.estornosValor);
@@ -415,6 +433,46 @@ public class DashboardPanel extends JPanel {
         tmMix.setRowCount(0);
         for (PagamentoMixItemModel m : k.mixPagamentos) {
             tmMix.addRow(new Object[]{m.tipo, MoedaUtil.brl(m.valor), MoedaUtil.pct(m.pct)});
+        }
+
+        carregarRhRelatorios(periodoAtual);
+    }
+
+    private void carregarRhRelatorios(PeriodoFiltro periodo) {
+        if (periodo == null)
+            return;
+        try {
+            RhFuncionarioDAO funcDAO = new RhFuncionarioDAO();
+            RhFolhaDAO folhaDAO = new RhFolhaDAO();
+            RhComissaoDAO comissaoDAO = new RhComissaoDAO();
+
+            java.util.Map<String, String> nomes = new java.util.HashMap<>();
+            for (RhFuncionarioModel f : funcDAO.listar(false)) {
+                nomes.put(f.getId(), f.getNome());
+            }
+
+            String competencia = java.time.YearMonth.from(periodo.getInicio()).toString();
+            tmRhFolha.setRowCount(0);
+            for (RhFolhaModel f : folhaDAO.listarPorCompetencia(competencia)) {
+                tmRhFolha.addRow(new Object[]{
+                        nomes.getOrDefault(f.getFuncionarioId(), f.getFuncionarioId()),
+                        MoedaUtil.brl(f.getSalarioBase()),
+                        MoedaUtil.brl(f.getComissao()),
+                        MoedaUtil.brl(f.getTotalLiquido())
+                });
+            }
+
+            tmRhComissao.setRowCount(0);
+            for (RhComissaoModel c : comissaoDAO.listar(periodo.getInicioIso(), periodo.getFimIso())) {
+                tmRhComissao.addRow(new Object[]{
+                        nomes.getOrDefault(c.getFuncionarioId(), c.getFuncionarioId()),
+                        c.getVendaId(),
+                        MoedaUtil.brl(c.getValor()),
+                        c.getData()
+                });
+            }
+        } catch (Exception ex) {
+            // evita quebrar dashboard
         }
     }
 
@@ -468,7 +526,8 @@ public class DashboardPanel extends JPanel {
                     rows.add(new Object[]{"Devoluções (R$)", MoedaUtil.brl(k.devolucoesValor)});
                     rows.add(new Object[]{"Estornos (R$)", MoedaUtil.brl(k.estornosValor)});
                     rows.add(new Object[]{"Cancelamentos", k.cancelamentosQtd});
-                    rows.add(new Object[]{"Taxa cartão estimada", MoedaUtil.brl(k.taxaCartaoEstimada)});
+                    rows.add(new Object[]{"Taxa cart?o (lojista)", MoedaUtil.brl(k.taxaCartaoLojista)});
+                    rows.add(new Object[]{"Taxa cart?o (cliente)", MoedaUtil.brl(k.taxaCartaoCliente)});
                     rows.add(new Object[]{"Docs fiscais pendentes", k.docsFiscaisPendentes});
                     rows.add(new Object[]{"Receber vencido", MoedaUtil.brl(k.receberVencido)});
                     rows.add(new Object[]{"Pagar vencido", MoedaUtil.brl(k.pagarVencido)});

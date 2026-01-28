@@ -192,7 +192,35 @@ public class RelatoriosDAO {
             // - Se tiver tabela taxas_cartao, isso depende de bandeira/tipo/parcelas/mes.
             // - Como vendas_pagamentos não guarda bandeira/parcelas por pagamento, estimamos pela coluna forma_pagamento + parcelas na venda.
             // - Se você quiser precisão, precisa modelar pagamento com metadados (bandeira, tipo, parcelas).
-            k.taxaCartaoEstimada = estimarTaxaCartaoSimplificada(c, periodo);
+            double taxaLojista = queryDouble(c, """
+                SELECT COALESCE(SUM(vp.taxa_valor),0)
+                FROM vendas_pagamentos vp
+                JOIN vendas v ON v.id = vp.venda_id
+                WHERE UPPER(vp.tipo) = 'CARTAO'
+                  AND UPPER(COALESCE(vp.taxa_quem,'LOJISTA')) = 'LOJISTA'
+                  AND v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """, periodo.getInicioIso(), periodo.getFimIso());
+
+            double taxaCliente = queryDouble(c, """
+                SELECT COALESCE(SUM(vp.taxa_valor),0)
+                FROM vendas_pagamentos vp
+                JOIN vendas v ON v.id = vp.venda_id
+                WHERE UPPER(vp.tipo) = 'CARTAO'
+                  AND UPPER(vp.taxa_quem) = 'CLIENTE'
+                  AND v.status <> 'cancelada'
+                  AND date(v.data_venda) BETWEEN date(?) AND date(?)
+            """, periodo.getInicioIso(), periodo.getFimIso());
+
+            if (taxaLojista > 0 || taxaCliente > 0) {
+                k.taxaCartaoLojista = taxaLojista;
+                k.taxaCartaoCliente = taxaCliente;
+                k.taxaCartaoEstimada = taxaLojista;
+            } else {
+                k.taxaCartaoEstimada = estimarTaxaCartaoSimplificada(c, periodo);
+                k.taxaCartaoLojista = k.taxaCartaoEstimada;
+                k.taxaCartaoCliente = 0.0;
+            }
 
             // Alertas gerais (fiscal + vencidos)
             k.docsFiscaisPendentes = (int) queryDouble(c, """
@@ -622,11 +650,21 @@ public class RelatoriosDAO {
     }
 
     private double estimarTaxaCartaoSimplificada(Connection c, PeriodoFiltro periodo) throws SQLException {
-        // Estratégia simples:
-        // Se a venda forma_pagamento contém "CARTAO" então aplica taxa média ponderada do mês vigente (taxas_cartao),
-        // senão zero. (É estimativa, mas já dá sinal de “taxa comendo margem”.)
-        //
-        // Se quiser 100% real: tem que guardar bandeira/tipo no pagamento, e aí calcular corretamente.
+        // Estratégia:
+        // 1) Se existir taxa real registrada em vendas_pagamentos, usa.
+        // 2) Caso contrário, usa taxa média do mês como estimativa.
+        double taxaReal = queryDouble(c, """
+            SELECT COALESCE(SUM(vp.taxa_valor),0)
+            FROM vendas_pagamentos vp
+            JOIN vendas v ON v.id = vp.venda_id
+            WHERE UPPER(vp.tipo) = 'CARTAO'
+              AND v.status <> 'cancelada'
+              AND date(v.data_venda) BETWEEN date(?) AND date(?)
+        """, periodo.getInicioIso(), periodo.getFimIso());
+
+        if (taxaReal > 0.0) {
+            return taxaReal;
+        }
         double taxaMediaMes = queryDouble(c, """
             SELECT COALESCE(AVG(taxa_pct),0) / 100.0
             FROM taxas_cartao

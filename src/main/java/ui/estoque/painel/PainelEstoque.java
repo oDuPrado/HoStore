@@ -139,7 +139,7 @@ public class PainelEstoque extends JPanel {
         tableCard.add(UiKit.title("Estoque"), BorderLayout.NORTH);
 
         modeloTabela = new DefaultTableModel(new String[] {
-                "Nome", "Tipo", "Quantidade", "R$ Compra", "R$ Venda (min-max)", "Fornecedor"
+                "Nome", "Tipo", "Quantidade", "R$ Compra (médio)", "R$ Venda (médio)", "Fornecedor"
         }, 0) {
             @Override
             public boolean isCellEditable(int linha, int coluna) {
@@ -408,26 +408,20 @@ public class PainelEstoque extends JPanel {
             }
 
             dao.EstoqueLoteDAO.LoteResumo resumo;
-            dao.EstoqueLoteDAO.LoteFaixa faixa;
             try {
                 resumo = loteDAO.obterResumoProduto(produto.getId(), c);
-                faixa = loteDAO.obterFaixaPrecoVenda(produto.getId(), c);
             } catch (Exception ex) {
-                int qtdFallback = Math.max(0, produto.getQuantidade());
-                resumo = new dao.EstoqueLoteDAO.LoteResumo(
-                        qtdFallback,
-                        qtdFallback * Math.max(0.0, produto.getPrecoCompra()),
-                        qtdFallback * Math.max(0.0, produto.getPrecoVenda()));
-                faixa = new dao.EstoqueLoteDAO.LoteFaixa(produto.getPrecoVenda(), produto.getPrecoVenda());
+                resumo = new dao.EstoqueLoteDAO.LoteResumo(0, 0.0, 0.0);
             }
 
-            String faixaVenda = formatFaixaVenda(faixa);
+            double custoMedio = resumo.qtdDisponivel > 0 ? (resumo.custoTotal / resumo.qtdDisponivel) : 0.0;
+            double vendaMedia = resumo.qtdDisponivel > 0 ? (resumo.vendaTotal / resumo.qtdDisponivel) : 0.0;
             modeloTabela.addRow(new Object[] {
                     produto.getNome(),
                     tipoExibido,
                     resumo.qtdDisponivel,
-                    produto.getPrecoCompra(),
-                    faixaVenda,
+                    custoMedio,
+                    vendaMedia,
                     produto.getFornecedorNome()
             });
 
@@ -503,22 +497,6 @@ public class PainelEstoque extends JPanel {
         Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
         new ui.estoque.dialog.LotesProdutoDialog(owner, selecionado).setVisible(true);
         listar();
-    }
-
-    private String formatFaixaVenda(dao.EstoqueLoteDAO.LoteFaixa faixa) {
-        if (faixa == null || (faixa.min == null && faixa.max == null))
-            return "-";
-        double min = (faixa.min != null) ? faixa.min : 0.0;
-        double max = (faixa.max != null) ? faixa.max : min;
-        if (Double.isNaN(min) || Double.isInfinite(min))
-            min = 0.0;
-        if (Double.isNaN(max) || Double.isInfinite(max))
-            max = min;
-        if (Math.abs(max - min) < 0.000001) {
-            return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(min);
-        }
-        return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(min) + "–"
-                + NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(max);
     }
 
     private void abrirEditar() {

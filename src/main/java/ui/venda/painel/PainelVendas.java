@@ -15,6 +15,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.NumberFormat;
@@ -399,8 +400,12 @@ public class PainelVendas extends JPanel {
         modelo.setRowCount(0);
 
         double total = 0;
+        int qtdReal = 0;
 
-        try (Statement st = DB.get().createStatement()) {
+        try (java.sql.Connection c = DB.get();
+                Statement st = c.createStatement();
+                PreparedStatement psEstornos = c.prepareStatement(
+                        "SELECT COALESCE(SUM(valor_estornado),0) AS total FROM vendas_estornos_pagamentos WHERE venda_id = ?")) {
 
             StringBuilder sql = new StringBuilder(
                     "SELECT v.*, c.nome AS cliente_nome " +
@@ -415,7 +420,7 @@ public class PainelVendas extends JPanel {
                 where.add("date(v.data_venda) <= '" + dataFim + "'");
 
             if (cliente != null && !"Todos".equals(cliente))
-                where.add("c.nome LIKE '%" + cliente + "%'");
+                where.add("c.nome LIKE '%" + cliente + "%'" );
 
             if (status != null && !"Todos".equalsIgnoreCase(status)) {
                 boolean statusCalculado = status.equalsIgnoreCase("Devolvida") ||
@@ -444,17 +449,29 @@ public class PainelVendas extends JPanel {
                     int parc = rs.getInt("parcelas");
                     String statusOriginal = rs.getString("status").toLowerCase();
 
-                    // devoluções
+                    // devolucoes
                     java.util.List<model.VendaDevolucaoModel> devolucoes = new dao.VendaDevolucaoDAO()
                             .listarPorVenda(id);
+                    double totalDev = 0.0;
+                    for (model.VendaDevolucaoModel d : devolucoes) {
+                        totalDev += (double) d.getQuantidade() * d.getValor();
+                    }
+
+                    double totalEst = 0.0;
+                    psEstornos.setInt(1, id);
+                    try (ResultSet rsEst = psEstornos.executeQuery()) {
+                        if (rsEst.next())
+                            totalEst = rsEst.getDouble("total");
+                    }
 
                     // parcelas pendentes
                     boolean temParcelasPendentes = false;
-                    try (Statement stParc = DB.get().createStatement();
+                    try (Statement stParc = c.createStatement();
                             ResultSet rsParc = stParc.executeQuery(
-                                    "SELECT COUNT(*) FROM parcelas_contas_receber WHERE titulo_id = (" +
-                                            "  SELECT id FROM titulos_contas_receber WHERE codigo_selecao = 'venda-"
-                                            + id + "'" +
+                                    "SELECT COUNT(*) FROM parcelas_contas_receber WHERE titulo_id IN (" +
+                                            "  SELECT id FROM titulos_contas_receber WHERE codigo_selecao IN (" +
+                                            "    'venda-" + id + "', 'venda-" + id + "-cartao'" +
+                                            "  )" +
                                             ") AND status = 'aberto'")) {
                         if (rsParc.next() && rsParc.getInt(1) > 0)
                             temParcelasPendentes = true;
@@ -484,8 +501,13 @@ public class PainelVendas extends JPanel {
                     if (!"Todos".equals(status) && !status.equalsIgnoreCase(statusFinal))
                         continue;
 
-                    modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "↗" });
-                    total += val;
+                    modelo.addRow(new Object[] { id, data, cliNome, val, pg, parc, statusFinal, "\u2197" });
+
+                    if (!"cancelada".equals(statusFinal)) {
+                        double real = val - totalDev - totalEst;
+                        total += real;
+                        qtdReal += 1;
+                    }
                 }
             }
 
@@ -493,11 +515,10 @@ public class PainelVendas extends JPanel {
             AlertUtils.error("Erro ao carregar vendas:\n" + ex.getMessage());
         }
 
-        int qtd = modelo.getRowCount();
-        double ticket = qtd > 0 ? total / qtd : 0;
+        double ticket = qtdReal > 0 ? total / qtdReal : 0;
         NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         resumoLbl.setText(
-                "Total: " + cf.format(total) + "  |  Qtde: " + qtd + "  |  Ticket Médio: " + cf.format(ticket));
+                "Total: " + cf.format(total) + "  |  Qtde: " + qtdReal + "  |  Ticket Medio: " + cf.format(ticket));
     }
 
     private void excluirVenda(int vendaId) {

@@ -2,6 +2,7 @@
 package controller;
 
 import service.VendaService;
+import service.SessaoService;
 import model.VendaItemModel;
 import model.VendaModel;
 
@@ -55,11 +56,11 @@ public class VendaController {
     // Finaliza e grava a venda
     // =========================
     public int finalizar(String clienteId, String forma, int parcelas,
-            int intervaloDias, String dataPrimeiroVencimento) throws Exception {
+            int intervaloDias, String dataPrimeiroVencimento, double juros, double acrescimo) throws Exception {
 
         double totalBruto = getTotalBruto();
         double totalDesconto = getTotalDesconto();
-        double totalLiquido = getTotalLiquido();
+        double totalLiquido = getTotalLiquido() + acrescimo;
 
         VendaModel venda = factory.VendaFactory.criarVenda(
                 clienteId,
@@ -68,8 +69,14 @@ public class VendaController {
                 forma,
                 parcelas);
 
+        if (SessaoService.get() != null) {
+            venda.setUsuario(SessaoService.get().getId());
+        }
         venda.setIntervaloDias(intervaloDias);
         venda.setDataPrimeiroVencimento(dataPrimeiroVencimento);
+        venda.setJuros(juros);
+        venda.setAcrescimo(acrescimo);
+        venda.setTotalLiquido(totalLiquido);
 
         return vendaService.finalizarVenda(venda, carrinho);
     }

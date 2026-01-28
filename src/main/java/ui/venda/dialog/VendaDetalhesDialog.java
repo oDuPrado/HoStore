@@ -8,12 +8,13 @@ import util.UiKit;
 import java.awt.*;
 import java.io.File;
 import java.awt.event.MouseAdapter;
-import MouseEvent;
+import java.awt.event.MouseEvent;
 
 import java.sql.Connection;
 import javax.swing.table.TableCellRenderer;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -103,7 +104,7 @@ public class VendaDetalhesDialog extends JDialog {
         };
 
         DefaultTableModel pagamentosModel = new DefaultTableModel(
-                new String[] { "Forma", "Valor" }, 0) {
+                new String[] { "Forma", "Valor", "Bandeira", "Parcelas", "Taxa %", "Taxa Valor", "Taxa Quem" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
                 return false;
@@ -111,7 +112,7 @@ public class VendaDetalhesDialog extends JDialog {
 
             @Override
             public Class<?> getColumnClass(int col) {
-                return (col == 1) ? Double.class : String.class;
+                return (col == 1 || col == 4 || col == 5) ? Double.class : String.class;
             }
         };
 
@@ -184,23 +185,106 @@ public class VendaDetalhesDialog extends JDialog {
             }
 
             // 2) Pagamentos + valor cartão
+            boolean pagamentosOk = false;
             try (PreparedStatement pp = c.prepareStatement(
-                    "SELECT tipo, valor FROM vendas_pagamentos WHERE venda_id = ?")) {
+                    "SELECT tipo, valor, bandeira, parcelas, intervalo_dias, taxa_pct, taxa_valor, taxa_quem " +
+                    "FROM vendas_pagamentos WHERE venda_id = ?")) {
                 pp.setInt(1, vendaId);
                 try (ResultSet rp = pp.executeQuery()) {
+                    StringBuilder formasDet = new StringBuilder();
                     while (rp.next()) {
                         String tp = rp.getString("tipo");
                         double v = rp.getDouble("valor");
-                        pagamentosModel.addRow(new Object[] { tp, v });
+                        String bandeira = rp.getString("bandeira");
+                        Integer parc = (Integer) rp.getObject("parcelas");
+                        Integer intervalo = (Integer) rp.getObject("intervalo_dias");
+                        Double taxaPct = (Double) rp.getObject("taxa_pct");
+                        Double taxaValor = (Double) rp.getObject("taxa_valor");
+                        String taxaQuem = rp.getString("taxa_quem");
+
+                        pagamentosModel.addRow(new Object[] { tp, v, bandeira, parc, taxaPct, taxaValor, taxaQuem });
+                        if (formasDet.length() > 0) formasDet.append(" | ");
+                        formasDet.append(tp).append(" ").append(BRL.format(v));
                         if ("CARTAO".equalsIgnoreCase(tp)) {
                             valorCartao = v;
+                            if (parc != null && parc > 0) {
+                                numParcelas = parc;
+                            }
+                            if (intervalo != null && intervalo > 0) {
+                                intervaloDias = intervalo;
+                            }
+                        }
+                    }
+                    if (formasDet.length() > 0) {
+                        lblFormaPagamento.setText(formasDet.toString());
+                    }
+                    pagamentosOk = true;
+                }
+            } catch (SQLException ex) {
+                pagamentosOk = false;
+            }
+
+            // fallback para bases antigas (sem colunas novas)
+            if (!pagamentosOk) {
+                try (PreparedStatement pp = c.prepareStatement(
+                        "SELECT tipo, valor FROM vendas_pagamentos WHERE venda_id = ?")) {
+                    pp.setInt(1, vendaId);
+                    try (ResultSet rp = pp.executeQuery()) {
+                        while (rp.next()) {
+                            String tp = rp.getString("tipo");
+                            double v = rp.getDouble("valor");
+                            pagamentosModel.addRow(new Object[] { tp, v, null, null, null, null, null });
                         }
                     }
                 }
             }
 
-            // 3) Parcelas (cronograma simples)
-            if (dataVenda != null && numParcelas > 1 && valorCartao > 0 && intervaloDias > 0) {
+            // fallback legado: sem linhas em vendas_pagamentos
+            if (pagamentosModel.getRowCount() == 0 && totalLiquido > 0) {
+                String formaLegacy = lblFormaPagamento.getText();
+                if (formaLegacy != null && !formaLegacy.isBlank() && !"-".equals(formaLegacy)) {
+                    pagamentosModel.addRow(new Object[] { formaLegacy, totalLiquido, null, null, null, null, null });
+                }
+            }
+
+            // 3) Parcelas (contas a receber)
+            boolean parcelasCarregadas = false;
+            try (PreparedStatement psParc = c.prepareStatement(
+                    "SELECT p.numero_parcela, p.vencimento, p.valor_nominal, p.valor_juros, " +
+                            "p.valor_acrescimo, p.valor_desconto, t.codigo_selecao " +
+                            "FROM parcelas_contas_receber p " +
+                            "JOIN titulos_contas_receber t ON t.id = p.titulo_id " +
+                            "WHERE t.codigo_selecao IN (?, ?) " +
+                            "ORDER BY t.codigo_selecao, p.numero_parcela")) {
+                psParc.setString(1, "venda-" + vendaId);
+                psParc.setString(2, "venda-" + vendaId + "-cartao");
+                try (ResultSet rp = psParc.executeQuery()) {
+                    while (rp.next()) {
+                        int num = rp.getInt("numero_parcela");
+                        String vencStr = rp.getString("vencimento");
+                        double valor = rp.getDouble("valor_nominal")
+                                + rp.getDouble("valor_juros")
+                                + rp.getDouble("valor_acrescimo")
+                                - rp.getDouble("valor_desconto");
+                        String codigo = rp.getString("codigo_selecao");
+                        String label = String.valueOf(num);
+                        if (codigo != null && codigo.endsWith("-cartao")) {
+                            label = "Cartão " + num;
+                        }
+                        if (vencStr != null && !vencStr.isBlank()) {
+                            try {
+                                vencStr = LocalDate.parse(vencStr).format(BR);
+                            } catch (Exception ignored) {
+                            }
+                        }
+                        parcelasModel.addRow(new Object[] { label, vencStr, valor });
+                        parcelasCarregadas = true;
+                    }
+                }
+            }
+
+            // fallback: cronograma simples
+            if (!parcelasCarregadas && dataVenda != null && numParcelas > 1 && valorCartao > 0 && intervaloDias > 0) {
                 double valorParcela = valorCartao / numParcelas;
                 LocalDate venc = dataVenda.plusDays(intervaloDias);
                 for (int i = 1; i <= numParcelas; i++) {
@@ -303,7 +387,7 @@ public class VendaDetalhesDialog extends JDialog {
             }
 
             try (PreparedStatement ps2 = c.prepareStatement(
-                    "SELECT COALESCE(SUM(valor), 0) AS total_est " +
+                    "SELECT COALESCE(SUM(valor_estornado), 0) AS total_est " +
                             "FROM vendas_estornos_pagamentos WHERE venda_id = ?")) {
                 ps2.setInt(1, vendaId);
                 try (ResultSet rs2 = ps2.executeQuery()) {
@@ -480,10 +564,15 @@ public class VendaDetalhesDialog extends JDialog {
                 }
             });
         } else {
-            // ?ltima coluna geralmente ? valor
-            int last = t.getColumnCount() - 1;
-            if (last >= 0) {
-                t.getColumnModel().getColumn(last).setCellRenderer(currencyZebra(zebra));
+            for (int i = 0; i < t.getColumnCount(); i++) {
+                String name = t.getColumnName(i).toLowerCase();
+                if (name.contains("valor")) {
+                    t.getColumnModel().getColumn(i).setCellRenderer(currencyZebra(zebra));
+                } else if (name.contains("%")) {
+                    t.getColumnModel().getColumn(i).setCellRenderer(percentZebra(zebra));
+                } else if (name.contains("parcela")) {
+                    t.getColumnModel().getColumn(i).setCellRenderer(centerZebra(zebra));
+                }
             }
         }
 
@@ -776,18 +865,22 @@ public class VendaDetalhesDialog extends JDialog {
         // estornos financeiros
         try (Connection c = DB.get();
                 PreparedStatement ps = c.prepareStatement(
-                        "SELECT pagamento_id, valor, data, motivo FROM vendas_estornos_pagamentos WHERE venda_id = ?")) {
+                        "SELECT pagamento_id, valor_estornado, data, observacao, tipo_estorno, taxa_quem FROM vendas_estornos_pagamentos WHERE venda_id = ?")) {
             ps.setInt(1, vendaId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     int idPag = rs.getInt("pagamento_id");
-                    double valor = rs.getDouble("valor");
+                    double valor = rs.getDouble("valor_estornado");
                     String data = rs.getString("data");
-                    String motivo = rs.getString("motivo");
+                    String motivo = rs.getString("observacao");
+                    String tipoEstorno = rs.getString("tipo_estorno");
+                    String taxaQuem = rs.getString("taxa_quem");
 
                     estornosModel.addRow(new Object[] {
                             "Estorno Pagamento",
-                            "Pagamento ID: " + idPag,
+                            "Pagamento ID: " + idPag
+                                    + (tipoEstorno != null ? " | " + tipoEstorno : "")
+                                    + (taxaQuem != null ? " | " + taxaQuem : ""),
                             BRL.format(valor),
                             data,
                             motivo

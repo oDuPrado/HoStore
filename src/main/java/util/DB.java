@@ -660,6 +660,135 @@ public class DB {
                         ensureColumn(c, "estoque_lotes", "origem", "TEXT");
                         ensureColumn(c, "estoque_lotes", "legado", "INTEGER");
 
+                        // ========== RH ==========
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_cargos (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT NOT NULL, " +
+                                                        "descricao TEXT, " +
+                                                        "salario_base REAL, " +
+                                                        "ativo INTEGER DEFAULT 1, " +
+                                                        "criado_em TEXT, " +
+                                                        "alterado_em TEXT" +
+                                                        ")",
+                                        "rh_cargos");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_funcionarios (" +
+                                                        "id TEXT PRIMARY KEY, " +
+                                                        "nome TEXT NOT NULL, " +
+                                                        "tipo_contrato TEXT NOT NULL, " +
+                                                        "cpf TEXT, " +
+                                                        "cnpj TEXT, " +
+                                                        "rg TEXT, " +
+                                                        "pis TEXT, " +
+                                                        "data_admissao TEXT, " +
+                                                        "data_demissao TEXT, " +
+                                                        "cargo_id TEXT, " +
+                                                        "salario_base REAL, " +
+                                                        "comissao_pct REAL DEFAULT 0, " +
+                                                        "usuario_id TEXT, " +
+                                                        "email TEXT, " +
+                                                        "telefone TEXT, " +
+                                                        "endereco TEXT, " +
+                                                        "ativo INTEGER DEFAULT 1, " +
+                                                        "observacoes TEXT, " +
+                                                        "criado_em TEXT, " +
+                                                        "alterado_em TEXT, " +
+                                                        "FOREIGN KEY (cargo_id) REFERENCES rh_cargos(id)" +
+                                                        ")",
+                                        "rh_funcionarios");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_salarios (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "funcionario_id TEXT NOT NULL, " +
+                                                        "cargo_id TEXT, " +
+                                                        "salario_base REAL NOT NULL, " +
+                                                        "data_inicio TEXT NOT NULL, " +
+                                                        "data_fim TEXT, " +
+                                                        "motivo TEXT, " +
+                                                        "criado_em TEXT, " +
+                                                        "FOREIGN KEY (funcionario_id) REFERENCES rh_funcionarios(id), " +
+                                                        "FOREIGN KEY (cargo_id) REFERENCES rh_cargos(id)" +
+                                                        ")",
+                                        "rh_salarios");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_ponto (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "funcionario_id TEXT NOT NULL, " +
+                                                        "data TEXT NOT NULL, " +
+                                                        "entrada TEXT, " +
+                                                        "saida TEXT, " +
+                                                        "intervalo_inicio TEXT, " +
+                                                        "intervalo_fim TEXT, " +
+                                                        "horas_trabalhadas REAL, " +
+                                                        "origem TEXT, " +
+                                                        "criado_em TEXT, " +
+                                                        "FOREIGN KEY (funcionario_id) REFERENCES rh_funcionarios(id)" +
+                                                        ")",
+                                        "rh_ponto");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_escala (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "funcionario_id TEXT NOT NULL, " +
+                                                        "data TEXT NOT NULL, " +
+                                                        "inicio TEXT, " +
+                                                        "fim TEXT, " +
+                                                        "observacoes TEXT, " +
+                                                        "criado_em TEXT, " +
+                                                        "FOREIGN KEY (funcionario_id) REFERENCES rh_funcionarios(id)" +
+                                                        ")",
+                                        "rh_escala");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_ferias (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "funcionario_id TEXT NOT NULL, " +
+                                                        "data_inicio TEXT NOT NULL, " +
+                                                        "data_fim TEXT NOT NULL, " +
+                                                        "abono INTEGER DEFAULT 0, " +
+                                                        "status TEXT DEFAULT 'programada', " +
+                                                        "observacoes TEXT, " +
+                                                        "criado_em TEXT, " +
+                                                        "FOREIGN KEY (funcionario_id) REFERENCES rh_funcionarios(id)" +
+                                                        ")",
+                                        "rh_ferias");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_comissoes (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "venda_id INTEGER, " +
+                                                        "funcionario_id TEXT NOT NULL, " +
+                                                        "percentual REAL, " +
+                                                        "valor REAL, " +
+                                                        "data TEXT, " +
+                                                        "observacoes TEXT, " +
+                                                        "UNIQUE(venda_id, funcionario_id), " +
+                                                        "FOREIGN KEY (funcionario_id) REFERENCES rh_funcionarios(id)" +
+                                                        ")",
+                                        "rh_comissoes");
+
+                        executeComLog(st,
+                                        "CREATE TABLE IF NOT EXISTS rh_folha (" +
+                                                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                                        "competencia TEXT NOT NULL, " +
+                                                        "funcionario_id TEXT NOT NULL, " +
+                                                        "salario_base REAL, " +
+                                                        "horas_trabalhadas REAL, " +
+                                                        "horas_extras REAL, " +
+                                                        "descontos REAL, " +
+                                                        "comissao REAL, " +
+                                                        "total_bruto REAL, " +
+                                                        "total_liquido REAL, " +
+                                                        "status TEXT DEFAULT 'aberta', " +
+                                                        "criado_em TEXT, " +
+                                                        "FOREIGN KEY (funcionario_id) REFERENCES rh_funcionarios(id)" +
+                                                        ")",
+                                        "rh_folha");
+
                         // ========== VENDAS ==========
                         executeComLog(st,
                                         "CREATE TABLE IF NOT EXISTS vendas (" +
@@ -705,6 +834,13 @@ public class DB {
                                                         "venda_id INTEGER NOT NULL, " +
                                                         "tipo TEXT NOT NULL, " +
                                                         "valor REAL NOT NULL, " +
+                                                        "bandeira TEXT, " +
+                                                        "tipo_cartao TEXT, " +
+                                                        "parcelas INTEGER, " +
+                                                        "intervalo_dias INTEGER, " +
+                                                        "taxa_pct REAL, " +
+                                                        "taxa_valor REAL, " +
+                                                        "taxa_quem TEXT, " +
                                                         "FOREIGN KEY (venda_id) REFERENCES vendas(id)" +
                                                         ")",
                                         "vendas_pagamentos");
@@ -719,7 +855,9 @@ public class DB {
                                                         "data TEXT NOT NULL, " +
                                                         "observacao TEXT, " +
                                                         "criado_em TEXT, " +
-                                                        "criado_por TEXT" +
+                                                        "criado_por TEXT, " +
+                                                        "tipo_estorno TEXT, " +
+                                                        "taxa_quem TEXT" +
                                                         ")",
                                         "vendas_estornos_pagamentos");
 

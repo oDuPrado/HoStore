@@ -13,11 +13,13 @@ public class VendaModel {
     private String clienteId;
     private double totalBruto;
     private double desconto;
+    private double acrescimo;
     private double totalLiquido;
     private String formaPagamento;
     private int parcelas;
     private String dataPrimeiroVencimento;
     private int intervaloDias;
+    private double juros;
 
     private String status;
 
@@ -104,6 +106,14 @@ public class VendaModel {
         this.desconto = v;
     }
 
+    public double getAcrescimo() {
+        return acrescimo;
+    }
+
+    public void setAcrescimo(double acrescimo) {
+        this.acrescimo = acrescimo;
+    }
+
     public double getTotalLiquido() {
         return totalLiquido;
     }
@@ -150,6 +160,14 @@ public class VendaModel {
 
     public void setIntervaloDias(int dias) {
         this.intervaloDias = dias;
+    }
+
+    public double getJuros() {
+        return juros;
+    }
+
+    public void setJuros(double juros) {
+        this.juros = juros;
     }
 
 }
