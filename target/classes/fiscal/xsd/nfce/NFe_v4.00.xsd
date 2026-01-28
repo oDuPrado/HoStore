@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  NFe_v4.00_stub.xsd
+
+  SCHEMA SIMPLIFICADO PARA VALIDAÇÃO OFFLINE / PRÉ-ASSINATURA
+  ✔ Não depende de certificado
+  ✔ Não valida XMLDSig
+  ✔ Serve para garantir estrutura NFC-e correta
+
+  ⚠ NÃO USAR EM PRODUÇÃO
+  Para produção, substituir pelo XSD oficial da SEFAZ.
+-->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://www.portalfiscal.inf.br/nfe"
+    xmlns="http://www.portalfiscal.inf.br/nfe"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified">
+
+    <!-- ========================================================= -->
+    <!-- ELEMENTO RAIZ                                              -->
+    <!-- ========================================================= -->
+    <xs:element name="NFe">
+        <xs:complexType>
+            <xs:sequence>
+
+                <!-- ================================================= -->
+                <!-- INFORMAÇÕES DA NFC-e                              -->
+                <!-- ================================================= -->
+                <xs:element name="infNFe" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+
+                            <!-- Identificação -->
+                            <xs:element name="ide" type="xs:anyType" minOccurs="1" />
+
+                            <!-- Emitente -->
+                            <xs:element name="emit" type="xs:anyType" minOccurs="1" />
+
+                            <!-- Destinatário (opcional NFC-e) -->
+                            <xs:element name="dest" type="xs:anyType" minOccurs="0" />
+
+                            <!-- Itens -->
+                            <xs:element name="det" type="xs:anyType"
+                                minOccurs="1" maxOccurs="unbounded" />
+
+                            <!-- Totais -->
+                            <xs:element name="total" type="xs:anyType" minOccurs="1" />
+
+                            <!-- Pagamentos -->
+                            <xs:element name="pag" type="xs:anyType" minOccurs="1" />
+
+                            <!-- Transporte (opcional) -->
+                            <xs:element name="transp" type="xs:anyType" minOccurs="0" />
+
+                            <!-- Informações adicionais -->
+                            <xs:element name="infAdic" type="xs:anyType" minOccurs="0" />
+
+                        </xs:sequence>
+
+                        <!-- Atributos obrigatórios -->
+                        <xs:attribute name="Id" type="xs:string" use="required" />
+                        <xs:attribute name="versao" type="xs:string" use="required" />
+
+                    </xs:complexType>
+                </xs:element>
+
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+</xs:schema>

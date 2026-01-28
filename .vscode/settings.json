@@ -6,5 +6,10 @@
     "java.project.referencedLibraries": [
         "lib/**/*.jar"
     ],
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "chat.tools.terminal.autoApprove": {
+        "mvn clean": true,
+        "java": true,
+        "mvn exec:java": true
+    }
 }

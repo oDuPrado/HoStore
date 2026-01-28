@@ -6,6 +6,7 @@ public class ComandaResumoModel {
     private String mesa;
     private String status;
     private String criadoEm;
+    private Integer tempoPermanenciaMin;
 
     private double totalLiquido;
     private double totalPago;
@@ -28,6 +29,9 @@ public class ComandaResumoModel {
 
     public String getCriadoEm() { return criadoEm; }
     public void setCriadoEm(String criadoEm) { this.criadoEm = criadoEm; }
+
+    public Integer getTempoPermanenciaMin() { return tempoPermanenciaMin; }
+    public void setTempoPermanenciaMin(Integer tempoPermanenciaMin) { this.tempoPermanenciaMin = tempoPermanenciaMin; }
 
     public double getTotalLiquido() { return totalLiquido; }
     public void setTotalLiquido(double totalLiquido) { this.totalLiquido = totalLiquido; }

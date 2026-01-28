@@ -22,6 +22,7 @@ public class ComandaModel {
     private String criadoPor;
     private LocalDateTime fechadoEm;
     private String fechadoPor;
+    private Integer tempoPermanenciaMin;
     private LocalDateTime canceladoEm;
     private String canceladoPor;
 
@@ -151,6 +152,14 @@ public class ComandaModel {
 
     public void setFechadoPor(String fechadoPor) {
         this.fechadoPor = fechadoPor;
+    }
+
+    public Integer getTempoPermanenciaMin() {
+        return tempoPermanenciaMin;
+    }
+
+    public void setTempoPermanenciaMin(Integer tempoPermanenciaMin) {
+        this.tempoPermanenciaMin = tempoPermanenciaMin;
     }
 
     public LocalDateTime getCanceladoEm() {

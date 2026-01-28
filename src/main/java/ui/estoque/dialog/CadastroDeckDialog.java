@@ -2,12 +2,19 @@ package ui.estoque.dialog;
 
 import dao.JogoDAO;
 import dao.ProdutoDAO;
+import dao.ConfigFiscalDefaultDAO;
+import dao.FiscalCatalogDAO;
 import model.DeckModel;
 import model.JogoModel;
+import model.ConfigFiscalModel;
+import model.CodigoDescricaoModel;
 import model.FornecedorModel;
+import model.NcmModel;
+import service.NcmService;
 import service.ProdutoEstoqueService;
 import ui.ajustes.dialog.FornecedorDialog;
 import util.MaskUtils;
+import util.FormatterFactory;
 import util.ScannerUtils;
 import util.UiKit;
 
@@ -39,9 +46,15 @@ public class CadastroDeckDialog extends JDialog {
             "Estrela", "2 Estrelas", "3 Estrelas", "Junior", "Master"
     });
 
+    private final JComboBox<String> cbNcm = new JComboBox<>();
+    private final JComboBox<String> cbCfop = new JComboBox<>();
+    private final JComboBox<String> cbCsosn = new JComboBox<>();
+    private final JComboBox<String> cbOrigem = new JComboBox<>();
+    private final JComboBox<String> cbUnidade = new JComboBox<>();
+
     private final JFormattedTextField tfQtd = MaskUtils.getFormattedIntField(0);
-    private final JFormattedTextField tfCusto = MaskUtils.moneyField(0.0);
-    private final JFormattedTextField tfPreco = MaskUtils.moneyField(0.0);
+    private final JFormattedTextField tfCusto = FormatterFactory.getMoneyField(0.0);
+    private final JFormattedTextField tfPreco = FormatterFactory.getMoneyField(0.0);
 
     private final JComboBox<JogoModel> cbJogo = new JComboBox<>();
 
@@ -64,6 +77,9 @@ public class CadastroDeckDialog extends JDialog {
 
         buildUI(owner);
         carregarJogos();
+        carregarNcms();
+        carregarCombosFiscais();
+        aplicarDefaultsFiscais();
 
         if (isEdicao)
             preencherCampos();
@@ -104,6 +120,11 @@ public class CadastroDeckDialog extends JDialog {
         addField(form, g, r++, "Coleção:", tfColecao);
         addField(form, g, r++, "Tipo Deck:", cbTipoDeck);
         addField(form, g, r++, "Categoria:", cbCategoria);
+        addField(form, g, r++, "NCM:", cbNcm);
+        addField(form, g, r++, "CFOP:", cbCfop);
+        addField(form, g, r++, "CSOSN:", cbCsosn);
+        addField(form, g, r++, "Origem:", cbOrigem);
+        addField(form, g, r++, "Unidade:", cbUnidade);
 
         // Valores em uma linha (mais “produto”, menos “planilha”)
         JPanel valores = new JPanel(new GridLayout(1, 3, 10, 0));
@@ -226,6 +247,11 @@ public class CadastroDeckDialog extends JDialog {
         tfColecao.setText(deckOrig.getColecao());
         cbTipoDeck.setSelectedItem(deckOrig.getTipoDeck());
         cbCategoria.setSelectedItem(deckOrig.getCategoria());
+        selecionarPorCodigoPrefix(cbNcm, deckOrig.getNcm());
+        selecionarPorCodigoPrefix(cbCfop, deckOrig.getCfop());
+        selecionarPorCodigoPrefix(cbCsosn, deckOrig.getCsosn());
+        selecionarPorCodigoPrefix(cbOrigem, deckOrig.getOrigem());
+        selecionarPorCodigoPrefix(cbUnidade, deckOrig.getUnidade());
         tfQtd.setValue(deckOrig.getQuantidade());
         tfCusto.setValue(deckOrig.getPrecoCompra());
         tfPreco.setValue(deckOrig.getPrecoVenda());
@@ -269,6 +295,12 @@ public class CadastroDeckDialog extends JDialog {
         }
 
         try {
+            String ncm = firstToken((String) cbNcm.getSelectedItem());
+            String cfop = firstToken((String) cbCfop.getSelectedItem());
+            String csosn = firstToken((String) cbCsosn.getSelectedItem());
+            String origem = firstToken((String) cbOrigem.getSelectedItem());
+            String unidade = firstToken((String) cbUnidade.getSelectedItem());
+
             String id = isEdicao ? deckOrig.getId() : UUID.randomUUID().toString();
 
             String codigoBarras = (String) lblCodigoLido.getClientProperty("codigoBarras");
@@ -297,6 +329,11 @@ public class CadastroDeckDialog extends JDialog {
 
             d.setCodigoBarras(codigoBarras);
             d.setFornecedorId(fornecedorSel.getId());
+            d.setNcm(ncm);
+            d.setCfop(cfop);
+            d.setCsosn(csosn);
+            d.setOrigem(origem);
+            d.setUnidade(unidade);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao)
@@ -333,6 +370,80 @@ public class CadastroDeckDialog extends JDialog {
         p.add(new JLabel(label), BorderLayout.WEST);
         p.add(field, BorderLayout.CENTER);
         return p;
+    }
+
+    private void carregarNcms() {
+        try {
+            cbNcm.removeAllItems();
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void carregarCombosFiscais() {
+        try {
+            cbCfop.removeAllItems();
+            cbCsosn.removeAllItems();
+            cbOrigem.removeAllItems();
+            cbUnidade.removeAllItems();
+
+            FiscalCatalogDAO dao = new FiscalCatalogDAO();
+            for (CodigoDescricaoModel it : dao.findAll("cfop")) {
+                cbCfop.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("csosn")) {
+                cbCsosn.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("origem")) {
+                cbOrigem.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("unidades")) {
+                cbUnidade.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar dados fiscais:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void aplicarDefaultsFiscais() {
+        try {
+            ConfigFiscalModel cfg = new ConfigFiscalDefaultDAO().getDefault();
+            if (cfg == null)
+                return;
+            selecionarPorCodigoPrefix(cbCfop, cfg.getCfopPadrao());
+            selecionarPorCodigoPrefix(cbCsosn, cfg.getCsosnPadrao());
+            selecionarPorCodigoPrefix(cbOrigem, cfg.getOrigemPadrao());
+            selecionarPorCodigoPrefix(cbNcm, cfg.getNcmPadrao());
+            selecionarPorCodigoPrefix(cbUnidade, cfg.getUnidadePadrao());
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void selecionarPorCodigoPrefix(JComboBox<String> combo, String codigo) {
+        if (codigo == null || codigo.isBlank())
+            return;
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            String it = combo.getItemAt(i);
+            if (it != null && it.startsWith(codigo + " ")) {
+                combo.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
+    private String firstToken(String s) {
+        if (s == null)
+            return "";
+        String[] parts = s.trim().split("\\s+");
+        return parts.length > 0 ? parts[0] : "";
     }
 
     private void criarNovoFornecedor(JFrame owner) {

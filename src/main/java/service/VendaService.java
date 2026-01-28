@@ -6,11 +6,15 @@ import dao.VendaItemLoteDAO;
 import dao.VendaDevolucaoDAO;
 import dao.VendaDevolucaoLoteDAO;
 import dao.ProdutoDAO;
+import dao.ConfigNfceDAO;
 
 import model.VendaItemModel;
 import model.VendaModel;
 import model.VendaDevolucaoModel;
 import model.ProdutoModel;
+import model.ConfigNfceModel;
+import model.DocumentoFiscalAmbiente;
+import model.DocumentoFiscalModel;
 
 import util.DB;
 import util.LogService;
@@ -110,6 +114,55 @@ public class VendaService {
 
                 // Fora da transação: contas a receber
                 gerarContasReceberSafe(venda, vendaId);
+
+                // ===== ETAPA 15: INTEGRAÇÃO NFC-e =====
+                // Criar documento fiscal automaticamente (background job processará)
+                try {
+                    DocumentoFiscalService docFiscalService = new DocumentoFiscalService();
+                    String usuario = (venda.getUsuario() != null && !venda.getUsuario().isBlank()) 
+                        ? venda.getUsuario() : "sistema";
+                    
+                    ConfigNfceModel cfg = null;
+                    try {
+                        cfg = new ConfigNfceDAO().getConfig();
+                    } catch (Exception ignored) {
+                        // mantém fallback abaixo
+                    }
+
+                    if (cfg != null && cfg.getEmitirNfce() == 0) {
+                        LogService.info("NFC-e desativada na configuração (venda " + vendaId + ")");
+                    } else {
+                        String ambiente = cfg != null ? cfg.getAmbiente() : DocumentoFiscalAmbiente.OFF;
+                        boolean ok = false;
+                        for (int attempt = 1; attempt <= 3 && !ok; attempt++) {
+                            try {
+                                DocumentoFiscalModel doc = docFiscalService.criarDocumentoPendenteParaVenda(vendaId, usuario, ambiente);
+                                try {
+                                    docFiscalService.gerarXml(doc.id);
+                                } catch (Exception genEx) {
+                                    LogService.warn("NFC-e criada, mas falha ao gerar XML offline: " + genEx.getMessage());
+                                }
+                                LogService.info("NFC-e criada para venda " + vendaId + " (ambiente=" + ambiente + ")");
+                                ok = true;
+                            } catch (Exception nfceEx) {
+                                String msg = nfceEx.getMessage() != null ? nfceEx.getMessage().toLowerCase() : "";
+                                boolean busy = msg.contains("sqlite_busy_snapshot") || msg.contains("database is locked");
+                                if (!busy || attempt == 3) {
+                                    throw nfceEx;
+                                }
+                                try {
+                                    Thread.sleep(150L * attempt);
+                                } catch (InterruptedException ie) {
+                                    Thread.currentThread().interrupt();
+                                }
+                            }
+                        }
+                    }
+                    
+                } catch (Exception nfceEx) {
+                    // NFC-e falha não bloqueia venda
+                    LogService.warn("Venda " + vendaId + " finalizada, mas erro ao criar NFC-e: " + nfceEx.getMessage());
+                }
 
                 // Fora da transação: PDF
                 try {

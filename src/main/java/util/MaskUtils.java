@@ -1,6 +1,7 @@
 package util;
 
 import javax.swing.JFormattedTextField;
+import javax.swing.JTextField;
 import javax.swing.text.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -15,10 +16,14 @@ public class MaskUtils {
         df.setNegativePrefix("-R$ ");
         df.setPositivePrefix("R$ ");
         NumberFormatter formatter = new NumberFormatter(df);
-        formatter.setAllowsInvalid(false);
-        formatter.setMinimum(0.0);
+        formatter.setAllowsInvalid(true);
+        formatter.setOverwriteMode(false);
+        formatter.setCommitsOnValidEdit(true);
         JFormattedTextField f = new JFormattedTextField(formatter);
-        f.setValue(valorInicial);
+        f.setHorizontalAlignment(JTextField.RIGHT);
+        f.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        if (valorInicial != 0.0) f.setValue(valorInicial);
+        else f.setValue(null);
         return f;
     }
 

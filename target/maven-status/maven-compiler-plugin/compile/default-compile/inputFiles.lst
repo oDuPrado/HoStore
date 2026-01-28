@@ -4,9 +4,11 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\TituloContaReceberDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\DocumentoFiscalStatus.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\ComandaService.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\NfceGeneratorService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\VendaDevolucaoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\ColecaoMapper.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\CreditoLojaModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ConfigFiscalDefaultDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\PagamentoContaReceberDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\IdiomaPainel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\FiscalCatalogService.java
@@ -22,12 +24,17 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\P
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\clientes\dialog\CreditoLojaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ClienteDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\UsuarioDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ImpostoIpiModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\TituloContaPagarModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\XmlBuilderNfce.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\VendaItemLoteDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\FiscalCatalogImportDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\FormatterFactory.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\SyncStatusUtil.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ConfiguracaoNfeNfceModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\IdiomaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\FornecedorPainel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\relatorios\FiscalDocumentosPanel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\PlanoContaPainel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\financeiro\dialog\PagamentoReceberDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\PrinterConfigModel.java
@@ -65,6 +72,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\even
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\PagamentoContaPagarDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\EtbModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\DeckModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ImpostoPisCofinsDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\SetJogoDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\eventos\dialog\EventoDetalhesDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\PythonCaller.java
@@ -74,8 +82,10 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\esto
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\DateUtils.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\EventoPremiacaoRegraDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\JogoModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\ConfigNfceDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\DocumentoFiscalAmbiente.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\VendaDevolucaoService.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\XmlAssinaturaService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ConfigLojaModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\SetJogoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\DeckDAO.java
@@ -85,6 +95,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\ImportLigaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\PlanoContaModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\EventoDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\DatabaseMigration.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\PedidoCompraDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\DocumentoFiscalModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\TipoCartaPainel.java
@@ -95,6 +106,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\esto
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\EventoPremiacaoDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\Carta.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\api\CardGamesApi.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ConfiguracaoNfeNfceDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\UsuarioPainel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\CfopDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\NcmPainel.java
@@ -105,6 +117,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\clie
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\PromocaoProdutoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\DocumentoFiscalService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\painel\PainelEstoque.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\LogFiscalDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\VendaModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ProdutoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\EventoService.java
@@ -116,10 +129,12 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\Com
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\DashboardKpisModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\TipoPromocaoDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\venda\painel\PainelVendas.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\NfceEmissaoService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\CadastroEtbDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\financeiro\painel\PainelContasReceber.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\CfopModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\UsuarioModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\ConfigNfceAdapter.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ConfigFiscalDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\AlimentoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\BancoDialog.java
@@ -129,6 +144,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\esto
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\clientes\painel\PainelClientes.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\FornecedorDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\SequenciaFiscalDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\DanfeNfceGenerator.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\SelecionarPlanoContaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ComandaPagamentoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\relatorios\dialog\InfoFonteDialog.java
@@ -152,8 +168,12 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\M
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\CadastroAcessorioDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\financeiro\dialog\ContaReceberDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\SessaoService.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ImpostoPisCofinsModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ConfigNfceDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ProdutoVendaResumoModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\SefazClientSoap.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\controller\ProdutoEstoqueController.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\FiscalCalcService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\EventoPremiacaoRegraModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\LotesProdutoDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ConfigFiscalModel.java
@@ -168,6 +188,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\coma
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\venda\dialog\VendaNovaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\AcessorioModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\dash\DashboardNavigator.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\test\TestMigrations.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\MovimentacaoEstoqueModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\ColecaoService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\MovimentacaoEstoqueDialog.java
@@ -200,6 +221,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\dial
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\SetDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\eventos\dialog\EventoInscricaoDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\dash\painel\DashboardPanel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ConfigNfceModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\TipoCartaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\FiscalCatalogDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\eventos\dialog\EventoInscricaoOpcaoDialog.java
@@ -227,6 +249,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\Mov
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\painel\PainelPedidosEstoque.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\AplicaEm.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\SetJogoService.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ImpostoIcmsModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\BoosterModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\TaxaCartaoService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\AlertUtils.java
@@ -237,6 +260,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\Sc
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\TituloContaPagarDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\CupomFiscalFormatter.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\BoosterDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\FiscalWorker.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\SequenciaFiscalModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\EstoqueLoteDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ComandaModel.java
@@ -249,6 +273,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\vend
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\dialog\SelecionarCategoriaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ParcelaContaReceberDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\ParcelaVencidaModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\LogFiscalModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\VendaPagamentoModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\VendaItemModel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\OrigemDAO.java
@@ -265,6 +290,7 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\Pla
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\VendaDevolucaoLoteDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\ConfigFinanceiroDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\model\DocumentoFiscalPagamentoModel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\fiscal\FiscalStepStatus.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\PlanoContaDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\financeiro\dialog\ParcelasContaReceberDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\TipoPromocaoDAO.java
@@ -279,15 +305,18 @@ C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\fina
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\FiscalCadastrosDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\dialog\AbstractCrudPainel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\app\Main.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ImpostoICMSDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\DB.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\dash\component\DashboardCard.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\estoque\dialog\CadastroBoosterDialog.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\ClienteVipPainel.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\ui\ajustes\painel\PromocaoPainel.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ImpostoIPIDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\EventoRankingDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\ContaReceberService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\service\ProdutoEstoqueService.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\AlimentoDAO.java
+C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\util\fiscal\XsdValidator.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\ColecaoDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\VendaEstornoFinanceiroDAO.java
 C:\Users\Adm\Documents\PROJETOS\GITHUB\APP_HOSTORE\HoStore\src\main\java\dao\PromocaoDAO.java

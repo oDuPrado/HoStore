@@ -10,6 +10,7 @@ import model.PlanoContaModel;
 import model.ParcelaContaPagarModel;
 import service.ContaPagarService;
 import util.UiKit;
+import util.FormatterFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -27,7 +28,7 @@ public class ContaPagarDialog extends JDialog {
 
     /* ───── Campos UI ─────────────────────────────────────────────────────── */
     private final JComboBox<String> cbFornecedor = new JComboBox<>();
-    private final JFormattedTextField ftValorTotal = new JFormattedTextField(NumberFormat.getNumberInstance());
+    private final JFormattedTextField ftValorTotal = FormatterFactory.getMoneyField(0.0);
 
     private final JComboBox<String> cbTipoPagamento = new JComboBox<>(new String[] { "À Vista", "A Prazo" });
     private final JSpinner spQtdParcelas = new JSpinner(new SpinnerNumberModel(1, 1, 60, 1));
@@ -270,7 +271,6 @@ public class ContaPagarDialog extends JDialog {
         // Valor total
         ftValorTotal.setColumns(10);
         ftValorTotal.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
-        ftValorTotal.setValue(0);
 
         // Parcelas
         ((JComponent) spQtdParcelas.getEditor()).putClientProperty(FlatClientProperties.STYLE, "arc: 10;");

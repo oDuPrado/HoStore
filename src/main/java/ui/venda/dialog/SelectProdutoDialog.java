@@ -137,6 +137,10 @@ public class SelectProdutoDialog extends JDialog {
         DefaultTableCellRenderer zebra = UiKit.zebraRenderer();
         applyZebra(table, zebra);
 
+        // sobrescreve a coluna de sele??o com checkbox (sem true/false)
+        table.getColumnModel().getColumn(0).setCellRenderer(new CheckBoxRenderer(zebra));
+        table.getColumnModel().getColumn(0).setCellEditor(new CheckBoxEditor());
+
         // moeda na coluna 5 (R$ Venda) mantendo zebra
         table.getColumnModel().getColumn(5).setCellRenderer(currencyRendererZebra(zebra));
 
@@ -211,12 +215,12 @@ public class SelectProdutoDialog extends JDialog {
     private void personalizarTabela() {
         TableColumnModel cols = table.getColumnModel();
 
-        // ComboBox para Sim/Não
+        // Checkbox simples para sele??o
         TableColumn checkboxCol = cols.getColumn(0);
-        checkboxCol.setMaxWidth(100);
-        checkboxCol.setMinWidth(100);
-        checkboxCol.setCellRenderer(new ComboBoxSimNaoRenderer());
-        checkboxCol.setCellEditor(new ComboBoxSimNaoEditor());
+        checkboxCol.setMaxWidth(60);
+        checkboxCol.setMinWidth(60);
+        checkboxCol.setCellRenderer(new CheckBoxRenderer(UiKit.zebraRenderer()));
+        checkboxCol.setCellEditor(new CheckBoxEditor());
 
         // “ocultar” ID sem removeColumn (evita treta entre model e view)
         TableColumn idCol = cols.getColumn(1);
@@ -455,57 +459,47 @@ public class SelectProdutoDialog extends JDialog {
         };
     }
 
-    /**
-     * Renderer para exibir "Sim" ou "Não" em vez de true/false
-     */
-    private static class ComboBoxSimNaoRenderer extends JComboBox<String> implements TableCellRenderer {
-        public ComboBoxSimNaoRenderer() {
-            super(new String[]{"Não", "Sim"});
+    // Renderer/editor checkbox
+    private static class CheckBoxRenderer extends JCheckBox implements TableCellRenderer {
+        private final DefaultTableCellRenderer zebra;
+
+        private CheckBoxRenderer(DefaultTableCellRenderer zebra) {
+            this.zebra = zebra;
+            setHorizontalAlignment(SwingConstants.CENTER);
             setOpaque(true);
         }
 
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, 
-                                                       boolean hasFocus, int row, int column) {
-            boolean boolValue = Boolean.TRUE.equals(value);
-            setSelectedIndex(boolValue ? 1 : 0);
-            
-            if (isSelected) {
-                setBackground(table.getSelectionBackground());
-                setForeground(table.getSelectionForeground());
-            } else {
-                setBackground(table.getBackground());
-                setForeground(table.getForeground());
-            }
-            
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            setSelected(Boolean.TRUE.equals(value));
+
+            Component bg = zebra.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            setBackground(bg.getBackground());
+            setForeground(bg.getForeground());
             return this;
         }
     }
 
-    /**
-     * Editor para editar com ComboBox Sim/Não
-     */
-    private static class ComboBoxSimNaoEditor extends DefaultCellEditor {
-        private final JComboBox<String> comboBox;
+    private static class CheckBoxEditor extends DefaultCellEditor {
+        private final JCheckBox check;
 
-        public ComboBoxSimNaoEditor() {
-            super(new JComboBox<>(new String[]{"Não", "Sim"}));
-            this.comboBox = (JComboBox<String>) editorComponent;
-            this.comboBox.setOpaque(true);
+        public CheckBoxEditor() {
+            super(new JCheckBox());
+            check = (JCheckBox) getComponent();
+            check.setHorizontalAlignment(SwingConstants.CENTER);
         }
 
         @Override
         public Object getCellEditorValue() {
-            // Retorna true se "Sim" está selecionado (índice 1), false caso contrário
-            return comboBox.getSelectedIndex() == 1;
+            return check.isSelected();
         }
 
         @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, 
-                                                     int row, int column) {
-            boolean boolValue = Boolean.TRUE.equals(value);
-            comboBox.setSelectedIndex(boolValue ? 1 : 0);
-            return comboBox;
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
+                int row, int column) {
+            check.setSelected(Boolean.TRUE.equals(value));
+            return check;
         }
     }
 }

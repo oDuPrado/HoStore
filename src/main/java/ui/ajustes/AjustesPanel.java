@@ -52,8 +52,11 @@ public class AjustesPanel extends JPanel {
         grid.setBorder(new EmptyBorder(2, 2, 2, 2));
 
         // ==== CONFIGURAÇÕES DO SISTEMA ====
-        grid.add(tile("🛍 Dados da Loja", "Cadastro fiscal, CSC, certificado, endereço",
+        grid.add(tile("🛍 Dados da Loja", "Cadastro fiscal, endereço, regime tributário",
                 () -> new ConfigLojaDialog(null).setVisible(true)));
+
+        grid.add(tile("🧾 NFC-e e Emissão", "Certificado A1, CSC e modo de emissão",
+                () -> new ui.ajustes.dialog.ConfigNfceDialog(null).setVisible(true)));
 
         grid.add(tile("🖨 Impressão e PDF", "Impressoras, cupom/PDF, preferências",
                 () -> new ConfigImpressaoDialog(null).setVisible(true)));

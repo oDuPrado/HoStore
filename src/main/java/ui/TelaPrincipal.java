@@ -50,8 +50,16 @@ public class TelaPrincipal extends JFrame {
         setTitle("HoStore - ERP TCG Card Game");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setMinimumSize(new Dimension(1024, 600));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
+
+        // Etapa 9: Handler para parar FiscalWorker ao fechar
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                onWindowClosing();
+            }
+        });
 
         // ✅ Monta a estrutura ANTES do login (para não existir painelConteudo null)
         painelConteudo = new JPanel(new BorderLayout());
@@ -255,6 +263,33 @@ public class TelaPrincipal extends JFrame {
         lblDbStatus.setText(DB.isConnected() ? "Banco: OK" : "Banco: ERRO");
         lblSync.setText("Última sincronização: " + SyncStatusUtil.getUltimaSincronizacaoFormatada());
         lblClock.setText("Agora: " + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
+    }
+
+    /**
+     * Etapa 9: Handler para encerramento seguro do FiscalWorker
+     * Chamado quando a janela é fechada
+     */
+    private void onWindowClosing() {
+        int opcao = JOptionPane.showConfirmDialog(this,
+                "Deseja realmente sair da aplicação?",
+                "Confirmar saída",
+                JOptionPane.YES_NO_OPTION);
+
+        if (opcao == JOptionPane.YES_OPTION) {
+            try {
+                // Parar worker fiscal de forma segura
+                service.FiscalWorker.getInstance().parar();
+                util.LogService.audit("FISCAL_WORKER_PARADO", "sistema", null, "worker fiscal parado");
+            } catch (Exception e) {
+                util.LogService.auditError("FISCAL_WORKER_ERRO_SHUTDOWN", "sistema", null,
+                        "erro ao parar fiscal worker", e);
+            }
+
+            // Executar logout
+            util.LogService.audit("APP_LOGOUT", "sistema", null, "aplicação encerrada");
+            SessaoService.logout();
+            System.exit(0);
+        }
     }
 
     public static void main(String[] args) {

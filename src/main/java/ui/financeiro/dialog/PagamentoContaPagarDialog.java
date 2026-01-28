@@ -5,15 +5,16 @@ import com.toedter.calendar.JDateChooser;
 import model.ParcelaContaPagarModel;
 import service.ContaPagarService;
 import util.UiKit;
+import util.FormatterFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.text.NumberFormat;
 import java.util.Locale;
 
 /**
@@ -23,8 +24,7 @@ public class PagamentoContaPagarDialog extends JDialog {
 
     private final ParcelaContaPagarModel parcela;
 
-    private final JFormattedTextField ftValor = new JFormattedTextField(
-            NumberFormat.getNumberInstance(Locale.getDefault()));
+    private final JFormattedTextField ftValor = FormatterFactory.getMoneyField(0.0);
 
     private final JComboBox<String> cbForma = new JComboBox<>(new String[] {
             "Dinheiro", "Pix", "Cheque",

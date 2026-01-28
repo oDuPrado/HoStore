@@ -137,3 +137,327 @@
 2026-01-26T13:02:29.012Z | INFO | user=anon action=LOGIN_OK entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
 2026-01-26T13:02:29.039Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=LOGIN entity=usuario id=51169d11-599f-4d62-a8bf-c95cceaa065d msg=login ok user=admin
 2026-01-26T13:02:29.212Z | INFO | user=admin(51169d11-599f-4d62-a8bf-c95cceaa065d) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-26T19:36:57.378Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T19:36:58.611Z | INFO | user=anon action=LOGIN_CANCEL entity=usuario id=- msg=login cancelado
+2026-01-26T19:37:00.824Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T19:37:31.340Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T19:37:32.445Z | INFO | user=anon action=LOGIN_CANCEL entity=usuario id=- msg=login cancelado
+2026-01-26T19:42:20.449Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T19:42:21.600Z | INFO | user=anon action=LOGIN_CANCEL entity=usuario id=- msg=login cancelado
+2026-01-26T19:44:10.755Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T19:44:13.715Z | INFO | user=anon action=LOGIN_CANCEL entity=usuario id=- msg=login cancelado
+2026-01-26T20:11:49.150Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T20:11:53.477Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-26T20:11:53.484Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-26T20:11:53.501Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-26T20:11:53.664Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-26T20:11:53.664Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-26T20:12:35.133Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-26T20:12:35.133Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-26T20:12:35.134Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-26T20:12:39.906Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-26T20:12:43.651Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-26T20:12:43.660Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-26T20:12:43.677Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-26T20:12:43.902Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-26T20:12:43.902Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-26T20:13:30.757Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-26T20:13:30.758Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-26T20:13:30.760Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=2000.0 parcelas=0 venc=2026-01-26 intervaloDias=0
+2026-01-26T20:13:30.774Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=1 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=10 motivo=Venda #1
+2026-01-26T20:13:30.779Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=1 msg=finalizada
+2026-01-26T20:13:30.842Z | WARNING | Venda 1 finalizada, mas erro ao criar NFC-e: Sequência fiscal não encontrada para modelo=NFCe, serie=1, ambiente=HOMOLOGACAO
+2026-01-26T20:13:42.508Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-26T20:13:42.508Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-26T20:13:42.508Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T18:56:03.045Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T18:56:26.198Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T18:56:26.209Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T18:56:26.231Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T18:56:26.495Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T18:56:26.495Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T18:57:04.913Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=PEDIDO_RECEBIMENTO_INICIO entity=pedido id=4671f2b1-4c21-45c7-b25d-a16d1f550864 msg=itens=1
+2026-01-27T18:57:04.917Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=PEDIDO_ITEM_PROCESSO entity=pedido_item id=1d0c008e-5b79-4f7c-976d-be31ca5d43c3 msg=pedido=4671f2b1-4c21-45c7-b25d-a16d1f550864
+2026-01-27T18:57:04.917Z | INFO | pedido item anterior qtd=0
+2026-01-27T18:57:04.917Z | INFO | pedido item novo qtd=80
+2026-01-27T18:57:04.917Z | INFO | pedido item delta=80
+2026-01-27T18:57:04.919Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=PEDIDO_ENTRADA entity=produto id=148ff580-ce02-40b8-b103-6154f28385fc msg=qtd=80 pedido=4671f2b1-4c21-45c7-b25d-a16d1f550864
+2026-01-27T18:57:04.922Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=ESTOQUE_ENTRADA entity=produto id=148ff580-ce02-40b8-b103-6154f28385fc msg=qtd=80 motivo=Recebimento do Pedido 4671f2b1-4c21-45c7-b25d-a16d1f550864
+2026-01-27T18:57:04.963Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=PEDIDO_ITEM_ATUALIZADO entity=pedido_item id=1d0c008e-5b79-4f7c-976d-be31ca5d43c3 msg=pedido=4671f2b1-4c21-45c7-b25d-a16d1f550864 recebida=80 status=parcial
+2026-01-27T18:57:04.965Z | INFO | PedidoItem atualizado: item=1d0c008e-5b79-4f7c-976d-be31ca5d43c3 pedido=4671f2b1-4c21-45c7-b25d-a16d1f550864 recebida=80 status=parcial
+2026-01-27T18:57:04.978Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=PEDIDO_STATUS_ATUALIZADO entity=pedido id=4671f2b1-4c21-45c7-b25d-a16d1f550864 msg=status recalculado
+2026-01-27T18:58:04Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T18:58:04Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T18:58:04Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T19:37:48.268Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T19:37:52.251Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T19:37:52.258Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:37:52.272Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:37:52.352Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T19:37:52.353Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T19:38:22.702Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-27T19:38:22.703Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-27T19:38:22.707Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=2000.0 parcelas=0 venc=2026-01-27 intervaloDias=0
+2026-01-27T19:38:22.730Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=10 motivo=Venda #2
+2026-01-27T19:38:22.743Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=2 msg=finalizada
+2026-01-27T19:38:22.814Z | WARNING | Venda 2 finalizada, mas erro ao criar NFC-e: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T19:38:39.252Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T19:38:39.253Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T19:38:39.253Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T19:40:28.975Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T19:40:32.691Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T19:40:32.696Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:40:32.711Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:40:32.779Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T19:40:32.779Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T19:40:37.916Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T19:40:37.917Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T19:40:37.917Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T19:42:00.872Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T19:42:04.686Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T19:42:04.692Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:42:04.709Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:42:04.784Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T19:42:04.784Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T19:42:43.566Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T19:42:43.566Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T19:42:43.566Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T19:52:28.691Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T19:52:32.544Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T19:52:32.550Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:52:32.567Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:52:32.688Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T19:52:32.688Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T19:53:19.793Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-27T19:53:19.793Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-27T19:53:19.797Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=200.0 parcelas=0 venc=2026-01-27 intervaloDias=0
+2026-01-27T19:53:19.801Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=1 motivo=Venda #3
+2026-01-27T19:53:19.804Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=3 msg=finalizada
+2026-01-27T19:53:19.863Z | WARNING | Venda 3 finalizada, mas erro ao criar NFC-e: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T19:53:25.019Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T19:53:25.019Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T19:53:25.019Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T19:55:47.055Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T19:55:48.155Z | INFO | user=anon action=LOGIN_CANCEL entity=usuario id=- msg=login cancelado
+2026-01-27T19:57:15.223Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T19:57:18.874Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T19:57:18.880Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:57:18.897Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T19:57:18.998Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T19:57:18.998Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T19:57:58.760Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-27T19:57:58.760Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-27T19:57:58.763Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=200.0 parcelas=0 venc=2026-01-27 intervaloDias=0
+2026-01-27T19:57:58.767Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=1 motivo=Venda #4
+2026-01-27T19:57:58.771Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=4 msg=finalizada
+2026-01-27T19:57:58.829Z | WARNING | Venda 4 finalizada, mas erro ao criar NFC-e: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T19:58:13.713Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T19:58:13.713Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T19:58:13.713Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T20:03:29.823Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:03:33.371Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:03:33.378Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:03:33.396Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:03:33.484Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:03:33.484Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T20:04:40.297Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-27T20:04:40.297Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-27T20:04:40.301Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=400.0 parcelas=0 venc=2026-01-27 intervaloDias=0
+2026-01-27T20:04:40.307Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=2 motivo=Venda #5
+2026-01-27T20:04:40.310Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=5 msg=finalizada
+2026-01-27T20:04:40.849Z | WARNING | Venda 5 finalizada, mas erro ao criar NFC-e: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:04:52.325Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T20:04:52.325Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T20:04:52.325Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T20:17:51.472Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:17:55.287Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:17:55.293Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:17:55.311Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:20:33.178Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:20:37.320Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:20:37.398Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:20:37.465Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:20:38.515Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:20:38.515Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T20:21:26.951Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_INICIO entity=venda id=- msg=itens=1
+2026-01-27T20:21:26.951Z | INFO | FinalizarVenda: formaPagamento(raw)='DINHEIRO' norm='DINHEIRO'
+2026-01-27T20:21:26.954Z | INFO | FinalizarVenda: clienteId=AVULSO totalLiquido=600.0 parcelas=0 venc=2026-01-27 intervaloDias=0
+2026-01-27T20:21:26.961Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOTE_SAIDA entity=lote id=2 msg=produto=148ff580-ce02-40b8-b103-6154f28385fc qtd=3 motivo=Venda #6
+2026-01-27T20:21:26.969Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=VENDA_OK entity=venda id=6 msg=finalizada
+2026-01-27T20:21:27.043Z | WARNING | Venda 6 finalizada, mas erro ao criar NFC-e: [SQLITE_ERROR] SQL error or missing database (cannot start a transaction within a transaction)
+2026-01-27T20:21:42.148Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T20:21:42.148Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T20:21:42.148Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T20:23:07.442Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:23:11.348Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:23:11.354Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:23:11.371Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:23:11.479Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:23:11.479Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T20:24:19.323Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T20:24:19.323Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T20:24:19.323Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T20:30:17.849Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:30:21.711Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:30:21.715Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:30:21.729Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:30:21.842Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:30:21.842Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T20:30:27.947Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:30:32.124Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:32:14.708Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T20:32:14.708Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T20:32:14.708Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T20:37:13.399Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:37:18.818Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:37:18.848Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:37:18.905Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:37:19.074Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:37:19.075Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T20:37:25.097Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:25.101Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:25.105Z | WARNING | [NFCE] database busy (attempt 1), aguardando 1000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:26.123Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:26.126Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:26.126Z | WARNING | [NFCE] database busy (attempt 2), aguardando 2000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:28.142Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:28.145Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:28.145Z | WARNING | [NFCE] database busy (attempt 3), aguardando 3000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:31.160Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:31.163Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:31.163Z | WARNING | [NFCE] database busy (attempt 4), aguardando 4000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:35.179Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:35.182Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:35.183Z | WARNING | [NFCE] database busy (attempt 5), aguardando 5000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:40.199Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:40.202Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:40.202Z | WARNING | [NFCE] database busy (attempt 6), aguardando 6000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:46.229Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:46.232Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:46.233Z | WARNING | [NFCE] database busy (attempt 7), aguardando 7000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:37:53.249Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:37:53.252Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:37:53.253Z | WARNING | [NFCE] database busy (attempt 8), aguardando 8000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:01.269Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:01.272Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:01.272Z | WARNING | [NFCE] database busy (attempt 9), aguardando 9000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:10.293Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:10.295Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:10.459Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:10.463Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:10.464Z | WARNING | [NFCE] database busy (attempt 1), aguardando 1000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:11.495Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:11.499Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:11.499Z | WARNING | [NFCE] database busy (attempt 2), aguardando 2000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:13.528Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:13.531Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:13.532Z | WARNING | [NFCE] database busy (attempt 3), aguardando 3000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:16.555Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:16.557Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:16.557Z | WARNING | [NFCE] database busy (attempt 4), aguardando 4000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:20.573Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:20.576Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:20.576Z | WARNING | [NFCE] database busy (attempt 5), aguardando 5000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:25.604Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:25.606Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:25.608Z | WARNING | [NFCE] database busy (attempt 6), aguardando 6000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:31.623Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:31.627Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:31.628Z | WARNING | [NFCE] database busy (attempt 7), aguardando 7000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:38.639Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:38.641Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:38.641Z | WARNING | [NFCE] database busy (attempt 8), aguardando 8000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:46.667Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:46.670Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:46.670Z | WARNING | [NFCE] database busy (attempt 9), aguardando 9000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:55.688Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:55.693Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:56.015Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:56.020Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:56.022Z | WARNING | [NFCE] database busy (attempt 1), aguardando 1000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:57.035Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:57.039Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:57.039Z | WARNING | [NFCE] database busy (attempt 2), aguardando 2000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:38:59.063Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:38:59.066Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:38:59.067Z | WARNING | [NFCE] database busy (attempt 3), aguardando 3000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:39:02.088Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:39:02.093Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:39:02.094Z | WARNING | [NFCE] database busy (attempt 4), aguardando 4000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:39:06.125Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:39:06.133Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:39:06.134Z | WARNING | [NFCE] database busy (attempt 5), aguardando 5000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:39:11.162Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:39:11.166Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:39:11.166Z | WARNING | [NFCE] database busy (attempt 6), aguardando 6000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:39:17.227Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:39:17.234Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:39:17.235Z | WARNING | [NFCE] database busy (attempt 7), aguardando 7000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:39:24.248Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:39:24.250Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=6
+2026-01-27T20:39:24.251Z | WARNING | [NFCE] database busy (attempt 8), aguardando 8000ms. Erro: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-01-27T20:51:02.817Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:51:07.556Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:51:07.561Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:51:07.579Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:51:07.678Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:51:07.678Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T20:51:14.438Z | INFO | [NFCE] Criando documento pendente venda=6 amb=OFF
+2026-01-27T20:51:14.452Z | INFO | [NFCE] Documento criado id=b719f71c-4dd8-4fb6-abb1-dfb009fd419c numero=63
+2026-01-27T20:51:14.462Z | INFO | [NFCE] Gerando XML para doc=b719f71c-4dd8-4fb6-abb1-dfb009fd419c
+2026-01-27T20:51:14.476Z | INFO | [NFCE] XML gerado doc=b719f71c-4dd8-4fb6-abb1-dfb009fd419c tam=2264
+2026-01-27T20:55:10.604Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T20:55:10.608Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T20:55:10.608Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T20:59:20.078Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T20:59:24.607Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T20:59:24.616Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:59:24.632Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T20:59:25.047Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T20:59:25.047Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T21:01:50.600Z | INFO | [NFCE] Criando documento pendente venda=5 amb=OFF
+2026-01-27T21:01:50.623Z | INFO | [NFCE] Documento criado id=370bb0ab-dc45-4d80-9468-d84677e90be3 numero=64
+2026-01-27T21:01:50.643Z | INFO | [NFCE] Gerando XML para doc=370bb0ab-dc45-4d80-9468-d84677e90be3
+2026-01-27T21:01:50.757Z | INFO | [NFCE] XML gerado doc=370bb0ab-dc45-4d80-9468-d84677e90be3 tam=2430
+2026-01-27T21:02:21.134Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T21:02:21.136Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T21:02:21.136Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T21:09:23.836Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T21:09:28.026Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T21:09:28.033Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T21:09:28.048Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T21:09:28.131Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T21:09:28.132Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T21:09:36.022Z | INFO | [NFCE] Criando documento pendente venda=4 amb=OFF
+2026-01-27T21:09:36.023Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=4
+2026-01-27T21:09:53.071Z | INFO | [NFCE] Criando documento pendente venda=4 amb=OFF
+2026-01-27T21:09:53.072Z | SEVERE | [NFCE] Falha ao criar documento pendente venda=4
+2026-01-27T21:10:34.360Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T21:10:34.360Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T21:10:34.360Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T21:15:32.954Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T21:15:37.038Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T21:15:37.067Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T21:15:37.134Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T21:15:38.624Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T21:15:38.624Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T21:15:48.719Z | INFO | [NFCE] Criando documento pendente venda=4 amb=OFF
+2026-01-27T21:15:48.729Z | INFO | [NFCE] Documento criado id=74022b00-6d73-4034-9bfc-9d7e807bc54e numero=65
+2026-01-27T21:15:48.752Z | INFO | [NFCE] Gerando XML para doc=74022b00-6d73-4034-9bfc-9d7e807bc54e
+2026-01-27T21:15:48.774Z | INFO | [NFCE] XML gerado doc=74022b00-6d73-4034-9bfc-9d7e807bc54e tam=2479
+2026-01-27T21:16:10.626Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T21:16:10.627Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T21:16:10.627Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin
+2026-01-27T21:24:40.984Z | INFO | user=anon action=APP_DB_OK entity=sistema id=- msg=banco pronto
+2026-01-27T21:24:44.800Z | INFO | user=anon action=LOGIN_ATTEMPT entity=usuario id=- msg=tentativa user=admin
+2026-01-27T21:24:44.808Z | INFO | user=anon action=LOGIN_OK entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T21:24:44.847Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=LOGIN entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=login ok user=admin
+2026-01-27T21:24:45.198Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_INICIADO entity=sistema id=- msg=worker de NFC-e iniciado
+2026-01-27T21:24:45.198Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_START entity=sistema id=- msg=app iniciado
+2026-01-27T21:25:55.271Z | INFO | [NFCE] Criando documento pendente venda=2 amb=OFF
+2026-01-27T21:25:55.284Z | INFO | [NFCE] Documento criado id=cc44d4bf-0cb7-4b66-91e6-2862a1ca0de8 numero=66
+2026-01-27T21:25:55.312Z | INFO | [NFCE] Gerando XML para doc=cc44d4bf-0cb7-4b66-91e6-2862a1ca0de8
+2026-01-27T21:25:55.336Z | INFO | [NFCE] XML gerado doc=cc44d4bf-0cb7-4b66-91e6-2862a1ca0de8 tam=2486
+2026-01-27T21:26:12.613Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=FISCAL_WORKER_PARADO entity=sistema id=- msg=worker fiscal parado
+2026-01-27T21:26:12.613Z | INFO | user=admin(de4d6f60-afe4-47bd-9316-005dba320870) action=APP_LOGOUT entity=sistema id=- msg=aplicação encerrada
+2026-01-27T21:26:12.613Z | INFO | user=anon action=LOGOUT entity=usuario id=de4d6f60-afe4-47bd-9316-005dba320870 msg=logout user=admin

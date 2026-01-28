@@ -7,6 +7,7 @@ import service.SessaoService;
 import util.UiKit;
 
 import javax.swing.*;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
@@ -241,7 +242,13 @@ public class ComandaItemDialog extends JDialog {
     private void alignSpinnerRight(JSpinner s) {
         JComponent editor = s.getEditor();
         if (editor instanceof JSpinner.DefaultEditor de) {
-            de.getTextField().setHorizontalAlignment(SwingConstants.RIGHT);
+            JFormattedTextField tf = de.getTextField();
+            tf.setHorizontalAlignment(SwingConstants.RIGHT);
+            if (tf.getFormatter() instanceof NumberFormatter nf) {
+                nf.setAllowsInvalid(true);
+                nf.setOverwriteMode(false);
+            }
+            tf.setFocusLostBehavior(JFormattedTextField.COMMIT);
         }
     }
 

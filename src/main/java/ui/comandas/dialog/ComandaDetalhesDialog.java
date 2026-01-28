@@ -260,7 +260,8 @@ public class ComandaDetalhesDialog extends JDialog {
 
             lblTopo.setText("Comanda #" + comandaId + " | Cliente: " + cliente + " | Mesa: "
                     + (c.getMesa() == null ? "—" : c.getMesa())
-                    + " | Status: " + c.getStatus());
+                    + " | Status: " + c.getStatus()
+                    + " | Tempo: " + formatarTempoHoras(c.getTempoPermanenciaMin()));
 
             lblTotais.setText("Total: " + money(c.getTotalLiquido())
                     + " | Pago: " + money(c.getTotalPago())
@@ -427,5 +428,13 @@ public class ComandaDetalhesDialog extends JDialog {
 
     private static String money(double v) {
         return String.format("R$ %.2f", v);
+    }
+
+    private static String formatarTempoHoras(Integer minutos) {
+        if (minutos == null || minutos <= 0)
+            return "—";
+        int h = minutos / 60;
+        int m = minutos % 60;
+        return String.format("%dh%02d", h, m);
     }
 }

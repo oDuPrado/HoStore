@@ -6,11 +6,11 @@ import dao.ClienteDAO;
 import model.ClienteModel;
 import service.ContaReceberService;
 import util.UiKit;
+import util.FormatterFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -23,7 +23,7 @@ public class ContaReceberDialog extends JDialog {
 
     private JComboBox<String> cbCliente;
 
-    private final JFormattedTextField ftTotal = new JFormattedTextField(NumberFormat.getNumberInstance());
+    private final JFormattedTextField ftTotal = FormatterFactory.getMoneyField(0.0);
 
     private final JSpinner spParcelas = new JSpinner(new SpinnerNumberModel(1, 1, 120, 1));
 
@@ -74,7 +74,6 @@ public class ContaReceberDialog extends JDialog {
 
         // Total
         ftTotal.setColumns(12);
-        ftTotal.setValue(0);
         ftTotal.putClientProperty(FlatClientProperties.STYLE, "arc: 10; focusWidth: 1;");
         addField(card, gc, 1, "Valor Total (R$)", ftTotal);
 

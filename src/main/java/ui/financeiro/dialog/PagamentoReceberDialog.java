@@ -3,12 +3,11 @@ package ui.financeiro.dialog;
 import com.formdev.flatlaf.FlatClientProperties;
 import service.ContaReceberService;
 import util.UiKit;
+import util.FormatterFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.text.NumberFormat;
-import java.util.Locale;
 
 /**
  * @CR Dialog: registra um pagamento em uma parcela.
@@ -18,8 +17,7 @@ public class PagamentoReceberDialog extends JDialog {
     private final ContaReceberService crSvc = new ContaReceberService();
     private final int parcelaId;
 
-    private final JFormattedTextField ftValor = new JFormattedTextField(
-            NumberFormat.getNumberInstance(new Locale("pt", "BR")));
+    private final JFormattedTextField ftValor = FormatterFactory.getMoneyField(0.0);
 
     private final JComboBox<String> cbForma = new JComboBox<>(new String[] { "Dinheiro", "Pix", "Cartão", "Outros" });
 

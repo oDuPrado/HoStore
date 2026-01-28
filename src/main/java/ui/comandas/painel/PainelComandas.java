@@ -18,12 +18,13 @@ public class PainelComandas extends JPanel {
     private final ComandaService service = new ComandaService();
 
     private static final DateTimeFormatter UI_DTF = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private final JLabel lblTempoMedio = new JLabel("Tempo médio: —");
 
     private final JComboBox<String> cbStatus = new JComboBox<>(
             new String[] { "aberta", "pendente", "fechada", "cancelada", "todas" });
 
     private final DefaultTableModel model = new DefaultTableModel(
-            new Object[] { "ID", "Cliente", "Mesa", "Status", "Criado em", "Total", "Pago", "Saldo" }, 0) {
+            new Object[] { "ID", "Cliente", "Mesa", "Status", "Criado em", "Tempo (h)", "Total", "Pago", "Saldo" }, 0) {
         @Override
         public boolean isCellEditable(int row, int col) {
             return false;
@@ -55,6 +56,7 @@ public class PainelComandas extends JPanel {
         left.setOpaque(false);
         left.add(UiKit.title("🧾 Comandas"));
         left.add(UiKit.hint("Filtre por status, abra uma comanda ou crie uma nova"));
+        left.add(lblTempoMedio);
         topCard.add(left, BorderLayout.WEST);
 
         // lado direito em 2 linhas para não virar bagunça em telas menores
@@ -159,7 +161,7 @@ public class PainelComandas extends JPanel {
         // Badge no status
         table.getColumnModel().getColumn(3).setCellRenderer(UiKit.badgeStatusRenderer());
 
-        // Alinhar colunas numéricas à direita (Total/Pago/Saldo)
+        // Alinhar colunas numéricas à direita (Tempo/Total/Pago/Saldo)
         DefaultTableCellRenderer right = new DefaultTableCellRenderer();
         right.setHorizontalAlignment(SwingConstants.RIGHT);
 
@@ -178,6 +180,7 @@ public class PainelComandas extends JPanel {
         table.getColumnModel().getColumn(5).setCellRenderer(zebraRight);
         table.getColumnModel().getColumn(6).setCellRenderer(zebraRight);
         table.getColumnModel().getColumn(7).setCellRenderer(zebraRight);
+        table.getColumnModel().getColumn(8).setCellRenderer(zebraRight);
 
         // Ajuste de larguras (só estética, sem lógica)
         TableColumnModel tcm = table.getColumnModel();
@@ -186,9 +189,10 @@ public class PainelComandas extends JPanel {
         tcm.getColumn(2).setPreferredWidth(80); // Mesa
         tcm.getColumn(3).setPreferredWidth(110); // Status
         tcm.getColumn(4).setPreferredWidth(160); // Criado em
-        tcm.getColumn(5).setPreferredWidth(100); // Total
-        tcm.getColumn(6).setPreferredWidth(100); // Pago
-        tcm.getColumn(7).setPreferredWidth(100); // Saldo
+        tcm.getColumn(5).setPreferredWidth(110); // Tempo (h)
+        tcm.getColumn(6).setPreferredWidth(100); // Total
+        tcm.getColumn(7).setPreferredWidth(100); // Pago
+        tcm.getColumn(8).setPreferredWidth(100); // Saldo
 
         table.setRowHeight(30);
         table.setAutoCreateRowSorter(true); // visual/usabilidade, não altera lógica do service
@@ -203,17 +207,32 @@ public class PainelComandas extends JPanel {
             String status = (String) cbStatus.getSelectedItem();
             List<ComandaResumoModel> list = service.listarResumo(status);
 
+            long somaMin = 0;
+            int qtdMin = 0;
             for (ComandaResumoModel r : list) {
+                Integer tempoMin = r.getTempoPermanenciaMin();
+                if (tempoMin != null && tempoMin > 0) {
+                    somaMin += tempoMin;
+                    qtdMin++;
+                }
                 model.addRow(new Object[] {
                         r.getId(),
                         r.getCliente(),
                         r.getMesa(),
                         r.getStatus(),
                         formatarData(r.getCriadoEm()),
+                        formatarTempoHoras(tempoMin),
                         money(r.getTotalLiquido()),
                         money(r.getTotalPago()),
                         money(r.getSaldo())
                 });
+            }
+
+            if (qtdMin > 0) {
+                long mediaMin = Math.round((double) somaMin / (double) qtdMin);
+                lblTempoMedio.setText("Tempo médio: " + formatarTempoHoras((int) mediaMin));
+            } else {
+                lblTempoMedio.setText("Tempo médio: —");
             }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -262,5 +281,13 @@ public class PainelComandas extends JPanel {
         } catch (Exception e) {
             return iso;
         }
+    }
+
+    private static String formatarTempoHoras(Integer minutos) {
+        if (minutos == null || minutos <= 0)
+            return "—";
+        int h = minutos / 60;
+        int m = minutos % 60;
+        return String.format("%dh%02d", h, m);
     }
 }

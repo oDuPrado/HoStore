@@ -91,6 +91,13 @@ public class DB {
                                 conn.commit();
                         }
 
+                        // 1.5) Migrações de banco de dados (ALTER TABLE para clientes existentes)
+                        try (Connection conn = get()) {
+                                conn.setAutoCommit(false);
+                                DatabaseMigration.runMigrationsIfNeeded(conn);
+                                conn.commit();
+                        }
+
                         // 2) Sync opcional (NUNCA quebra inicialização)
                         if (shouldSyncRemoteData(existedBefore)) {
                                 System.out.println(
@@ -327,6 +334,9 @@ public class DB {
                                               protocolo TEXT,
                                               recibo TEXT,
                                               xml TEXT,
+                                              xml_path TEXT,
+                                              xml_sha256 TEXT,
+                                              xml_tamanho INTEGER,
                                               erro TEXT,
 
                                               total_produtos REAL,
@@ -356,6 +366,10 @@ public class DB {
                         executeComLog(st,
                                         "CREATE INDEX IF NOT EXISTS idx_doc_fiscal_status ON documentos_fiscais(status)",
                                         "idx_doc_fiscal_status");
+
+                        executeComLog(st,
+                                        "CREATE UNIQUE INDEX IF NOT EXISTS ux_doc_fiscal_venda ON documentos_fiscais(venda_id, codigo_modelo)",
+                                        "ux_doc_fiscal_venda");
 
                         executeComLog(st,
                                         """
@@ -403,6 +417,83 @@ public class DB {
                         executeComLog(st,
                                         "CREATE INDEX IF NOT EXISTS idx_doc_fiscal_pag_doc ON documentos_fiscais_pagamentos(documento_id)",
                                         "idx_doc_fiscal_pag_doc");
+
+                        // ========== TABELAS DE IMPOSTOS (NFC-e) ==========
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS imposto_icms (
+                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                              estado TEXT NOT NULL,
+                                              estado_destino TEXT NOT NULL,
+                                              ncm TEXT NOT NULL,
+                                              aliquota_consumidor REAL,
+                                              aliquota_contribuinte REAL,
+                                              reducao_base REAL DEFAULT 0,
+                                              mva_bc REAL DEFAULT 0,
+                                              ativo INTEGER DEFAULT 1,
+                                              UNIQUE(estado, estado_destino, ncm)
+                                            )
+                                        """, "imposto_icms");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS imposto_ipi (
+                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                              ncm TEXT NOT NULL,
+                                              aliquota REAL,
+                                              cnpj_produtor TEXT,
+                                              ativo INTEGER DEFAULT 1,
+                                              UNIQUE(ncm, cnpj_produtor)
+                                            )
+                                        """, "imposto_ipi");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS imposto_pis_cofins (
+                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                              ncm TEXT NOT NULL,
+                                              cst_pis TEXT,
+                                              aliquota_pis REAL,
+                                              cst_cofins TEXT,
+                                              aliquota_cofins REAL,
+                                              ativo INTEGER DEFAULT 1,
+                                              UNIQUE(ncm, cst_pis, cst_cofins)
+                                            )
+                                        """, "imposto_pis_cofins");
+
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS config_nfce (
+                                              id TEXT PRIMARY KEY,
+                                              emitir_nfce INTEGER DEFAULT 1,
+                                              csc_nfce TEXT,
+                                              id_csc_nfce INTEGER,
+                                              cert_a1_path TEXT,
+                                              cert_a1_senha TEXT,
+                                              serie_nfce INTEGER DEFAULT 1,
+                                              numero_inicial_nfce INTEGER DEFAULT 1,
+                                              ambiente TEXT DEFAULT 'homologacao',
+                                              regime_tributario TEXT DEFAULT 'Simples Nacional',
+                                              nome_empresa TEXT,
+                                              cnpj TEXT,
+                                              inscricao_estadual TEXT,
+                                              uf TEXT,
+                                              nome_fantasia TEXT,
+                                              endereco_logradouro TEXT,
+                                              endereco_numero TEXT,
+                                              endereco_complemento TEXT,
+                                              endereco_bairro TEXT,
+                                              endereco_municipio TEXT,
+                                              endereco_cep TEXT,
+                                              modo_emissao TEXT DEFAULT 'OFFLINE_VALIDACAO',
+                                              cert_a3_host TEXT,
+                                              cert_a3_porta INTEGER,
+                                              cert_a3_usuario TEXT,
+                                              cert_a3_senha TEXT,
+                                              usa_cert_laboratorio INTEGER DEFAULT 0,
+                                              cert_lab_path TEXT,
+                                              cert_lab_senha TEXT,
+                                              xsd_versao TEXT DEFAULT '4.00',
+                                              criado_em TEXT,
+                                              alterado_em TEXT
+                                            )
+                                        """, "config_nfce");
 
                         // ========== PRODUTOS / ESTOQUE ==========
                         executeComLog(st,
@@ -1130,6 +1221,26 @@ public class DB {
                         executeComLog(st, "DROP INDEX IF EXISTS ux_produtos_codigo_barras_ativo",
                                         "drop_ux_produtos_codigo_barras_ativo");
 
+                        // ========== LOGS FISCAIS (Etapa 13) ==========
+                        executeComLog(st, """
+                                            CREATE TABLE IF NOT EXISTS logs_fiscal (
+                                              id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                              documento_fiscal_id TEXT NOT NULL,
+                                              etapa TEXT NOT NULL,
+                                              tipo_log TEXT NOT NULL,
+                                              mensagem TEXT,
+                                              payload_resumido TEXT,
+                                              stack_trace TEXT,
+                                              timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                              FOREIGN KEY (documento_fiscal_id) REFERENCES documentos_fiscais(id)
+                                            )
+                                        """, "logs_fiscal");
+
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_logs_fiscal_doc ON logs_fiscal(documento_fiscal_id)",
+                                        "idx_logs_fiscal_doc");
+                        executeComLog(st, "CREATE INDEX IF NOT EXISTS idx_logs_fiscal_timestamp ON logs_fiscal(timestamp DESC)",
+                                        "idx_logs_fiscal_timestamp");
+
                         migrarEstoqueParaLotes(c);
                 }
         }
@@ -1226,6 +1337,11 @@ public class DB {
                                                         "('DEFAULT','SIMPLES','5102','102','0','00000000','UN');",
                                         "fallback_config_fiscal_default");
 
+                        executeComLog(st,
+                                        "INSERT OR IGNORE INTO config_nfce (id, emitir_nfce, ambiente, regime_tributario) VALUES " +
+                                                        "('CONFIG_PADRAO', 1, 'HOMOLOGACAO', 'Simples Nacional');",
+                                        "fallback_config_nfce");
+
                         executeComLog(st, """
                                             INSERT OR IGNORE INTO sequencias_fiscais
                                             (id, modelo, codigo_modelo, serie, ambiente, ultimo_numero, criado_em)
@@ -1293,6 +1409,7 @@ public class DB {
                                                                 criado_por TEXT,
                                                                 fechado_em TEXT,
                                                                 fechado_por TEXT,
+                                                                tempo_permanencia_min INTEGER DEFAULT 0,
                                                                 cancelado_em TEXT,
                                                                 cancelado_por TEXT,
 

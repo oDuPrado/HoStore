@@ -72,8 +72,35 @@ public class UiKit {
                 @Override
                 public void windowOpened(WindowEvent e) {
                     fitToScreen(d);
+                    SwingUtilities.invokeLater(() -> relaxSpinners(d.getContentPane()));
                 }
             });
+        }
+    }
+
+    private static void relaxSpinners(Container root) {
+        if (root == null)
+            return;
+        for (Component c : root.getComponents()) {
+            if (c instanceof JSpinner sp) {
+                relaxSpinner(sp);
+            }
+            if (c instanceof Container child) {
+                relaxSpinners(child);
+            }
+        }
+    }
+
+    private static void relaxSpinner(JSpinner s) {
+        JComponent editor = s.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor de) {
+            JFormattedTextField tf = de.getTextField();
+            tf.setFocusLostBehavior(JFormattedTextField.COMMIT);
+            if (tf.getFormatter() instanceof javax.swing.text.NumberFormatter nf) {
+                nf.setAllowsInvalid(true);
+                nf.setOverwriteMode(false);
+                nf.setCommitsOnValidEdit(true);
+            }
         }
     }
 

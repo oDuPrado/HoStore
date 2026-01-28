@@ -3,6 +3,10 @@ package ui.estoque.dialog;
 
 import model.AcessorioModel;
 import dao.ProdutoDAO;
+import dao.ConfigFiscalDefaultDAO;
+import dao.FiscalCatalogDAO;
+import model.ConfigFiscalModel;
+import model.CodigoDescricaoModel;
 import model.FornecedorModel;
 import model.NcmModel;
 import service.NcmService;
@@ -37,10 +41,14 @@ public class CadastroAcessorioDialog extends JDialog {
     private final JLabel lblCodigoLido = new JLabel("—");
 
     private final JFormattedTextField tfQtd = FormatterFactory.getFormattedIntField(0);
-    private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
-    private final JFormattedTextField tfPreco = FormatterFactory.getFormattedDoubleField(0.0);
+    private final JFormattedTextField tfCusto = FormatterFactory.getMoneyField(0.0);
+    private final JFormattedTextField tfPreco = FormatterFactory.getMoneyField(0.0);
 
     private final JComboBox<String> cbNcm = new JComboBox<>();
+    private final JComboBox<String> cbCfop = new JComboBox<>();
+    private final JComboBox<String> cbCsosn = new JComboBox<>();
+    private final JComboBox<String> cbOrigem = new JComboBox<>();
+    private final JComboBox<String> cbUnidade = new JComboBox<>();
 
     private final JLabel lblFornecedor = new JLabel("Nenhum");
     private final JButton btnSelectFornec = new JButton("Escolher Fornecedor");
@@ -147,8 +155,12 @@ public class CadastroAcessorioDialog extends JDialog {
 
         addField(formCard, g, r++, "Código de Barras:", barcodeRow);
 
-        // NCM
+        // NCM / Fiscal
         addField(formCard, g, r++, "NCM:", cbNcm);
+        addField(formCard, g, r++, "CFOP:", cbCfop);
+        addField(formCard, g, r++, "CSOSN:", cbCsosn);
+        addField(formCard, g, r++, "Origem:", cbOrigem);
+        addField(formCard, g, r++, "Unidade:", cbUnidade);
 
         // Quantidade / Custo / Preço (em uma linha)
         JPanel linhaValores = new JPanel(new GridLayout(1, 3, 10, 0));
@@ -246,6 +258,9 @@ public class CadastroAcessorioDialog extends JDialog {
                     "Erro ao carregar NCMs:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
+
+        carregarCombosFiscais();
+        aplicarDefaultsFiscais();
     }
 
     private void wireEvents(JFrame owner) {
@@ -353,6 +368,10 @@ public class CadastroAcessorioDialog extends JDialog {
                 }
             }
         }
+        selecionarPorCodigoPrefix(cbCfop, acessoOrig.getCfop());
+        selecionarPorCodigoPrefix(cbCsosn, acessoOrig.getCsosn());
+        selecionarPorCodigoPrefix(cbOrigem, acessoOrig.getOrigem());
+        selecionarPorCodigoPrefix(cbUnidade, acessoOrig.getUnidade());
     }
 
     private void salvar() {
@@ -390,6 +409,10 @@ public class CadastroAcessorioDialog extends JDialog {
             if (ncmCombo != null && ncmCombo.contains("-")) {
                 ncm = ncmCombo.split("-")[0].trim();
             }
+            String cfop = firstToken((String) cbCfop.getSelectedItem());
+            String csosn = firstToken((String) cbCsosn.getSelectedItem());
+            String origem = firstToken((String) cbOrigem.getSelectedItem());
+            String unidade = firstToken((String) cbUnidade.getSelectedItem());
 
             int qtd = ((Number) tfQtd.getValue()).intValue();
             double custo = ((Number) tfCusto.getValue()).doubleValue();
@@ -401,6 +424,10 @@ public class CadastroAcessorioDialog extends JDialog {
             a.setFornecedorId(fornId);
             a.setFornecedorNome(fornNom);
             a.setNcm(ncm);
+            a.setCfop(cfop);
+            a.setCsosn(csosn);
+            a.setOrigem(origem);
+            a.setUnidade(unidade);
 
             ProdutoEstoqueService service = new ProdutoEstoqueService();
             if (isEdicao) service.atualizarAcessorio(a);
@@ -419,5 +446,63 @@ public class CadastroAcessorioDialog extends JDialog {
     private void criarNovoFornecedor(JFrame owner) {
         FornecedorDialog dlg = new FornecedorDialog(owner, null);
         dlg.setVisible(true);
+    }
+
+    private void carregarCombosFiscais() {
+        try {
+            cbCfop.removeAllItems();
+            cbCsosn.removeAllItems();
+            cbOrigem.removeAllItems();
+            cbUnidade.removeAllItems();
+
+            FiscalCatalogDAO dao = new FiscalCatalogDAO();
+            for (CodigoDescricaoModel it : dao.findAll("cfop")) {
+                cbCfop.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("csosn")) {
+                cbCsosn.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("origem")) {
+                cbOrigem.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("unidades")) {
+                cbUnidade.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar dados fiscais:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void aplicarDefaultsFiscais() {
+        try {
+            ConfigFiscalModel cfg = new ConfigFiscalDefaultDAO().getDefault();
+            if (cfg == null) return;
+            selecionarPorCodigoPrefix(cbCfop, cfg.getCfopPadrao());
+            selecionarPorCodigoPrefix(cbCsosn, cfg.getCsosnPadrao());
+            selecionarPorCodigoPrefix(cbOrigem, cfg.getOrigemPadrao());
+            selecionarPorCodigoPrefix(cbNcm, cfg.getNcmPadrao());
+            selecionarPorCodigoPrefix(cbUnidade, cfg.getUnidadePadrao());
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void selecionarPorCodigoPrefix(JComboBox<String> combo, String codigo) {
+        if (codigo == null || codigo.isBlank())
+            return;
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            String it = combo.getItemAt(i);
+            if (it != null && it.startsWith(codigo + " ")) {
+                combo.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
+    private String firstToken(String s) {
+        if (s == null) return "";
+        String[] parts = s.trim().split("\\s+");
+        return parts.length > 0 ? parts[0] : "";
     }
 }

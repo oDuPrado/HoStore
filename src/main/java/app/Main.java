@@ -96,7 +96,16 @@ public class Main {
                                 "falha ao inserir carta fake", e);
                     }
 
-                    // 6) Abre janela principal
+                    // 6) Inicializa worker de documentos fiscais (Etapa 9)
+                    try {
+                        service.FiscalWorker.getInstance().iniciar();
+                        LogService.audit("FISCAL_WORKER_INICIADO", "sistema", null, "worker de NFC-e iniciado");
+                    } catch (Exception e) {
+                        LogService.auditError("FISCAL_WORKER_ERRO", "sistema", null,
+                                "falha ao iniciar worker fiscal", e);
+                    }
+
+                    // 7) Abre janela principal
                     LogService.audit("APP_START", "sistema", null, "app iniciado");
                     new TelaPrincipal();
                 }

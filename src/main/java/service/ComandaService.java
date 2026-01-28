@@ -13,6 +13,7 @@ import util.DB;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 
 public class ComandaService {
@@ -177,8 +178,10 @@ public class ComandaService {
             // Ajusta status automaticamente
             if (c.getTotalPago() >= c.getTotalLiquido() && c.getTotalLiquido() > 0) {
                 c.setStatus("fechada");
-                c.setFechadoEm(LocalDateTime.now());
+                LocalDateTime fechado = LocalDateTime.now();
+                c.setFechadoEm(fechado);
                 c.setFechadoPor(usuario);
+                c.setTempoPermanenciaMin(calcularTempoPermanenciaMin(c, fechado));
             } else {
                 if (!"pendente".equalsIgnoreCase(c.getStatus()))
                     c.setStatus("aberta");
@@ -207,8 +210,10 @@ public class ComandaService {
             double saldo = c.getTotalLiquido() - c.getTotalPago();
             if (saldo <= 0.0001) {
                 c.setStatus("fechada");
-                c.setFechadoEm(LocalDateTime.now());
+                LocalDateTime fechado = LocalDateTime.now();
+                c.setFechadoEm(fechado);
                 c.setFechadoPor(usuario);
+                c.setTempoPermanenciaMin(calcularTempoPermanenciaMin(c, fechado));
                 comandaDAO.atualizarTotaisEStatus(c, conn);
                 conn.commit();
                 return;
@@ -220,8 +225,10 @@ public class ComandaService {
             }
 
             c.setStatus("pendente");
-            c.setFechadoEm(LocalDateTime.now());
+            LocalDateTime fechado = LocalDateTime.now();
+            c.setFechadoEm(fechado);
             c.setFechadoPor(usuario);
+            c.setTempoPermanenciaMin(calcularTempoPermanenciaMin(c, fechado));
             comandaDAO.atualizarTotaisEStatus(c, conn);
 
             conn.commit();
@@ -273,15 +280,18 @@ public class ComandaService {
                            SET status = 'fechada',
                                fechado_em = ?,
                                fechado_por = ?,
+                               tempo_permanencia_min = ?,
                                venda_id = ?,
                                total_pago = total_liquido
                          WHERE id = ?
                     """;
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, LocalDateTime.now().toString());
+                LocalDateTime fechado = LocalDateTime.now();
+                ps.setString(1, fechado.toString());
                 ps.setString(2, usuario);
-                ps.setInt(3, vendaId);
-                ps.setInt(4, comandaId);
+                ps.setInt(3, calcularTempoPermanenciaMin(c, fechado));
+                ps.setInt(4, vendaId);
+                ps.setInt(5, comandaId);
                 ps.executeUpdate();
             }
 
@@ -323,5 +333,12 @@ public class ComandaService {
         }
 
         comandaDAO.atualizarTotaisEStatus(c, conn);
+    }
+
+    private int calcularTempoPermanenciaMin(ComandaModel c, LocalDateTime fechado) {
+        if (c == null || c.getCriadoEm() == null || fechado == null) return 0;
+        long mins = Duration.between(c.getCriadoEm(), fechado).toMinutes();
+        if (mins < 0) mins = 0;
+        return (int) Math.min(480, mins);
     }
 }

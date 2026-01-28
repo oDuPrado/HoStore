@@ -6,6 +6,7 @@ import util.AlertUtils;
 import util.UiKit;
 
 import java.awt.*;
+import java.io.File;
 
 import java.sql.Connection;
 import javax.swing.table.TableCellRenderer;
@@ -24,6 +25,13 @@ import javax.swing.table.DefaultTableModel;
 import model.VendaItemModel;
 import model.ProdutoModel;
 import dao.ProdutoDAO;
+import dao.DocumentoFiscalDAO;
+import dao.ConfigNfceDAO;
+import model.ConfigNfceModel;
+import model.DocumentoFiscalModel;
+import service.DocumentoFiscalService;
+import model.DocumentoFiscalAmbiente;
+import ui.ajustes.dialog.ConfigNfceDialog;
 
 /**
  * Dialog que exibe detalhes completos de uma venda.
@@ -31,12 +39,14 @@ import dao.ProdutoDAO;
 public class VendaDetalhesDialog extends JDialog {
     private static final DateTimeFormatter BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final java.util.List<VendaItemModel> itensDaVenda = new java.util.ArrayList<>();
+    private final int vendaId;
 
     private static final Locale PTBR = new Locale("pt", "BR");
     private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(PTBR);
 
     public VendaDetalhesDialog(Frame owner, int vendaId) {
         super(owner, "Detalhes da Venda #" + vendaId, true);
+        this.vendaId = vendaId;
 
         UiKit.applyDialogBase(this);
 
@@ -57,6 +67,7 @@ public class VendaDetalhesDialog extends JDialog {
         JLabel lblDesconto = new JLabel(BRL.format(0));
         JLabel lblTotalLiquido = new JLabel(BRL.format(0));
         JLabel lblStatus = new JLabel("-");
+        JLabel lblNfce = new JLabel("-");
 
         // Resumo financeiro (devoluções/estornos/efetivo)
         JLabel lblSomaDevolucoes = new JLabel(BRL.format(0));
@@ -226,6 +237,17 @@ public class VendaDetalhesDialog extends JDialog {
             AlertUtils.error("Erro ao carregar detalhes:\n" + ex.getMessage());
         }
 
+        // 5) NFC-e (documento fiscal vinculado)
+        DocumentoFiscalModel docFiscal = null;
+        try (Connection c = DB.get()) {
+            docFiscal = new DocumentoFiscalDAO().buscarPorVenda(c, vendaId);
+        } catch (Exception ignored) {
+        }
+        if (docFiscal != null) {
+            String nfceLabel = docFiscal.serie + "/" + docFiscal.numero + " - " + docFiscal.status;
+            lblNfce.setText(nfceLabel);
+        }
+
         // =========================
         // Resumo devoluções/estornos
         // =========================
@@ -287,6 +309,7 @@ public class VendaDetalhesDialog extends JDialog {
         r = addKV(infoGrid, gc, r, "Juros %:", lblJuros, "Total Bruto:", bold(lblTotalBruto));
         r = addKV(infoGrid, gc, r, "Desconto:", bold(lblDesconto), "Total Líquido:", bold(lblTotalLiquido));
         r = addKV(infoGrid, gc, r, "Devoluções:", bold(lblSomaDevolucoes), "Estornos:", bold(lblSomaEstornos));
+        r = addKV(infoGrid, gc, r, "NFC-e:", lblNfce, "", new JLabel(""));
         r = addKV(infoGrid, gc, r, "Valor Efetivo:", bold(lblValorEfetivo), "", new JLabel(""));
 
         topCard.add(infoGrid, BorderLayout.SOUTH);
@@ -303,6 +326,7 @@ public class VendaDetalhesDialog extends JDialog {
         abas.addTab("Itens", UiKit.scroll(buildTable(itensModel, true)));
         abas.addTab("Pagamentos", UiKit.scroll(buildTable(pagamentosModel, false)));
         abas.addTab("Parcelas", UiKit.scroll(buildTable(parcelasModel, false)));
+        abas.addTab("NFC-e", criarAbaNfce(docFiscal));
         abas.addTab("Estornos", criarPainelEstornos(vendaId, statusVenda));
 
         centerCard.add(abas, BorderLayout.CENTER);
@@ -433,6 +457,137 @@ public class VendaDetalhesDialog extends JDialog {
     }
 
     // =========================
+    // NFC-e Tab
+    // =========================
+    private JComponent criarAbaNfce(DocumentoFiscalModel doc) {
+        JPanel wrap = new JPanel(new BorderLayout(10, 10));
+        wrap.setOpaque(false);
+
+        if (doc == null) {
+            JPanel top = new JPanel(new BorderLayout(8, 8));
+            top.setOpaque(false);
+            top.add(UiKit.hint("Nenhuma NFC-e vinculada a esta venda."), BorderLayout.NORTH);
+
+            JButton btnGerar = UiKit.primary("Gerar NFC-e Offline");
+            btnGerar.addActionListener(e -> gerarNfceOffline(btnGerar));
+            JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            actions.setOpaque(false);
+            actions.add(btnGerar);
+            top.add(actions, BorderLayout.WEST);
+
+            wrap.add(top, BorderLayout.NORTH);
+            return wrap;
+        }
+
+        JPanel info = UiKit.card();
+        info.setLayout(new GridBagLayout());
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.insets = new Insets(2, 6, 2, 6);
+        gc.anchor = GridBagConstraints.WEST;
+
+        JLabel lblNumero = new JLabel(doc.serie + "/" + doc.numero);
+        JLabel lblStatus = new JLabel(doc.status != null ? doc.status : "-");
+        JLabel lblAmb = new JLabel(doc.ambiente != null ? doc.ambiente : "-");
+        JLabel lblChave = new JLabel(doc.chaveAcesso != null ? doc.chaveAcesso : "-");
+        JLabel lblProtocolo = new JLabel(doc.protocolo != null ? doc.protocolo : "-");
+        JLabel lblRecibo = new JLabel(doc.recibo != null ? doc.recibo : "-");
+        JLabel lblCriado = new JLabel(doc.criadoEm != null ? doc.criadoEm : "-");
+        JLabel lblAtualizado = new JLabel(doc.atualizadoEm != null ? doc.atualizadoEm : "-");
+
+        int r = 0;
+        r = addKV(info, gc, r, "Numero:", lblNumero, "Status:", lblStatus);
+        r = addKV(info, gc, r, "Ambiente:", lblAmb, "Criado em:", lblCriado);
+        r = addKV(info, gc, r, "Atualizado:", lblAtualizado, "Recibo:", lblRecibo);
+        r = addKV(info, gc, r, "Protocolo:", lblProtocolo, "Chave:", lblChave);
+
+        JPanel topStack = new JPanel(new BorderLayout(6, 6));
+        topStack.setOpaque(false);
+        topStack.add(info, BorderLayout.NORTH);
+
+        String status = doc.status != null ? doc.status.trim().toUpperCase() : "-";
+        JLabel lblResultado = new JLabel("Resultado SEFAZ: " + status);
+        if ("AUTORIZADA".equals(status) || "APROVADA".equals(status)) {
+            lblResultado.setForeground(new Color(0, 128, 0));
+        } else if ("REJEITADA".equals(status) || "ERRO".equals(status)) {
+            lblResultado.setForeground(new Color(170, 0, 0));
+        }
+        JPanel resultWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        resultWrap.setOpaque(false);
+        resultWrap.add(lblResultado);
+
+        topStack.add(resultWrap, BorderLayout.SOUTH);
+        wrap.add(topStack, BorderLayout.NORTH);
+
+        String erro = doc.erro != null ? doc.erro.trim() : "";
+        if (!erro.isEmpty()) {
+            JTextArea taErro = new JTextArea(erro);
+            taErro.setEditable(false);
+            taErro.setLineWrap(true);
+            taErro.setWrapStyleWord(true);
+            taErro.setFont(new Font("SansSerif", Font.PLAIN, 12));
+
+            JPanel erroCard = UiKit.card();
+            erroCard.setLayout(new BorderLayout(6, 6));
+            erroCard.add(new JLabel("Erro / RejeiÃ§Ã£o"), BorderLayout.NORTH);
+            erroCard.add(UiKit.scroll(taErro), BorderLayout.CENTER);
+
+            JPanel erroActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+            erroActions.setOpaque(false);
+            JButton btnAjustes = UiKit.ghost("Ajustes NFC-e");
+            btnAjustes.addActionListener(e -> new ConfigNfceDialog((Frame) SwingUtilities.getWindowAncestor(this)).setVisible(true));
+            erroActions.add(btnAjustes);
+            erroCard.add(erroActions, BorderLayout.SOUTH);
+
+            wrap.add(erroCard, BorderLayout.CENTER);
+        } else {
+            wrap.add(UiKit.hint("Nenhum erro registrado para esta NFC-e."), BorderLayout.CENTER);
+        }
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        actions.setOpaque(false);
+
+        JButton btnGerar = UiKit.ghost("Gerar NFC-e Offline");
+        btnGerar.setEnabled(doc.xmlPath == null || doc.xmlPath.isBlank());
+        btnGerar.addActionListener(e -> gerarNfceOffline(btnGerar));
+        actions.add(btnGerar);
+
+        JButton btnEnviar = UiKit.primary("Enviar SEFAZ");
+        btnEnviar.setEnabled(doc.xmlPath != null && !doc.xmlPath.isBlank());
+        btnEnviar.addActionListener(e -> enviarSefaz(doc));
+        actions.add(btnEnviar);
+
+        JButton btnXml = UiKit.ghost("Abrir XML");
+        btnXml.setEnabled(doc.xmlPath != null && !doc.xmlPath.isBlank());
+        btnXml.addActionListener(e -> abrirXmlArquivo(doc));
+        actions.add(btnXml);
+
+        wrap.add(actions, BorderLayout.SOUTH);
+        return wrap;
+    }
+
+        private void abrirXmlArquivo(DocumentoFiscalModel doc) {
+        if (doc == null || doc.xmlPath == null || doc.xmlPath.isBlank()) {
+            AlertUtils.warn("Documento ainda nao tem XML.");
+            return;
+        }
+        try {
+            File f = new File(doc.xmlPath);
+            if (!f.exists()) {
+                AlertUtils.warn("Arquivo XML nao encontrado:\n" + doc.xmlPath);
+                return;
+            }
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(f);
+            } else {
+                AlertUtils.warn("Abertura de arquivo nao suportada neste ambiente.");
+            }
+        } catch (Exception e) {
+            AlertUtils.error("Erro ao abrir XML:\n" + e.getMessage());
+        }
+    }
+
+    // =========================
     // Estornos Tab
     // =========================
     private JScrollPane criarPainelEstornos(int vendaId, String statusVenda) {
@@ -556,4 +711,93 @@ public class VendaDetalhesDialog extends JDialog {
             AlertUtils.error("Erro ao cancelar venda:\n" + ex.getMessage());
         }
     }
+
+    private void gerarNfceOffline(JButton btn) {
+        if (btn != null) {
+            btn.setEnabled(false);
+        }
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                Exception last = null;
+                for (int attempt = 1; attempt <= 3; attempt++) {
+                    try {
+                        DocumentoFiscalService docService = new DocumentoFiscalService();
+                        DocumentoFiscalModel doc = docService.criarDocumentoPendenteParaVenda(
+                                vendaId, "sistema", DocumentoFiscalAmbiente.OFF);
+                        docService.gerarXml(doc.id);
+                        return null;
+                    } catch (Exception ex) {
+                        last = ex;
+                        String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+                        boolean busy = msg.contains("sqlite_busy_snapshot") || msg.contains("database is locked");
+                        if (!busy || attempt == 3) {
+                            throw ex;
+                        }
+                        try {
+                            Thread.sleep(150L * attempt);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                }
+                if (last != null) throw last;
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                if (btn != null) {
+                    btn.setEnabled(true);
+                }
+                try {
+                    get();
+                    AlertUtils.info("NFC-e offline gerada. Reabra os detalhes para visualizar.");
+                } catch (Exception ex) {
+                    String msg = ex.getMessage();
+                    AlertUtils.error("Erro ao gerar NFC-e offline:\n" + msg);
+                }
+            }
+        }.execute();
+    }
+
+
+    private void enviarSefaz(DocumentoFiscalModel doc) {
+        try {
+            ConfigNfceModel cfg = new ConfigNfceDAO().getConfig();
+            if (cfg == null) {
+                AlertUtils.warn("Configuração NFC-e não encontrada.");
+                return;
+            }
+            String cert = cfg.getCertA1Path();
+            String senha = cfg.getCertA1Senha();
+            if (cert == null || cert.isBlank() || senha == null || senha.isBlank()) {
+                AlertUtils.warn("Certificado A1 não configurado. Preencha em Ajustes > Loja/NFC-e.");
+                return;
+            }
+
+            boolean producao = "PRODUCAO".equalsIgnoreCase(cfg.getAmbiente());
+            new SwingWorker<Void, Void>() {
+                @Override
+                protected Void doInBackground() throws Exception {
+                    DocumentoFiscalService svc = new DocumentoFiscalService();
+                    svc.enviarSefaz(doc.id, cert, senha, producao);
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    try {
+                        get();
+                        AlertUtils.info("Envio para SEFAZ concluído. Reabra os detalhes para ver o status.");
+                    } catch (Exception e) {
+                        AlertUtils.error("Erro ao enviar SEFAZ:\n" + e.getMessage());
+                    }
+                }
+            }.execute();
+        } catch (Exception ex) {
+            AlertUtils.error("Erro ao enviar SEFAZ:\n" + ex.getMessage());
+        }
+    }
+
 }

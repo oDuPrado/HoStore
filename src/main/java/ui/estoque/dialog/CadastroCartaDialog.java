@@ -5,8 +5,14 @@ import service.CartaService;
 import dao.SetDAO;
 import dao.ColecaoDAO;
 import dao.CadastroGenericoDAO;
+import dao.ConfigFiscalDefaultDAO;
+import dao.FiscalCatalogDAO;
 import model.ColecaoModel;
+import model.ConfigFiscalModel;
+import model.CodigoDescricaoModel;
 import model.FornecedorModel;
+import model.NcmModel;
+import service.NcmService;
 import ui.ajustes.dialog.FornecedorDialog;
 import util.FormatterFactory;
 import util.UiKit;
@@ -37,16 +43,21 @@ public class CadastroCartaDialog extends JDialog {
     private final JTextField tfNumero = new JTextField(8);
     private final JSpinner spQtd = new JSpinner(new SpinnerNumberModel(1, 1, 9999, 1));
     private final JComboBox<ComboItem> cbCondicao = new JComboBox<>();
-    private final JFormattedTextField tfCusto = FormatterFactory.getFormattedDoubleField(0.0);
+    private final JFormattedTextField tfCusto = FormatterFactory.getMoneyField(0.0);
     private final JComboBox<ComboItem> cbIdioma = new JComboBox<>();
+    private final JComboBox<String> cbNcm = new JComboBox<>();
+    private final JComboBox<String> cbCfop = new JComboBox<>();
+    private final JComboBox<String> cbCsosn = new JComboBox<>();
+    private final JComboBox<String> cbOrigem = new JComboBox<>();
+    private final JComboBox<String> cbUnidade = new JComboBox<>();
 
     /* Venda / consignado */
     private final JComboBox<String> cbTipoVenda = new JComboBox<>(new String[] { "Loja", "Consignado" });
     private final JComboBox<ComboItem> cbDono = new JComboBox<>();
-    private final JFormattedTextField tfPrecoConsignado = FormatterFactory.getFormattedDoubleField(0.0);
+    private final JFormattedTextField tfPrecoConsignado = FormatterFactory.getMoneyField(0.0);
     private final JFormattedTextField tfPercentualLoja = FormatterFactory.getFormattedDoubleField(0.0);
-    private final JFormattedTextField tfValorLoja = FormatterFactory.getFormattedDoubleField(0.0);
-    private final JFormattedTextField tfPrecoVenda = FormatterFactory.getFormattedDoubleField(0.0);
+    private final JFormattedTextField tfValorLoja = FormatterFactory.getMoneyField(0.0);
+    private final JFormattedTextField tfPrecoVenda = FormatterFactory.getMoneyField(0.0);
 
     /* Especificações */
     private final JComboBox<ComboItem> cbTipoCarta = new JComboBox<>();
@@ -228,6 +239,25 @@ public class CadastroCartaDialog extends JDialog {
         f.gridy = 4;
         f.gridx = 0; f.weightx = 0; form.add(new JLabel("Custo (R$):"), f);
         f.gridx = 1; f.weightx = 1; form.add(tfCusto, f);
+
+        // linha 5: NCM + CFOP
+        f.gridy = 5;
+        f.gridx = 0; f.weightx = 0; form.add(new JLabel("NCM:"), f);
+        f.gridx = 1; f.weightx = 1; form.add(cbNcm, f);
+        f.gridx = 2; f.weightx = 0; form.add(new JLabel("CFOP:"), f);
+        f.gridx = 3; f.weightx = 1; form.add(cbCfop, f);
+
+        // linha 6: CSOSN + Origem
+        f.gridy = 6;
+        f.gridx = 0; f.weightx = 0; form.add(new JLabel("CSOSN:"), f);
+        f.gridx = 1; f.weightx = 1; form.add(cbCsosn, f);
+        f.gridx = 2; f.weightx = 0; form.add(new JLabel("Origem:"), f);
+        f.gridx = 3; f.weightx = 1; form.add(cbOrigem, f);
+
+        // linha 7: Unidade
+        f.gridy = 7;
+        f.gridx = 0; f.weightx = 0; form.add(new JLabel("Unidade:"), f);
+        f.gridx = 1; f.weightx = 1; form.add(cbUnidade, f);
 
         card.add(form, BorderLayout.CENTER);
         return card;
@@ -424,6 +454,9 @@ public class CadastroCartaDialog extends JDialog {
         carregarLookup("sub_raridades", cbSubraridade);
         carregarLookup("ilustracoes", cbIlustracao);
         carregarClientes();
+        carregarNcms();
+        carregarCombosFiscais();
+        aplicarDefaultsFiscais();
 
         cbTipoVenda.addActionListener(e -> toggleConsignado());
 
@@ -820,5 +853,77 @@ public class CadastroCartaDialog extends JDialog {
     private void criarNovoFornecedor(JFrame owner) {
         FornecedorDialog dlg = new FornecedorDialog(owner, null);
         dlg.setVisible(true);
+    }
+
+    private void carregarCombosFiscais() {
+        try {
+            cbCfop.removeAllItems();
+            cbCsosn.removeAllItems();
+            cbOrigem.removeAllItems();
+            cbUnidade.removeAllItems();
+
+            FiscalCatalogDAO dao = new FiscalCatalogDAO();
+            for (CodigoDescricaoModel it : dao.findAll("cfop")) {
+                cbCfop.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("csosn")) {
+                cbCsosn.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("origem")) {
+                cbOrigem.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+            for (CodigoDescricaoModel it : dao.findAll("unidades")) {
+                cbUnidade.addItem(it.getCodigo() + " - " + it.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar dados fiscais:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void carregarNcms() {
+        try {
+            cbNcm.removeAllItems();
+            List<NcmModel> ncms = NcmService.getInstance().findAll();
+            for (NcmModel n : ncms) {
+                cbNcm.addItem(n.getCodigo() + " - " + n.getDescricao());
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Erro ao carregar NCMs:\n" + ex.getMessage(),
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void aplicarDefaultsFiscais() {
+        try {
+            ConfigFiscalModel cfg = new ConfigFiscalDefaultDAO().getDefault();
+            if (cfg == null) return;
+            selecionarPorCodigoPrefix(cbCfop, cfg.getCfopPadrao());
+            selecionarPorCodigoPrefix(cbCsosn, cfg.getCsosnPadrao());
+            selecionarPorCodigoPrefix(cbOrigem, cfg.getOrigemPadrao());
+            selecionarPorCodigoPrefix(cbNcm, cfg.getNcmPadrao());
+            selecionarPorCodigoPrefix(cbUnidade, cfg.getUnidadePadrao());
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void selecionarPorCodigoPrefix(JComboBox<String> combo, String codigo) {
+        if (codigo == null || codigo.isBlank())
+            return;
+        for (int i = 0; i < combo.getItemCount(); i++) {
+            String it = combo.getItemAt(i);
+            if (it != null && it.startsWith(codigo + " ")) {
+                combo.setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
+    private String firstToken(String s) {
+        if (s == null) return "";
+        String[] parts = s.trim().split("\\s+");
+        return parts.length > 0 ? parts[0] : "";
     }
 }

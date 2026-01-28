@@ -9,6 +9,7 @@ import model.VendaItemModel;
 import ui.venda.painel.PainelVendas;
 import util.AlertUtils;
 import util.UiKit;
+import util.FormatterFactory;
 
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
@@ -294,15 +295,7 @@ public class VendaNovaDialog extends JDialog {
         });
 
         // Preço unitário
-        NumberFormat moneyFmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
-        moneyFmt.setMinimumFractionDigits(2);
-        moneyFmt.setMaximumFractionDigits(2);
-
-        NumberFormatter moneyEditor = new NumberFormatter(moneyFmt);
-        moneyEditor.setValueClass(Double.class);
-        moneyEditor.setAllowsInvalid(false);
-
-        JFormattedTextField unitField = new JFormattedTextField(moneyEditor);
+        JFormattedTextField unitField = FormatterFactory.getMoneyField(0.0);
         unitField.setHorizontalAlignment(JTextField.RIGHT);
         unitField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
         unitField.addFocusListener(selAll(unitField));

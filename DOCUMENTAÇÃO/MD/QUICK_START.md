@@ -1,336 +1,272 @@
-# 🚀 Quick Start Guide - HoStore
+# ⚡ Quick Start - Sistema de Migração e NFCe
 
-**Tempo estimado**: 5 minutos | **Nível**: Iniciante
+## 🚀 Comece em 5 Minutos
 
----
-
-## ⚡ TL;DR (Muito Longo; Não Leia)
+### 1️⃣ Compilar o Projeto
 
 ```bash
-# 1. Clonar
-git clone https://github.com/oDuPrado/HoStore.git && cd HoStore
-
-# 2. Compilar
-mvn clean package
-
-# 3. Executar
-java -jar target/HoStore-1.0.0-jar-with-dependencies.jar
+cd /caminho/para/HoStore
+mvn clean package -DskipTests
 ```
 
-**Login**: `admin` / `admin` (⚠️ Mude a senha!)
-
----
-
-## 📋 Checklist Inicial
-
-- [ ] Java 17+ instalado? `java -version`
-- [ ] Maven instalado? `mvn -version`
-- [ ] Git instalado? `git --version`
-- [ ] Pelo menos 2 GB de RAM livre?
-- [ ] 500 MB de espaço em disco?
-
----
-
-## 🎯 5 Passos para Começar
-
-### Passo 1: Clonar o Repositório (30 segundos)
-
-```bash
-git clone https://github.com/oDuPrado/HoStore.git
-cd HoStore
+**Resultado esperado:**
 ```
-
-**Resultado esperado**:
-```
-Cloning into 'HoStore'...
-remote: Enumerating objects: 450, done.
-Resolving deltas: 100% (182/182), done.
-```
-
----
-
-### Passo 2: Compilar (2-3 minutos)
-
-```bash
-mvn clean package
-```
-
-**Resultado esperado**:
-```
-[INFO] Downloading dependencies...
-[INFO] Compiling source files...
-[INFO] Building jar file...
 [INFO] BUILD SUCCESS
-```
-
-Se der erro sobre JDK, instale Java 17+:
-```bash
-# Windows (Chocolatey)
-choco install openjdk17
-
-# macOS (Homebrew)
-brew install openjdk@17
-
-# Linux (Ubuntu/Debian)
-sudo apt-get install openjdk-17-jdk
+[INFO] Building jar: target/HoStore-1.0.0-jar-with-dependencies.jar
 ```
 
 ---
 
-### Passo 3: Executar (30 segundos)
+### 2️⃣ Executar a Aplicação
 
 ```bash
+# Primeira vez (cria novo banco)
+java -jar target/HoStore-1.0.0-jar-with-dependencies.jar
+
+# OU
+
+# Atualizar (migra banco existente)
 java -jar target/HoStore-1.0.0-jar-with-dependencies.jar
 ```
 
-**Resultado esperado**:
-- Splash screen aparece
-- 3-5 segundos de inicialização
-- Tela de login
+**O que acontece:**
+- ✅ Banco é criado/atualizado automaticamente
+- ✅ 7 migrações são executadas
+- ✅ Dados padrão são inseridos
+- ✅ Aplicação está pronta
 
 ---
 
-### Passo 4: Login (10 segundos)
+### 3️⃣ Verificar Banco de Dados
 
-Na tela de login:
-- **Usuário**: `admin`
-- **Senha**: `admin`
-
-Clique em "Entrar" ou pressione `Enter`
-
----
-
-### Passo 5: Dashboard Principal (Pronto!)
-
-Você deve ver:
-```
-┌──────────────────────────────────────────┐
-│ HoStore - Sistema de ERP para TCG        │
-├──────────────────────────────────────────┤
-│ Vendas Hoje: R$ 0,00                     │
-│ Estoque: 0 unidades                      │
-│ Clientes Ativos: 0                       │
-│ [Vendas] [Estoque] [Financeiro] [...]    │
-└──────────────────────────────────────────┘
-```
-
----
-
-## 🎮 Primeira Ação: Criar um Cliente
-
-1. Menu: `Clientes → Novo Cliente`
-2. Preencha:
-   - **Nome**: João Silva
-   - **CPF**: 123.456.789-00
-   - **Email**: joao@email.com
-3. Clique `Salvar`
-
-✅ **Pronto!** Primeiro cliente criado.
-
----
-
-## 📦 Segunda Ação: Cadastrar um Produto
-
-1. Menu: `Estoque → Novo Item`
-2. Selecione categoria: `Cartas`
-3. Preencha:
-   - **Nome**: Charizard
-   - **Set**: Scarlet & Violet
-   - **Preço Custo**: R$ 50
-   - **Preço Venda**: R$ 80
-   - **Quantidade**: 5
-4. Clique `Salvar`
-
-✅ **Pronto!** Primeiro produto em estoque.
-
----
-
-## 🛒 Terceira Ação: Fazer Primeira Venda
-
-1. Menu: `Vendas → Nova Venda`
-2. **Selecione Cliente**: João Silva
-3. **Busque Produto**: Charizard
-4. **Quantidade**: 1
-5. Clique `Adicionar ao Carrinho`
-6. Clique `Finalizar`
-7. **Forma de Pagamento**: Dinheiro
-8. Clique `Confirmar`
-
-✅ **Pronto!** Primeira venda realizada e comprovante PDF gerado!
-
----
-
-## 📊 Próximos Passos
-
-### Nível Iniciante (Hoje)
-- [x] Login e navegação
-- [x] Criar cliente
-- [x] Cadastrar produto
-- [x] Fazer venda
-
-### Nível Intermediário (Semana 1)
-- [ ] Adicionar mais produtos
-- [ ] Fazer 10 vendas de teste
-- [ ] Explorar relatórios
-- [ ] Consultar estoque
-
-### Nível Avançado (Semana 2)
-- [ ] Configurar fiscal
-- [ ] Integrar APIs de TCG
-- [ ] Criar pedidos de compra
-- [ ] Análise de vendas
-
----
-
-## 🆘 Troubleshooting Rápido
-
-### ❌ "Erro: Java não encontrado"
 ```bash
-# Solução: Instale Java 17+
-java -version  # Deve mostrar 17+
+# Ver se banco foi criado
+ls -la data/hostore.db
+
+# Ver status das migrações (via SQL)
+sqlite3 data/hostore.db "SELECT * FROM db_migrations;"
 ```
 
-### ❌ "Porta 8080 em uso"
+**Saída esperada:**
+```
+001|Adicionar campos fiscais em produtos|2026-01-26 15:30:00|...
+002|Criar tabelas de referência fiscal|2026-01-26 15:30:05|...
+003|Criar tabela de configuração NFCe|2026-01-26 15:30:10|...
+004|Criar tabelas de documentos fiscais|2026-01-26 15:30:15|...
+005|Criar tabela de sequências fiscais|2026-01-26 15:30:20|...
+006|Adicionar campos fiscais em vendas|2026-01-26 15:30:25|...
+007|Popular dados de referência fiscal|2026-01-26 15:30:30|...
+```
+
+---
+
+### 4️⃣ Gerar Sua Primeira NFCe
+
+**Via Código Java:**
+
+```java
+import service.NfceGeneratorService;
+
+public class MinhaApp {
+    public static void main(String[] args) throws Exception {
+        // Supondo venda ID = 1
+        String chave = NfceGeneratorService.gerarNfce(1);
+        System.out.println("✅ NFCe: " + chave);
+    }
+}
+```
+
+**Compilar e rodar:**
 ```bash
-# O HoStore usa SQLite local, não precisa de porta
-# Se receber este erro, reinicie o computador
+javac -cp target/HoStore-1.0.0-jar-with-dependencies.jar MinhaApp.java
+java -cp .:target/HoStore-1.0.0-jar-with-dependencies.jar MinhaApp
 ```
 
-### ❌ "Banco de dados corrompido"
+**Saída:**
+```
+✅ NFCe gerada com sucesso!
+  Número: 1
+  Chave de Acesso: 4314902001101000000651000000010100123456789
+  Documento ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+---
+
+### 5️⃣ Testar Automaticamente
+
 ```bash
-# Solução: Delete o arquivo e recrie
-rm hostore.db
-# Reinicie a aplicação (vai recria automaticamente)
+# Executar testes (se existirem)
+mvn test
+
+# Ou compilar sem testes
+mvn clean package -DskipTests
 ```
 
-### ❌ "Senha esquecida"
+---
+
+## 🎯 Comandos Úteis
+
+### Banco de Dados
+
 ```bash
-# Delete banco e inicie novamente com admin/admin
-rm hostore.db
+# Ver tabelas
+sqlite3 data/hostore.db ".tables"
+
+# Ver esquema de uma tabela
+sqlite3 data/hostore.db ".schema documentos_fiscais"
+
+# Ver dados
+sqlite3 data/hostore.db "SELECT * FROM unidades_ref LIMIT 5;"
+
+# Ligar/desligar modo verbose
+sqlite3 data/hostore.db ".mode line"
+```
+
+### Compilação
+
+```bash
+# Apenas compilar
+mvn clean compile
+
+# Compilar + empacotar
+mvn clean package -DskipTests
+
+# Executar com logs
+mvn clean package -X
+
+# Limpar tudo
+mvn clean
+```
+
+### Executar
+
+```bash
+# Rodar JAR
+java -jar target/HoStore-1.0.0-jar-with-dependencies.jar
+
+# Com mais memória
+java -Xmx512m -jar target/HoStore-1.0.0-jar-with-dependencies.jar
+
+# Com logs detalhados
+java -Dhostore.debug=true -jar target/HoStore-1.0.0-jar-with-dependencies.jar
 ```
 
 ---
 
-## ⌨️ Atalhos Essenciais
+## ❓ Problemas Comuns
 
-| Tecla | Ação |
-|-------|------|
-| `Ctrl+N` | Nova venda |
-| `Ctrl+S` | Salvar |
-| `Ctrl+P` | Imprimir |
-| `Esc` | Cancelar |
-| `F5` | Atualizar |
+### ❌ "Banco de dados bloqueado"
+```bash
+# Solução:
+rm data/hostore.db-wal
+rm data/hostore.db-shm
+```
 
----
+### ❌ "Tabela não encontrada"
+```bash
+# Solução:
+rm data/hostore.db
+# Rodar novamente para recriar
+```
 
-## 📚 Próximas Leituras
+### ❌ "BUILD FAILURE"
+```bash
+# Solução:
+mvn clean
+mvn install -DskipTests
+mvn package -DskipTests
+```
 
-**Depois de fazer sua primeira venda**, leia:
-
-1. **[README.md](README.md)** - Visão geral (5 min)
-2. **[Estoque.md](Estrturas/Estoque.md)** - Gerenciar estoque (10 min)
-3. **[vendas.md](Estrturas/vendas.md)** - Sistema de vendas (10 min)
-4. **[README_COMPLETE.md](README_COMPLETE.md)** - Completo (30 min)
-
----
-
-## 🎯 Metas Prácticas
-
-### Dia 1
-- ✅ Instalar e executar
-- ✅ Login
-- ✅ Criar cliente
-- ✅ Fazer venda
-
-### Semana 1
-- ✅ 50 produtos em estoque
-- ✅ 100+ vendas
-- ✅ 10+ clientes
-- ✅ Explorar relatórios
-
-### Mês 1
-- ✅ Aprender todos os módulos
-- ✅ Integrar APIs de TCG
-- ✅ Configurar fiscal
-- ✅ Customizar para sua loja
+### ❌ "Cannot find symbol"
+```bash
+# Solução:
+mvn clean compile
+# Verificar se tem erros no código
+```
 
 ---
 
-## 💡 Dicas Pro
+## 📊 Verificação Rápida
 
-1. **Sincronize TCGs**: Menu → Ajustes → Sincronizar TCG
-   - Carrega dados das APIs
-   - Cache local para offline
+### Checklist Pós-Execução
 
-2. **Backup Automático**: Feito diariamente em `./data/backup/`
-   - Seguro, restaurável, comprimido
-
-3. **PDFs**: Comprovantes salvos em `./data/export/`
-   - Imprima ou envie por email
-
-4. **Temas**: Menu → Ajustes → Aparência
-   - Light/Dark mode disponível
-
-5. **Permissões**: Admin pode criar usuários com permissões limitadas
+- [ ] Banco de dados criado (`data/hostore.db`)
+- [ ] 7 migrações na tabela `db_migrations`
+- [ ] Tabelas de referência preenchidas
+  - [ ] 9 unidades em `unidades_ref`
+  - [ ] 9 origens em `origem_ref`
+  - [ ] 4 CFOP em `cfop_ref`
+  - [ ] 6 CSOSN em `csosn_ref`
+- [ ] NFCe pode ser gerada
+- [ ] Aplicação inicia sem erros
 
 ---
 
-## 🔒 Segurança Básica
+## 💾 Arquivos Gerados
 
-**Após fazer login pela primeira vez**:
+Após primeira execução, você terá:
 
-1. Menu: `Ajustes → Alterar Senha`
-2. Digite nova senha (16+ caracteres)
-3. Salve em local seguro (gestor de senhas)
-
-**Nunca compartilhe a senha!**
-
----
-
-## 📞 Precisa de Ajuda?
-
-### Rápido (1-2 min)
-- Consulte este guia
-- Veja os atalhos
-
-### Médio (10-15 min)
-- Leia [README.md](README.md)
-- Consulte FAQ
-
-### Completo (30+ min)
-- Estude [README_COMPLETE.md](README_COMPLETE.md)
-- Veja exemplos práticos
-- Explore documentação técnica
-
-### Issue no GitHub
-- Descreva o problema
-- Inclua versão (Help → About)
-- Forneça screenshot se possível
+```
+HoStore/
+├── data/
+│   ├── hostore.db           ← Banco de dados
+│   ├── hostore.db-wal       ← WAL file (intermo)
+│   ├── hostore.db-shm       ← Shared memory (intermo)
+│   ├── cache/
+│   │   └── sync_state.properties
+│   └── export/
+├── target/
+│   ├── hocore-1.0.0.jar
+│   └── HoStore-1.0.0-jar-with-dependencies.jar
+└── ... (outros arquivos)
+```
 
 ---
 
-## 🎉 Parabéns!
+## 🔗 Próximos Passos
 
-Você completou o Quick Start do HoStore! 🎊
+1. **Ler a documentação:**
+   - [MANUAL_USO_SISTEMA_NFCE.md](MANUAL_USO_SISTEMA_NFCE.md)
+   - [GUIA_TESTES_MIGRACAO_NFCE.md](GUIA_TESTES_MIGRACAO_NFCE.md)
 
-Agora você está pronto para:
-- ✅ Usar o sistema em sua loja
-- ✅ Gerenciar vendas e estoque
-- ✅ Gerar relatórios
-- ✅ Explorar recursos avançados
+2. **Fazer testes:**
+   - Testar com múltiplas NFCe
+   - Testar migração de banco antigo
+   - Testar com seus dados
+
+3. **Integração:**
+   - Configurar dados da empresa
+   - Conectar com UI da aplicação
+   - Testar fluxo completo
+
+4. **Produção:**
+   - Fazer backup do banco
+   - Testar em ambiente similar
+   - Migrar com confiança
 
 ---
 
-## 📖 Documentação Completa
+## 📞 Suporte Rápido
 
-Consulte:
-- 📚 [INDICE_DOCUMENTACAO.md](INDICE_DOCUMENTACAO.md) - Índice de todos os docs
-- 🏗️ [ARQUITETURA.md](ARQUITETURA.md) - Para desenvolvedores
-- 🔧 [FUNCIONALIDADES_COMPLETAS.md](FUNCIONALIDADES_COMPLETAS.md) - Lista completa
+| Problema | Solução | Comando |
+|----------|---------|---------|
+| Banco corrompido | Recriar | `rm data/hostore.db` |
+| Migração pendente | Executar | Restart app |
+| Testar NFCe | Gerar | `NfceGeneratorService.gerarNfce(1)` |
+| Ver logs BD | SQL | `sqlite3 data/hostore.db` |
 
 ---
 
-**Versão**: 1.0.0 | **Data**: Janeiro 2026 | **Status**: ✅ Pronto para usar
+## ✅ Tudo Pronto!
 
-**Desenvolvido com ❤️ para a comunidade TCG** 🎴
+Você está pronto para:
+- ✅ Usar o HoStore com suporte a NFCe
+- ✅ Gerar documentos fiscais
+- ✅ Manter banco antigo sem perder dados
+- ✅ Estender o sistema com novas features
 
+**Divirta-se!** 🚀
+
+---
+
+**Quick Start v1.0** | 26 de Janeiro de 2026

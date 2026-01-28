@@ -12,11 +12,11 @@ public class DocumentoFiscalDAO {
         try (PreparedStatement ps = conn.prepareStatement("""
             INSERT INTO documentos_fiscais
             (id, venda_id, modelo, codigo_modelo, serie, numero, ambiente, status,
-             chave_acesso, protocolo, recibo, xml, erro,
+             chave_acesso, protocolo, recibo, xml, xml_path, xml_sha256, xml_tamanho, erro,
              total_produtos, total_desconto, total_acrescimo, total_final,
              criado_em, criado_por, atualizado_em, cancelado_em, cancelado_por)
             VALUES (?,?,?,?,?,?,?,?,
-                    ?,?,?,?,?,
+                    ?,?,?,?,?,?,?,?,
                     ?,?,?,?,
                     datetime('now'),?, datetime('now'), ?, ?)
         """)) {
@@ -34,6 +34,9 @@ public class DocumentoFiscalDAO {
             ps.setString(i++, d.protocolo);
             ps.setString(i++, d.recibo);
             ps.setString(i++, d.xml);
+            ps.setString(i++, d.xmlPath);
+            ps.setString(i++, d.xmlSha256);
+            if (d.xmlTamanho == null) ps.setNull(i++, Types.INTEGER); else ps.setInt(i++, d.xmlTamanho);
             ps.setString(i++, d.erro);
 
             if (d.totalProdutos == null) ps.setNull(i++, Types.REAL); else ps.setDouble(i++, d.totalProdutos);
@@ -46,6 +49,18 @@ public class DocumentoFiscalDAO {
             ps.setString(i++, d.canceladoPor);
 
             ps.executeUpdate();
+        }
+    }
+
+    public DocumentoFiscalModel buscarPorId(Connection conn, String docId) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("""
+            SELECT * FROM documentos_fiscais WHERE id = ?
+        """)) {
+            ps.setString(1, docId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                return map(rs);
+            }
         }
     }
 
@@ -66,14 +81,25 @@ public class DocumentoFiscalDAO {
 
     public List<DocumentoFiscalModel> listarPorStatus(Connection conn, String status, int limit) throws SQLException {
         List<DocumentoFiscalModel> out = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement("""
-            SELECT * FROM documentos_fiscais
-            WHERE status = ?
-            ORDER BY criado_em DESC
-            LIMIT ?
-        """)) {
-            ps.setString(1, status);
-            ps.setInt(2, Math.max(1, limit));
+        boolean filtrar = status != null && !status.isBlank();
+        String sql = filtrar
+                ? """
+                    SELECT * FROM documentos_fiscais
+                    WHERE lower(status) = lower(?)
+                    ORDER BY criado_em DESC
+                    LIMIT ?
+                  """
+                : """
+                    SELECT * FROM documentos_fiscais
+                    ORDER BY criado_em DESC
+                    LIMIT ?
+                  """;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 1;
+            if (filtrar) {
+                ps.setString(idx++, status);
+            }
+            ps.setInt(idx, Math.max(1, limit));
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) out.add(map(rs));
             }
@@ -102,6 +128,23 @@ public class DocumentoFiscalDAO {
         }
     }
 
+    public void atualizarXmlInfo(Connection conn, String docId, String path, String sha256, Integer tamanho) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("""
+            UPDATE documentos_fiscais
+            SET xml_path = ?,
+                xml_sha256 = ?,
+                xml_tamanho = ?,
+                atualizado_em = datetime('now')
+            WHERE id = ?
+        """)) {
+            ps.setString(1, path);
+            ps.setString(2, sha256);
+            if (tamanho == null) ps.setNull(3, Types.INTEGER); else ps.setInt(3, tamanho);
+            ps.setString(4, docId);
+            ps.executeUpdate();
+        }
+    }
+
     private DocumentoFiscalModel map(ResultSet rs) throws SQLException {
         DocumentoFiscalModel d = new DocumentoFiscalModel();
         d.id = rs.getString("id");
@@ -117,6 +160,10 @@ public class DocumentoFiscalDAO {
         d.protocolo = rs.getString("protocolo");
         d.recibo = rs.getString("recibo");
         d.xml = rs.getString("xml");
+        d.xmlPath = rs.getString("xml_path");
+        d.xmlSha256 = rs.getString("xml_sha256");
+        int t;
+        t = rs.getInt("xml_tamanho"); d.xmlTamanho = rs.wasNull() ? null : t;
         d.erro = rs.getString("erro");
 
         double v;

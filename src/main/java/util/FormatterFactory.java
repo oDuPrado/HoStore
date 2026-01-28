@@ -28,7 +28,7 @@ public class FormatterFactory {
 
         JFormattedTextField field = new JFormattedTextField(formatter);
         field.setHorizontalAlignment(JTextField.RIGHT);
-        field.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        field.setFocusLostBehavior(JFormattedTextField.COMMIT);
         field.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) {
                 SwingUtilities.invokeLater(field::selectAll);
@@ -38,6 +38,31 @@ public class FormatterFactory {
         // valor inicial
         if (initialValue != 0.0) field.setValue(initialValue);
         else field.setValue(null);  // deixa em branco
+        return field;
+    }
+
+    /** Campo moeda (R$ 0,00). Inicial em branco se valor for 0. */
+    public static JFormattedTextField getMoneyField(double initialValue) {
+        NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        NumberFormatter formatter = new NumberFormatter(nf);
+        formatter.setValueClass(Double.class);
+        formatter.setAllowsInvalid(true);
+        formatter.setOverwriteMode(false);
+        formatter.setCommitsOnValidEdit(true);
+
+        JFormattedTextField field = new JFormattedTextField(formatter);
+        field.setHorizontalAlignment(JTextField.RIGHT);
+        field.setFocusLostBehavior(JFormattedTextField.COMMIT);
+        field.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                SwingUtilities.invokeLater(field::selectAll);
+            }
+        });
+
+        if (initialValue != 0.0) field.setValue(initialValue);
+        else field.setValue(null);
         return field;
     }
 
@@ -52,14 +77,18 @@ public class FormatterFactory {
 
         JFormattedTextField field = new JFormattedTextField(formatter);
         field.setHorizontalAlignment(JTextField.RIGHT);
-        field.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        field.setFocusLostBehavior(JFormattedTextField.COMMIT);
         field.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) {
                 SwingUtilities.invokeLater(field::selectAll);
             }
         });
 
-        field.setValue(initialValue);
+        if (initialValue != 0) {
+            field.setValue(initialValue);
+        } else {
+            field.setValue(null);
+        }
         return field;
     }
 
@@ -69,8 +98,8 @@ public class FormatterFactory {
             MaskFormatter mf = new MaskFormatter("##/##/####");
             mf.setPlaceholderCharacter('_');
             JFormattedTextField field = new JFormattedTextField(mf);
-            field.setHorizontalAlignment(JTextField.CENTER);
-            field.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        field.setHorizontalAlignment(JTextField.CENTER);
+        field.setFocusLostBehavior(JFormattedTextField.COMMIT);
             field.addFocusListener(new FocusAdapter() {
                 @Override public void focusGained(FocusEvent e) {
                     SwingUtilities.invokeLater(field::selectAll);

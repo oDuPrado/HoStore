@@ -33,6 +33,7 @@ import java.util.Locale;
 import model.ConfigLojaModel;
 import dao.ConfigLojaDAO;
 import ui.venda.dialog.EditarPrecoDialog;
+import util.FormatterFactory;
 
 /**
  * Dialog de finalização de venda com:
@@ -210,31 +211,8 @@ public class VendaFinalizarDialog extends JDialog {
         /* ---- Painel Valor (será escondido quando CARTAO) ---- */
         JPanel painelValor = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
 
-        NumberFormat moneyFmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
-        moneyFmt.setMinimumFractionDigits(2);
-        moneyFmt.setMaximumFractionDigits(2);
-        NumberFormatter moneyFormatter = new NumberFormatter(moneyFmt);
-        moneyFormatter.setValueClass(Double.class);
-        moneyFormatter.setMinimum(0.0);
-        moneyFormatter.setAllowsInvalid(true);
-        moneyFormatter.setOverwriteMode(false);
-        txtValor = new JFormattedTextField(moneyFormatter);
+        txtValor = FormatterFactory.getMoneyField(0.0);
         txtValor.setColumns(8);
-        txtValor.setHorizontalAlignment(SwingConstants.RIGHT);
-        txtValor.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                SwingUtilities.invokeLater(() -> txtValor.selectAll());
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                try {
-                    txtValor.commitEdit();
-                } catch (Exception ignored) {
-                }
-            }
-        });
         painelValor.add(new JLabel("Valor:"));
         painelValor.add(txtValor);
         linha1.add(painelValor);
@@ -450,38 +428,35 @@ public class VendaFinalizarDialog extends JDialog {
         return rod;
     }
 
-    /* ======= Ações ======= */
+    /* ======= ACOES ======= */
     private void onAddPagamento() {
         String forma = (String) cboForma.getSelectedItem();
         double valor;
 
         if ("CREDITO-LOJA".equalsIgnoreCase(forma)) {
-            // 1) Busca saldo disponível
+            // 1) Busca saldo disponivel
             double saldo = new CreditoLojaService().consultarSaldo(clienteId);
             if (saldo <= 0) {
-                AlertUtils.error("Sem crédito de loja disponível.");
+                AlertUtils.error("Sem credito de loja disponivel.");
                 return;
             }
 
-            // 2) Lê valor desejado (ou usa todo o saldo se nenhum valor informado)
-            try {
-                txtValor.commitEdit();
-            } catch (Exception ignored) {
-            }
-            Number raw = (Number) txtValor.getValue();
-            if (raw == null) {
+            // 2) Le valor desejado (ou usa todo o saldo se nenhum valor informado)
+            String rawText = txtValor.getText();
+            Double parsed = parseMoneyLoose(rawText);
+            if (parsed == null) {
                 valor = saldo;
             } else {
-                valor = raw.doubleValue();
+                valor = parsed;
                 if (valor > saldo)
                     valor = saldo;
             }
             if (valor <= 0) {
-                AlertUtils.error("Informe um valor válido para crédito.");
+                AlertUtils.error("Informe um valor valido para credito.");
                 return;
             }
 
-            // 3) Adiciona à lista de pagamentos (será efetivado no onConfirm)
+            // 3) Adiciona a lista de pagamentos (sera efetivado no onConfirm)
             pagamentosModel.addRow(new Object[] { "CREDITO-LOJA", valor, "" });
             txtValor.setValue(null);
             atualizarValores();
@@ -494,20 +469,20 @@ public class VendaFinalizarDialog extends JDialog {
             for (VendaItemModel it : itens)
                 totalVenda += it.getQtd() * it.getPreco() * (1 - it.getDesconto() / 100.0);
 
-            // 2. Soma valores já pagos nas outras formas
+            // 2. Soma valores ja pagos nas outras formas
             double totalPagos = 0;
             for (int i = 0; i < pagamentosModel.getRowCount(); i++) {
                 String tipo = (String) pagamentosModel.getValueAt(i, 0);
-                if (!"CARTAO".equalsIgnoreCase(tipo)) { // ignora cartão já adicionado
+                if (!"CARTAO".equalsIgnoreCase(tipo)) { // ignora cartao ja adicionado
                     totalPagos += (Double) pagamentosModel.getValueAt(i, 1);
                 }
             }
 
-            // 3. Calcula valor base restante para o cartão (sem juros)
+            // 3. Calcula valor base restante para o cartao (sem juros)
             double valorBaseCartao = Math.max(0, totalVenda - totalPagos);
 
             if (valorBaseCartao <= 0) {
-                AlertUtils.error("Nada restante a pagar com cartão.");
+                AlertUtils.error("Nada restante a pagar com cartao.");
                 return;
             }
 
@@ -516,19 +491,14 @@ public class VendaFinalizarDialog extends JDialog {
             valor = valorBaseCartao * (1 + juros / 100.0);
 
         } else {
-            try {
-                txtValor.commitEdit();
-            } catch (Exception ignored) {
-            }
-
-            Number valorRaw = (Number) txtValor.getValue();
-
-            if (valorRaw == null || valorRaw.doubleValue() <= 0.0) {
-                AlertUtils.error("Informe um valor válido!");
+            String rawText = txtValor.getText();
+            Double valorRaw = parseMoneyLoose(rawText);
+            if (valorRaw == null || valorRaw <= 0.0) {
+                AlertUtils.error("Informe um valor valido!");
                 return;
             }
 
-            valor = valorRaw.doubleValue();
+            valor = valorRaw;
         }
 
         pagamentosModel.addRow(new Object[] { forma, valor, "" });
@@ -647,6 +617,34 @@ public class VendaFinalizarDialog extends JDialog {
 
         } catch (Exception ex) {
             AlertUtils.error("Erro ao finalizar venda:\n" + ex.getMessage());
+        }
+    }
+
+    private Double parseMoneyLoose(String text) {
+        if (text == null)
+            return null;
+        String s = text.trim();
+        if (s.isEmpty())
+            return null;
+        s = s.replace("R$", "").replace("\u00A0", "").trim();
+        boolean hasComma = s.contains(",");
+        if (hasComma) {
+            s = s.replace(".", "");
+            s = s.replace(",", ".");
+        } else if (s.contains(".")) {
+            int lastDot = s.lastIndexOf('.');
+            int digitsAfter = s.length() - lastDot - 1;
+            if (digitsAfter == 3) {
+                s = s.replace(".", "");
+            }
+        }
+        s = s.replaceAll("[^0-9.\\-]", "");
+        if (s.isEmpty() || "-".equals(s) || ".".equals(s) || "-.".equals(s))
+            return null;
+        try {
+            return Double.parseDouble(s);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

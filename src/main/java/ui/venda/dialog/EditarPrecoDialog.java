@@ -8,11 +8,11 @@ import util.UiKit;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
-import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
+import util.FormatterFactory;
 
 /**
  * Dialog para permitir ao lojista editar o preço unitário de cada item
@@ -91,18 +91,8 @@ public class EditarPrecoDialog extends JDialog {
         table.getColumnModel().getColumn(1).setCellRenderer(centerZebra);
 
         // Editor e renderer de preço (mantém zebra)
-        NumberFormat moneyFmt = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
-        moneyFmt.setMinimumFractionDigits(2);
-        moneyFmt.setMaximumFractionDigits(2);
-
-        NumberFormatter fmt = new NumberFormatter(moneyFmt);
-        fmt.setValueClass(Double.class);
-        fmt.setMinimum(0.0);
-        fmt.setAllowsInvalid(false);
-
-        JFormattedTextField ft = new JFormattedTextField(fmt);
-        ft.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
-        ft.setHorizontalAlignment(SwingConstants.RIGHT);
+        NumberFormat moneyFmt = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
+        JFormattedTextField ft = FormatterFactory.getMoneyField(0.0);
         ft.setBorder(new EmptyBorder(0, 6, 0, 6));
 
         table.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(ft));

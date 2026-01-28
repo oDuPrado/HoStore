@@ -73,6 +73,7 @@ public class ComandaDAO {
                       total_pago=?,
                       fechado_em=?,
                       fechado_por=?,
+                      tempo_permanencia_min=COALESCE(?, tempo_permanencia_min),
                       cancelado_em=?,
                       cancelado_por=?
                     WHERE id=?
@@ -88,11 +89,16 @@ public class ComandaDAO {
 
             ps.setString(7, c.getFechadoEm() == null ? null : c.getFechadoEm().format(FMT));
             ps.setString(8, c.getFechadoPor());
+            if (c.getTempoPermanenciaMin() == null) {
+                ps.setNull(9, Types.INTEGER);
+            } else {
+                ps.setInt(9, c.getTempoPermanenciaMin());
+            }
 
-            ps.setString(9, c.getCanceladoEm() == null ? null : c.getCanceladoEm().format(FMT));
-            ps.setString(10, c.getCanceladoPor());
+            ps.setString(10, c.getCanceladoEm() == null ? null : c.getCanceladoEm().format(FMT));
+            ps.setString(11, c.getCanceladoPor());
 
-            ps.setInt(11, c.getId());
+            ps.setInt(12, c.getId());
             ps.executeUpdate();
         }
     }
@@ -110,6 +116,7 @@ public class ComandaDAO {
                       COALESCE(c.mesa, '—') AS mesa,
                       c.status,
                       c.criado_em,
+                      c.tempo_permanencia_min,
                       c.total_liquido,
                       c.total_pago,
                       (c.total_liquido - c.total_pago) AS saldo
@@ -131,6 +138,8 @@ public class ComandaDAO {
                     r.setMesa(rs.getString("mesa"));
                     r.setStatus(rs.getString("status"));
                     r.setCriadoEm(rs.getString("criado_em"));
+                    int tempoMin = rs.getInt("tempo_permanencia_min");
+                    r.setTempoPermanenciaMin(rs.wasNull() ? null : tempoMin);
                     r.setTotalLiquido(rs.getDouble("total_liquido"));
                     r.setTotalPago(rs.getDouble("total_pago"));
                     r.setSaldo(rs.getDouble("saldo"));
@@ -186,6 +195,8 @@ public class ComandaDAO {
         String cancel = rs.getString("cancelado_em");
         c.setCanceladoEm(cancel == null ? null : LocalDateTime.parse(cancel, FMT));
         c.setCanceladoPor(rs.getString("cancelado_por"));
+        int tempoMin = rs.getInt("tempo_permanencia_min");
+        c.setTempoPermanenciaMin(rs.wasNull() ? null : tempoMin);
 
         return c;
     }

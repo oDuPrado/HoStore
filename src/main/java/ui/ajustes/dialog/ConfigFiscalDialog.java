@@ -1,10 +1,13 @@
 package ui.ajustes.dialog;
 
 import dao.ConfigFiscalDAO;
+import dao.ConfigFiscalDefaultDAO;
 import dao.CfopDAO;
 import dao.CsosnDAO;
 import dao.NcmDAO;
 import dao.OrigemDAO;
+import dao.FiscalCatalogDAO;
+import model.CodigoDescricaoModel;
 import model.CfopModel;
 import model.ConfigFiscalModel;
 import model.CsosnModel;
@@ -42,15 +45,15 @@ public class ConfigFiscalDialog extends JDialog {
     private final JComboBox<String> cbCsosn = new JComboBox<>();
     private final JComboBox<String> cbOrigem = new JComboBox<>();
     private final JComboBox<String> cbNcm = new JComboBox<>();
-    private final JComboBox<String> cbUnidade = new JComboBox<>(new String[] {
-            "UN", "CX", "KG", "LT", "M", "M2", "M3"
-    });
+    private final JComboBox<String> cbUnidade = new JComboBox<>();
 
     private ConfigFiscalModel currentConfig;
+    private final boolean isDefaultConfig;
 
     public ConfigFiscalDialog(Frame owner, String clienteId) {
         super(owner, "Configuração Fiscal", true);
         this.clienteId = clienteId;
+        this.isDefaultConfig = "LOJA".equalsIgnoreCase(clienteId) || "DEFAULT".equalsIgnoreCase(clienteId);
 
         UiKit.applyDialogBase(this);
 
@@ -78,7 +81,7 @@ public class ConfigFiscalDialog extends JDialog {
         JPanel header = new JPanel(new GridLayout(0, 1, 0, 2));
         header.setOpaque(false);
         header.add(UiKit.title("Dados fiscais padrão"));
-        header.add(UiKit.hint("Cliente: " + clienteId + " • ENTER salva • ESC cancela"));
+        header.add(UiKit.hint((isDefaultConfig ? "Padrão da loja" : "Cliente: " + clienteId) + " • ENTER salva • ESC cancela"));
         card.add(header, BorderLayout.NORTH);
 
         // ===================== FORM (SCROLL) =====================
@@ -200,6 +203,7 @@ public class ConfigFiscalDialog extends JDialog {
             cbCsosn.removeAllItems();
             cbOrigem.removeAllItems();
             cbNcm.removeAllItems();
+            cbUnidade.removeAllItems();
 
             // CFOP
             List<CfopModel> listaCfops = new CfopDAO().buscarTodos();
@@ -225,6 +229,12 @@ public class ConfigFiscalDialog extends JDialog {
                 cbNcm.addItem(item.getCodigo() + " - " + item.getDescricao());
             }
 
+            // Unidades
+            List<CodigoDescricaoModel> unidades = new FiscalCatalogDAO().findAll("unidades");
+            for (CodigoDescricaoModel u : unidades) {
+                cbUnidade.addItem(u.getCodigo() + " - " + u.getDescricao());
+            }
+
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(this,
@@ -236,7 +246,11 @@ public class ConfigFiscalDialog extends JDialog {
     /** Se já existir configuração para este cliente, pré-preenche os campos. */
     private void carregarDadosExistentes() {
         try {
-            currentConfig = new ConfigFiscalDAO().buscarPorCliente(clienteId);
+            if (isDefaultConfig) {
+                currentConfig = new ConfigFiscalDefaultDAO().getDefault();
+            } else {
+                currentConfig = new ConfigFiscalDAO().buscarPorCliente(clienteId);
+            }
             if (currentConfig == null)
                 return;
 
@@ -245,7 +259,7 @@ public class ConfigFiscalDialog extends JDialog {
             selecionarPorCodigoPrefix(cbCsosn, currentConfig.getCsosnPadrao());
             selecionarPorCodigoPrefix(cbOrigem, currentConfig.getOrigemPadrao());
             selecionarPorCodigoPrefix(cbNcm, currentConfig.getNcmPadrao());
-            cbUnidade.setSelectedItem(currentConfig.getUnidadePadrao());
+            selecionarPorCodigoPrefix(cbUnidade, currentConfig.getUnidadePadrao());
 
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -275,7 +289,7 @@ public class ConfigFiscalDialog extends JDialog {
         String csosn = firstToken((String) cbCsosn.getSelectedItem());
         String origem = firstToken((String) cbOrigem.getSelectedItem());
         String ncm = firstToken((String) cbNcm.getSelectedItem());
-        String unidade = (String) cbUnidade.getSelectedItem();
+        String unidade = firstToken((String) cbUnidade.getSelectedItem());
 
         if (regime == null || regime.isBlank()) {
             JOptionPane.showMessageDialog(this, "Selecione o regime tributário.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -309,19 +323,23 @@ public class ConfigFiscalDialog extends JDialog {
         }
 
         try {
-            ConfigFiscalDAO dao = new ConfigFiscalDAO();
-
-            if (currentConfig == null) {
-                ConfigFiscalModel cfg = new ConfigFiscalModel(clienteId, regime, cfop, csosn, origem, ncm, unidade);
-                dao.inserir(cfg);
+            if (isDefaultConfig) {
+                ConfigFiscalModel cfg = new ConfigFiscalModel("DEFAULT", regime, cfop, csosn, origem, ncm, unidade);
+                new ConfigFiscalDefaultDAO().saveDefault(cfg);
             } else {
-                currentConfig.setRegimeTributario(regime);
-                currentConfig.setCfopPadrao(cfop);
-                currentConfig.setCsosnPadrao(csosn);
-                currentConfig.setOrigemPadrao(origem);
-                currentConfig.setNcmPadrao(ncm);
-                currentConfig.setUnidadePadrao(unidade);
-                dao.atualizar(currentConfig);
+                ConfigFiscalDAO dao = new ConfigFiscalDAO();
+                if (currentConfig == null) {
+                    ConfigFiscalModel cfg = new ConfigFiscalModel(clienteId, regime, cfop, csosn, origem, ncm, unidade);
+                    dao.inserir(cfg);
+                } else {
+                    currentConfig.setRegimeTributario(regime);
+                    currentConfig.setCfopPadrao(cfop);
+                    currentConfig.setCsosnPadrao(csosn);
+                    currentConfig.setOrigemPadrao(origem);
+                    currentConfig.setNcmPadrao(ncm);
+                    currentConfig.setUnidadePadrao(unidade);
+                    dao.atualizar(currentConfig);
+                }
             }
 
             JOptionPane.showMessageDialog(this,

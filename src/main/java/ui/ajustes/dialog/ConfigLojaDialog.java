@@ -1,7 +1,10 @@
 package ui.ajustes.dialog;
 
 import dao.ConfigLojaDAO;
+import dao.ConfigNfceDAO;
 import model.ConfigLojaModel;
+import model.ConfigNfceModel;
+import service.XmlAssinaturaService;
 import util.UiKit;
 
 import javax.swing.*;
@@ -330,8 +333,38 @@ public class ConfigLojaDialog extends JDialog {
         // Senha certificado
         addRow(form, g, y++, "Senha do Certificado:", tfCertificadoSenha);
 
+        // Botão testar certificado
+        JButton btnTestCert = UiKit.ghost("🔐 Testar Certificado");
+        btnTestCert.addActionListener(e -> testarCertificado());
+        g.gridy = y;
+        g.gridx = 1;
+        g.weightx = 0;
+        g.fill = GridBagConstraints.NONE;
+        form.add(btnTestCert, g);
+
         card.add(form, BorderLayout.CENTER);
         return card;
+    }
+
+    /**
+     * Testa se certificado A1 é válido
+     */
+    private void testarCertificado() {
+        String certPath = tfCertificadoPath.getText().trim();
+        String certSenha = new String(tfCertificadoSenha.getPassword()).trim();
+
+        if (certPath.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "❌ Caminho do certificado vazio", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            XmlAssinaturaService signer = new XmlAssinaturaService(certPath, certSenha);
+            signer.validarCertificado();
+            JOptionPane.showMessageDialog(this, "✅ Certificado válido e não expirado!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "❌ Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private JComponent sectionImpressao() {
@@ -638,6 +671,7 @@ public class ConfigLojaDialog extends JDialog {
                         proxyUsuario,
                         proxySenha);
                 dao.inserir(cfg);
+                syncNfceConfig(cfg);
             } else {
                 currentConfig.setNome(nome);
                 currentConfig.setNomeFantasia(nomeFantasia);
@@ -676,6 +710,7 @@ public class ConfigLojaDialog extends JDialog {
                 currentConfig.setProxySenha(proxySenha);
 
                 dao.atualizar(currentConfig);
+                syncNfceConfig(currentConfig);
             }
 
             JOptionPane.showMessageDialog(this,
@@ -688,6 +723,67 @@ public class ConfigLojaDialog extends JDialog {
             JOptionPane.showMessageDialog(this,
                     "Erro ao salvar configuração:\n" + ex.getMessage(),
                     "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void syncNfceConfig(ConfigLojaModel loja) throws SQLException {
+        ConfigNfceModel nfce = new ConfigNfceModel();
+        nfce.setId("CONFIG_PADRAO");
+        nfce.setEmitirNfce(1);
+        nfce.setAmbiente(loja.getAmbienteNfce());
+        nfce.setSerieNfce(parseIntSafe(loja.getSerieNota(), 1));
+        nfce.setNumeroInicialNfce(loja.getNumeroInicialNota());
+
+        nfce.setNomeEmpresa(loja.getNome());
+        nfce.setNomeFantasia(loja.getNomeFantasia());
+        nfce.setCnpj(loja.getCnpj());
+        nfce.setInscricaoEstadual(loja.getInscricaoEstadual());
+        nfce.setRegimeTributario(loja.getRegimeTributario());
+        nfce.setUf(loja.getEnderecoUf());
+
+        nfce.setEnderecoLogradouro(loja.getEnderecoLogradouro());
+        nfce.setEnderecoNumero(loja.getEnderecoNumero());
+        nfce.setEnderecoComplemento(loja.getEnderecoComplemento());
+        nfce.setEnderecoBairro(loja.getEnderecoBairro());
+        nfce.setEnderecoMunicipio(loja.getEnderecoMunicipio());
+        nfce.setEnderecoCep(loja.getEnderecoCep());
+
+        String token = resolveCscToken(loja.getCsc(), loja.getTokenCsc());
+        int idCsc = resolveIdCsc(loja.getCsc(), loja.getTokenCsc());
+        nfce.setCsc(token);
+        nfce.setIdCsc(idCsc);
+
+        nfce.setCertA1Path(loja.getCertificadoPath());
+        nfce.setCertA1Senha(loja.getCertificadoSenha());
+
+        boolean online = nfce.getCertA1Path() != null && !nfce.getCertA1Path().isBlank()
+                && nfce.getCertA1Senha() != null && !nfce.getCertA1Senha().isBlank()
+                && nfce.getIdCsc() > 0
+                && nfce.getCsc() != null && !nfce.getCsc().isBlank();
+        nfce.setModoEmissao(online ? "ONLINE_SEFAZ" : "OFFLINE_VALIDACAO");
+
+        new ConfigNfceDAO().saveConfig(nfce);
+    }
+
+    private int resolveIdCsc(String csc, String token) {
+        int id = parseIntSafe(csc, 0);
+        if (id > 0) return id;
+        return parseIntSafe(token, 0);
+    }
+
+    private String resolveCscToken(String csc, String token) {
+        if (token != null && !token.isBlank()) return token.trim();
+        return csc != null ? csc.trim() : null;
+    }
+
+    private int parseIntSafe(String value, int fallback) {
+        if (value == null) return fallback;
+        String raw = value.trim();
+        if (raw.isEmpty()) return fallback;
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            return fallback;
         }
     }
 }
