@@ -5,7 +5,7 @@ import dao.PedidoEstoqueProdutoDAO;
 import dao.ProdutoDAO;
 import model.PedidoEstoqueProdutoModel;
 import model.ProdutoModel;
-import service.ProdutoEstoqueService;
+import service.PedidoCompraService;
 import service.SessaoService;
 import util.UiKit;
 
@@ -179,42 +179,16 @@ public class EntradaProdutosDialog extends JDialog {
             }
 
             String usuario = (SessaoService.get() != null) ? SessaoService.get().getNome() : "sistema";
-            ProdutoEstoqueService estoqueService = new ProdutoEstoqueService();
+            PedidoCompraService pedidoService = new PedidoCompraService();
 
+            java.util.Map<String, Integer> mapaRecebimento = new java.util.HashMap<>();
             for (int i = 0; i < modelItens.getRowCount(); i++) {
                 String linkId = modelItens.getValueAt(i, 0).toString();
-                String produtoId = modelItens.getValueAt(i, 1).toString();
-
-                int ped = Integer.parseInt(modelItens.getValueAt(i, 3).toString());
                 int rec = Integer.parseInt(modelItens.getValueAt(i, 4).toString());
-
-                String status = rec >= ped ? "completo" : (rec > 0 ? "parcial" : "pendente");
-
-                PedidoEstoqueProdutoModel anterior = itemDAO.buscarPorId(linkId);
-                int recAnterior = (anterior != null) ? anterior.getQuantidadeRecebida() : 0;
-                int delta = rec - recAnterior;
-
-                PedidoEstoqueProdutoModel m = new PedidoEstoqueProdutoModel(
-                        linkId, pedidoId, produtoId, ped, rec, status);
-                itemDAO.atualizar(m);
-
-                if (delta != 0) {
-                    if (delta > 0) {
-                        estoqueService.registrarEntrada(
-                                produtoId,
-                                delta,
-                                "Recebimento do Pedido " + pedidoId,
-                                usuario);
-                    } else {
-                        estoqueService.registrarSaida(
-                                produtoId,
-                                Math.abs(delta),
-                                "Correcao de recebimento do Pedido " + pedidoId,
-                                usuario);
-                    }
-                }
+                mapaRecebimento.put(linkId, rec);
             }
 
+            pedidoService.receberPedido(pedidoId, mapaRecebimento, usuario);
             JOptionPane.showMessageDialog(this, "Recebimento registrado!");
             dispose();
 

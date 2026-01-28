@@ -41,7 +41,7 @@ public class VendaNovaDialog extends JDialog {
             new String[] { "Produto", "Qtd", "R$ Unit.", "% Desc", "R$ Total", "R$ Desc", "" }, 0) {
         @Override
         public boolean isCellEditable(int r, int c) {
-            return c >= 1 && c <= 3; // qtd, unit, desconto
+            return (c >= 1 && c <= 3) || c == 5; // qtd, unit, desconto% e desconto valor
         }
 
         @Override
@@ -61,12 +61,18 @@ public class VendaNovaDialog extends JDialog {
 
     /* ---------- Botão (vira atributo pra bind do ENTER) ---------- */
     private JButton btnFinalizar;
+    private boolean updating = false;
 
     // Listener automático de atualização
     {
         carrinhoModel.addTableModelListener(e -> {
+            if (updating)
+                return;
             int col = e.getColumn();
-            if (col >= 1 && col <= 3) {
+            if (col == 5) {
+                syncPercentFromValue(e.getFirstRow());
+            }
+            if (col >= 1 && col <= 3 || col == 5) {
                 // evita recalcular dentro do mesmo "ciclo" de stopCellEditing
                 SwingUtilities.invokeLater(this::atualizarTodosTotais);
             }
@@ -349,6 +355,30 @@ public class VendaNovaDialog extends JDialog {
             }
         });
 
+        // Desconto em valor
+        JFormattedTextField descField = FormatterFactory.getMoneyField(0.0);
+        descField.setHorizontalAlignment(JTextField.RIGHT);
+        descField.setFocusLostBehavior(JFormattedTextField.COMMIT_OR_REVERT);
+        descField.addFocusListener(selAll(descField));
+
+        bindEnterCommitAndFinalize(descField);
+
+        tcm.getColumn(5).setCellEditor(new DefaultCellEditor(descField) {
+            @Override
+            public boolean stopCellEditing() {
+                try {
+                    descField.commitEdit();
+                } catch (Exception ignored) {
+                }
+                return super.stopCellEditing();
+            }
+
+            @Override
+            public Object getCellEditorValue() {
+                return descField.getValue();
+            }
+        });
+
         // Moeda nas colunas 4/5
         tcm.getColumn(4).setCellRenderer(moedaRenderer());
         tcm.getColumn(5).setCellRenderer(moedaRenderer());
@@ -499,9 +529,27 @@ public class VendaNovaDialog extends JDialog {
         atualizarTodosTotais();
     }
 
+    private void syncPercentFromValue(int row) {
+        if (row < 0 || row >= carrinhoModel.getRowCount())
+            return;
+        int qtd = safeInt(carrinhoModel.getValueAt(row, 1));
+        double unit = safeDouble(carrinhoModel.getValueAt(row, 2));
+        double descV = safeDouble(carrinhoModel.getValueAt(row, 5));
+        double bruto = qtd * unit;
+        double pct = (bruto > 0.0) ? (descV / bruto) * 100.0 : 0.0;
+        if (pct < 0.0)
+            pct = 0.0;
+        if (pct > 100.0)
+            pct = 100.0;
+        updating = true;
+        carrinhoModel.setValueAt(pct, row, 3);
+        updating = false;
+    }
+
     private void atualizarTodosTotais() {
         double totalVenda = 0, totalDesc = 0;
 
+        updating = true;
         for (int r = 0; r < carrinhoModel.getRowCount(); r++) {
             int qtd = safeInt(carrinhoModel.getValueAt(r, 1));
             double unit = safeDouble(carrinhoModel.getValueAt(r, 2));
@@ -525,6 +573,7 @@ public class VendaNovaDialog extends JDialog {
             }
         }
 
+        updating = false;
         NumberFormat cf = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
         resumoLbl.setText("Total: " + cf.format(totalVenda) + " | Desconto: " + cf.format(totalDesc));
     }

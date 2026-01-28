@@ -7,6 +7,8 @@ import util.UiKit;
 
 import java.awt.*;
 import java.io.File;
+import java.awt.event.MouseAdapter;
+import MouseEvent;
 
 import java.sql.Connection;
 import javax.swing.table.TableCellRenderer;
@@ -16,6 +18,7 @@ import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Objects;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -24,7 +27,9 @@ import javax.swing.table.DefaultTableModel;
 
 import model.VendaItemModel;
 import model.ProdutoModel;
+import model.PedidoCompraModel;
 import dao.ProdutoDAO;
+import dao.PedidoCompraDAO;
 import dao.DocumentoFiscalDAO;
 import dao.ConfigNfceDAO;
 import model.ConfigNfceModel;
@@ -32,6 +37,7 @@ import model.DocumentoFiscalModel;
 import service.DocumentoFiscalService;
 import model.DocumentoFiscalAmbiente;
 import ui.ajustes.dialog.ConfigNfceDialog;
+import ui.estoque.dialog.ProdutosDoPedidoDialog;
 
 /**
  * Dialog que exibe detalhes completos de uma venda.
@@ -40,6 +46,8 @@ public class VendaDetalhesDialog extends JDialog {
     private static final DateTimeFormatter BR = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final java.util.List<VendaItemModel> itensDaVenda = new java.util.ArrayList<>();
     private final int vendaId;
+    private final java.util.Map<Integer, String> pedidoIdPorRow = new java.util.HashMap<>();
+    private final java.util.Map<Integer, String> loteTooltipPorRow = new java.util.HashMap<>();
 
     private static final Locale PTBR = new Locale("pt", "BR");
     private static final NumberFormat BRL = NumberFormat.getCurrencyInstance(PTBR);
@@ -78,7 +86,7 @@ public class VendaDetalhesDialog extends JDialog {
         // Models das abas
         // =========================
         DefaultTableModel itensModel = new DefaultTableModel(
-                new String[] { "Produto", "Tipo", "Qtd", "V.Unit.", "Desc (%)", "Total" }, 0) {
+                new String[] { "Produto", "Tipo", "Lote", "Qtd", "V.Unit.", "Preco Lote", "Desc (%)", "Total" }, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
                 return false;
@@ -87,8 +95,8 @@ public class VendaDetalhesDialog extends JDialog {
             @Override
             public Class<?> getColumnClass(int col) {
                 return switch (col) {
-                    case 2 -> Integer.class;
-                    case 3, 4, 5 -> Double.class;
+                    case 3 -> Integer.class;
+                    case 4, 5, 6, 7 -> Double.class;
                     default -> String.class;
                 };
             }
@@ -205,30 +213,59 @@ public class VendaDetalhesDialog extends JDialog {
                 }
             }
 
-            // 4) Itens
+            // 4) Itens (quebra por lote quando houver)
+            java.util.Set<Integer> itensAdicionados = new java.util.HashSet<>();
             try (PreparedStatement pi = c.prepareStatement(
-                    "SELECT vi.*, p.nome, p.tipo " +
+                    "SELECT vi.id AS venda_item_id, vi.*, p.nome, p.tipo, " +
+                            "vil.lote_id AS lote_id, vil.qtd AS qtd_lote, vil.custo_unit AS custo_lote, " +
+                            "l.codigo_lote, l.preco_venda_unit AS preco_lote, l.origem AS origem_lote, l.legado AS lote_legado, l.data_entrada " +
                             "FROM vendas_itens vi " +
                             "JOIN produtos p ON vi.produto_id = p.id " +
-                            "WHERE vi.venda_id = ?")) {
+                            "LEFT JOIN vendas_itens_lotes vil ON vil.venda_item_id = vi.id " +
+                            "LEFT JOIN estoque_lotes l ON l.id = vil.lote_id " +
+                            "WHERE vi.venda_id = ? " +
+                            "ORDER BY vi.id ASC, l.data_entrada ASC, l.id ASC")) {
                 pi.setInt(1, vendaId);
                 try (ResultSet ri = pi.executeQuery()) {
                     while (ri.next()) {
-                        int qtd = ri.getInt("qtd");
+                        int qtdItem = ri.getInt("qtd");
                         double preco = ri.getDouble("preco");
                         double desconto = ri.getDouble("desconto");
                         String nome = ri.getString("nome");
                         String tipo = ri.getString("tipo");
-                        double totalIt = ri.getDouble("total_item");
 
-                        itensModel.addRow(new Object[] { nome, tipo, qtd, preco, desconto, totalIt });
+                        Integer loteId = (Integer) ri.getObject("lote_id");
+                        int qtdLote = (loteId != null) ? ri.getInt("qtd_lote") : qtdItem;
+                        double precoLote = (ri.getObject("preco_lote") != null) ? ri.getDouble("preco_lote") : 0.0;
 
-                        VendaItemModel it = new VendaItemModel();
-                        it.setProdutoId(ri.getString("produto_id"));
-                        it.setQtd(qtd);
-                        it.setPreco(preco);
-                        it.setDesconto(desconto);
-                        itensDaVenda.add(it);
+                        String codigoLote = ri.getString("codigo_lote");
+                        String loteLabel = formatLoteLabel(codigoLote);
+                        String pedidoId = parsePedidoIdFromCodigoLote(codigoLote);
+                        if (pedidoId != null) {
+                            loteLabel = formatPedidoLabel(pedidoId);
+                        }
+
+                        double totalIt = (preco * qtdLote) * (1 - desconto / 100.0);
+
+                        int row = itensModel.getRowCount();
+                        itensModel.addRow(new Object[] { nome, tipo, loteLabel, qtdLote, preco, precoLote, desconto, totalIt });
+                        if (pedidoId != null) {
+                            pedidoIdPorRow.put(row, pedidoId);
+                        }
+                        if (codigoLote != null && !codigoLote.isBlank()) {
+                            loteTooltipPorRow.put(row, codigoLote);
+                        }
+
+                        Integer vendaItemId = (Integer) ri.getObject("venda_item_id");
+                        if (vendaItemId != null && !itensAdicionados.contains(vendaItemId)) {
+                            VendaItemModel it = new VendaItemModel();
+                            it.setProdutoId(ri.getString("produto_id"));
+                            it.setQtd(qtdItem);
+                            it.setPreco(preco);
+                            it.setDesconto(desconto);
+                            itensDaVenda.add(it);
+                            itensAdicionados.add(vendaItemId);
+                        }
                     }
                 }
             }
@@ -410,18 +447,40 @@ public class VendaDetalhesDialog extends JDialog {
             t.getColumnModel().getColumn(i).setCellRenderer(zebra);
         }
 
-        // colunas monetárias
+        // colunas monet?rias
         if (itensTable) {
-            // V.Unit, Desc (%), Total
-            t.getColumnModel().getColumn(3).setCellRenderer(currencyZebra(zebra));
+            // V.Unit, Preco Lote, Total
+            t.getColumnModel().getColumn(4).setCellRenderer(currencyZebra(zebra));
             t.getColumnModel().getColumn(5).setCellRenderer(currencyZebra(zebra));
+            t.getColumnModel().getColumn(7).setCellRenderer(currencyZebra(zebra));
+
+            // % desc
+            t.getColumnModel().getColumn(6).setCellRenderer(percentZebra(zebra));
 
             // qtd central
             DefaultTableCellRenderer centerZebra = centerZebra(zebra);
-            t.getColumnModel().getColumn(2).setCellRenderer(centerZebra);
-            t.getColumnModel().getColumn(4).setCellRenderer(centerZebra);
+            t.getColumnModel().getColumn(3).setCellRenderer(centerZebra);
+
+            // lote link + tooltip
+            t.getColumnModel().getColumn(2).setCellRenderer(loteLinkRenderer(zebra));
+            t.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() != 1)
+                        return;
+                    int row = t.rowAtPoint(e.getPoint());
+                    int col = t.columnAtPoint(e.getPoint());
+                    if (row < 0 || col != 2)
+                        return;
+                    int modelRow = t.convertRowIndexToModel(row);
+                    String pedidoId = pedidoIdPorRow.get(modelRow);
+                    if (pedidoId == null || pedidoId.isBlank())
+                        return;
+                    abrirPedidoCompra(pedidoId);
+                }
+            });
         } else {
-            // última coluna geralmente é valor
+            // ?ltima coluna geralmente ? valor
             int last = t.getColumnCount() - 1;
             if (last >= 0) {
                 t.getColumnModel().getColumn(last).setCellRenderer(currencyZebra(zebra));
@@ -429,6 +488,30 @@ public class VendaDetalhesDialog extends JDialog {
         }
 
         return t;
+    }
+
+    private TableCellRenderer loteLinkRenderer(DefaultTableCellRenderer zebraBase) {
+        return (table, value, isSelected, hasFocus, row, column) -> {
+            JLabel l = (JLabel) zebraBase.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                    column);
+            l.setHorizontalAlignment(SwingConstants.LEFT);
+            int modelRow = table.convertRowIndexToModel(row);
+            String pedidoId = pedidoIdPorRow.get(modelRow);
+            String tooltip = loteTooltipPorRow.get(modelRow);
+            if (tooltip != null) {
+                l.setToolTipText(tooltip);
+            } else {
+                l.setToolTipText(null);
+            }
+            if (pedidoId != null && !pedidoId.isBlank() && !isSelected) {
+                l.setForeground(new Color(0, 102, 204));
+                l.setText("<html><u>" + Objects.toString(value, "-") + "</u></html>");
+            } else {
+                l.setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+                l.setText(Objects.toString(value, "-"));
+            }
+            return l;
+        };
     }
 
     private static DefaultTableCellRenderer centerZebra(DefaultTableCellRenderer zebraBase) {
@@ -454,6 +537,62 @@ public class VendaDetalhesDialog extends JDialog {
             l.setText(cf.format(v));
             return l;
         };
+    }
+
+    private static TableCellRenderer percentZebra(DefaultTableCellRenderer zebraBase) {
+        return (table, value, isSelected, hasFocus, row, column) -> {
+            JLabel l = (JLabel) zebraBase.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+                    column);
+            l.setHorizontalAlignment(SwingConstants.CENTER);
+            double v = (value instanceof Number) ? ((Number) value).doubleValue() : 0.0;
+            l.setText(String.format(new Locale("pt", "BR"), "%.2f%%", v));
+            return l;
+        };
+    }
+
+    private static String formatLoteLabel(String codigo) {
+        if (codigo == null || codigo.isBlank())
+            return "-";
+        if ("MIGRACAO_INICIAL".equalsIgnoreCase(codigo))
+            return "Migracao inicial";
+        if (codigo.startsWith("PEDIDO_"))
+            return codigo;
+        if (codigo.length() <= 14)
+            return codigo;
+        return codigo.substring(0, 12) + "...";
+    }
+
+    private static String parsePedidoIdFromCodigoLote(String codigo) {
+        if (codigo == null)
+            return null;
+        if (!codigo.startsWith("PEDIDO_"))
+            return null;
+        String rest = codigo.substring("PEDIDO_".length());
+        int idx = rest.indexOf('_');
+        if (idx <= 0)
+            return null;
+        return rest.substring(0, idx);
+    }
+
+    private static String formatPedidoLabel(String pedidoId) {
+        if (pedidoId == null || pedidoId.isBlank())
+            return "Pedido";
+        String shortId = pedidoId.length() > 8 ? pedidoId.substring(0, 8) : pedidoId;
+        return "Pedido #" + shortId;
+    }
+
+    private void abrirPedidoCompra(String pedidoId) {
+        try {
+            PedidoCompraModel pedido = new PedidoCompraDAO().buscarPorId(pedidoId);
+            if (pedido == null) {
+                AlertUtils.warn("Pedido nao encontrado: " + pedidoId);
+                return;
+            }
+            Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
+            new ProdutosDoPedidoDialog(owner, pedido).setVisible(true);
+        } catch (Exception ex) {
+            AlertUtils.error("Erro ao abrir pedido:\n" + ex.getMessage());
+        }
     }
 
     // =========================

@@ -6,9 +6,11 @@ import dao.ProdutoDAO;
 import model.PedidoEstoqueProdutoModel;
 import model.ProdutoModel;
 import util.LogService;
+import util.DB;
 
 import java.util.List;
 import java.util.Map;
+import java.sql.Connection;
 
 /**
  * Service responsável por tratar regras de negócio dos pedidos de compra:
@@ -56,102 +58,134 @@ public class PedidoCompraService {
      */
     public void receberPedido(String pedidoId, Map<String, Integer> mapaRecebimento, String usuario) throws Exception {
         LogService.audit("PEDIDO_RECEBIMENTO_INICIO", "pedido", pedidoId, "itens=" + mapaRecebimento.size());
+        String usuarioEfetivo = (usuario == null || usuario.isBlank()) ? "sistema" : usuario;
 
-        // (Opcional) carrega todos os itens só pra validação/contagem
-        List<PedidoEstoqueProdutoModel> todosItens = itemDAO.listarPorPedido(pedidoId);
-        if (todosItens == null || todosItens.isEmpty()) {
-            LogService.audit("PEDIDO_SEM_ITENS", "pedido", pedidoId, "nenhum item encontrado");
-            // ainda assim recalcula status pra manter consistência
-            pedidoDAO.recalcularStatus(pedidoId);
-            return;
-        }
+        try (Connection c = DB.get()) {
+            c.setAutoCommit(false);
 
-        // 2. Percorre cada entrada do mapa (itemId + qtdRecebidaNova)
-        for (Map.Entry<String, Integer> entry : mapaRecebimento.entrySet()) {
-            String itemId = entry.getKey();
-            int qtdNovaRecebida = (entry.getValue() == null) ? 0 : entry.getValue();
-            if (qtdNovaRecebida < 0)
-                qtdNovaRecebida = 0;
-
-            // 2.1) Lê do banco o "itemAntigo" para saber a quantidade recebida até agora
-            PedidoEstoqueProdutoModel itemAntigo = itemDAO.buscarPorId(itemId);
-            if (itemAntigo == null) {
-                LogService.audit("PEDIDO_ITEM_INEXISTENTE", "pedido_item", itemId, "pedido=" + pedidoId);
-                continue;
-            }
-
-            int qtdRecebidaAnterior = itemAntigo.getQuantidadeRecebida();
-            int qtdPedida = itemAntigo.getQuantidadePedida();
-
-            // (Opcional) trava pra não exceder o pedido (se você quiser permitir excedente,
-            // remova)
-            if (qtdNovaRecebida > qtdPedida)
-                qtdNovaRecebida = qtdPedida;
-
-            int delta = qtdNovaRecebida - qtdRecebidaAnterior;
-
-            LogService.audit("PEDIDO_ITEM_PROCESSO", "pedido_item", itemId, "pedido=" + pedidoId);
-            LogService.info("pedido item anterior qtd=" + qtdRecebidaAnterior);
-            LogService.info("pedido item novo qtd=" + qtdNovaRecebida);
-            LogService.info("pedido item delta=" + delta);
-
-            // 2.2) Ajusta o estoque do produto somente se delta != 0
-            if (delta != 0) {
-                String produtoId = itemAntigo.getProdutoId();
-                ProdutoModel produto = produtoDAO.findById(produtoId);
-
-                if (produto == null) {
-                    LogService.audit("PEDIDO_PRODUTO_INEXISTENTE", "produto", produtoId, "pedido=" + pedidoId);
-                } else {
-                    if (delta > 0) {
-                        LogService.audit("PEDIDO_ENTRADA", "produto", produtoId,
-                                "qtd=" + delta + " pedido=" + pedidoId);
-                        estoqueService.registrarEntrada(
-                                produtoId,
-                                delta,
-                                "Recebimento do Pedido " + pedidoId,
-                                usuario);
-                    } else {
-                        int qtdASubtrair = Math.abs(delta);
-                        LogService.audit("PEDIDO_CORRECAO", "produto", produtoId,
-                                "qtd=" + qtdASubtrair + " pedido=" + pedidoId);
-                        estoqueService.registrarSaida(
-                                produtoId,
-                                qtdASubtrair,
-                                "Correcao de recebimento do Pedido " + pedidoId,
-                                usuario);
-                    }
+            try {
+                // (Opcional) carrega todos os itens so pra validacao/contagem
+                List<PedidoEstoqueProdutoModel> todosItens = itemDAO.listarPorPedido(pedidoId, c);
+                if (todosItens == null || todosItens.isEmpty()) {
+                    LogService.audit("PEDIDO_SEM_ITENS", "pedido", pedidoId, "nenhum item encontrado");
+                    // ainda assim recalcula status pra manter consistencia
+                    pedidoDAO.recalcularStatus(pedidoId, c);
+                    c.commit();
+                    return;
                 }
-            } else {
-                LogService.audit("PEDIDO_SEM_ALTERACAO", "pedido_item", itemId, "pedido=" + pedidoId);
+
+                // 2. Percorre cada entrada do mapa (itemId + qtdRecebidaNova)
+                for (Map.Entry<String, Integer> entry : mapaRecebimento.entrySet()) {
+                    String itemId = entry.getKey();
+                    int qtdNovaRecebida = (entry.getValue() == null) ? 0 : entry.getValue();
+                    if (qtdNovaRecebida < 0)
+                        qtdNovaRecebida = 0;
+
+                    // 2.1) Le do banco o "itemAntigo" para saber a quantidade recebida ate agora
+                    PedidoEstoqueProdutoModel itemAntigo = itemDAO.buscarPorId(itemId, c);
+                    if (itemAntigo == null) {
+                        LogService.audit("PEDIDO_ITEM_INEXISTENTE", "pedido_item", itemId, "pedido=" + pedidoId);
+                        continue;
+                    }
+
+                    int qtdRecebidaAnterior = itemAntigo.getQuantidadeRecebida();
+                    int qtdPedida = itemAntigo.getQuantidadePedida();
+
+                    // (Opcional) trava pra nao exceder o pedido (se voce quiser permitir excedente, remova)
+                    if (qtdNovaRecebida > qtdPedida)
+                        qtdNovaRecebida = qtdPedida;
+
+                    int delta = qtdNovaRecebida - qtdRecebidaAnterior;
+
+                    LogService.audit("PEDIDO_ITEM_PROCESSO", "pedido_item", itemId, "pedido=" + pedidoId);
+                    LogService.info("pedido item anterior qtd=" + qtdRecebidaAnterior);
+                    LogService.info("pedido item novo qtd=" + qtdNovaRecebida);
+                    LogService.info("pedido item delta=" + delta);
+
+                    // 2.2) Ajusta o estoque do produto somente se delta != 0
+                    if (delta != 0) {
+                        String produtoId = itemAntigo.getProdutoId();
+                        ProdutoModel produto = produtoDAO.findById(produtoId, c);
+
+                        if (produto == null) {
+                            LogService.audit("PEDIDO_PRODUTO_INEXISTENTE", "produto", produtoId,
+                                    "pedido=" + pedidoId);
+                        } else if (delta > 0) {
+                            String fornecedorId = (itemAntigo.getFornecedorId() != null
+                                    && !itemAntigo.getFornecedorId().isBlank())
+                                            ? itemAntigo.getFornecedorId()
+                                            : produto.getFornecedorId();
+                            double custoUnit = (itemAntigo.getCustoUnit() != null)
+                                    ? itemAntigo.getCustoUnit()
+                                    : produto.getPrecoCompra();
+                            double precoVendaUnit = (itemAntigo.getPrecoVendaUnit() != null)
+                                    ? itemAntigo.getPrecoVendaUnit()
+                                    : produto.getPrecoVenda();
+
+                            LogService.audit("PEDIDO_ENTRADA", "produto", produtoId,
+                                    "qtd=" + delta + " pedido=" + pedidoId);
+                            estoqueService.registrarEntradaComLote(
+                                    produtoId,
+                                    delta,
+                                    fornecedorId,
+                                    custoUnit,
+                                    precoVendaUnit,
+                                    "PEDIDO_" + pedidoId + "_" + itemId,
+                                    "Recebimento do Pedido " + pedidoId,
+                                    usuarioEfetivo,
+                                    c);
+
+                            produtoDAO.atualizarPrecoCustoFornecedor(produtoId, custoUnit, precoVendaUnit,
+                                    fornecedorId, c);
+                        } else {
+                            int qtdASubtrair = Math.abs(delta);
+                            LogService.audit("PEDIDO_CORRECAO", "produto", produtoId,
+                                    "qtd=" + qtdASubtrair + " pedido=" + pedidoId);
+                            estoqueService.registrarSaida(
+                                    produtoId,
+                                    qtdASubtrair,
+                                    "Correcao de recebimento do Pedido " + pedidoId,
+                                    usuarioEfetivo,
+                                    c);
+                        }
+                    } else {
+                        LogService.audit("PEDIDO_SEM_ALTERACAO", "pedido_item", itemId, "pedido=" + pedidoId);
+                    }
+
+                    // 2.3) Atualiza o status do item (pendente/parcial/completo)
+                    String novoStatus = (qtdNovaRecebida >= qtdPedida) ? "completo"
+                            : (qtdNovaRecebida > 0) ? "parcial"
+                                    : "pendente";
+
+                    // 2.4) Persiste nova quantidadeRecebida e status
+                    itemDAO.atualizarRecebimento(itemId, qtdNovaRecebida, novoStatus, c);
+
+                    LogService.audit(
+                            "PEDIDO_ITEM_ATUALIZADO",
+                            "pedido_item",
+                            itemId,
+                            "pedido=" + pedidoId + " recebida=" + qtdNovaRecebida + " status=" + novoStatus);
+
+                    LogService.info(
+                            "PedidoItem atualizado: item=" + itemId
+                                    + " pedido=" + pedidoId
+                                    + " recebida=" + qtdNovaRecebida
+                                    + " status=" + novoStatus);
+                }
+
+                // 3. Depois de processar todos os itens, recalcula o status geral do pedido
+                pedidoDAO.recalcularStatus(pedidoId, c);
+                LogService.audit("PEDIDO_STATUS_ATUALIZADO", "pedido", pedidoId, "status recalculado");
+
+                c.commit();
+            } catch (Exception e) {
+                try {
+                    c.rollback();
+                } catch (Exception rbEx) {
+                    LogService.error("Falha ao dar rollback no recebimento do pedido", rbEx);
+                }
+                throw e;
             }
-
-            // 2.3) Atualiza o status do item (pendente/parcial/completo)
-            String novoStatus = (qtdNovaRecebida >= qtdPedida) ? "completo"
-                    : (qtdNovaRecebida > 0) ? "parcial"
-                            : "pendente";
-
-            itemAntigo.setStatus(novoStatus);
-
-            // 2.4) Persiste nova quantidadeRecebida e status
-            itemAntigo.setQuantidadeRecebida(qtdNovaRecebida);
-            itemDAO.atualizar(itemAntigo);
-
-            LogService.audit(
-                    "PEDIDO_ITEM_ATUALIZADO",
-                    "pedido_item",
-                    itemId,
-                    "pedido=" + pedidoId + " recebida=" + qtdNovaRecebida + " status=" + novoStatus);
-
-            LogService.info(
-                    "PedidoItem atualizado: item=" + itemId
-                            + " pedido=" + pedidoId
-                            + " recebida=" + qtdNovaRecebida
-                            + " status=" + novoStatus);
         }
-
-        // 3. Depois de processar todos os itens, recalcula o status geral do pedido
-        pedidoDAO.recalcularStatus(pedidoId);
-        LogService.audit("PEDIDO_STATUS_ATUALIZADO", "pedido", pedidoId, "status recalculado");
     }
 }

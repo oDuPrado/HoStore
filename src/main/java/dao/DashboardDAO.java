@@ -54,12 +54,17 @@ public class DashboardDAO {
                 }
             }
 
-            // Lucro estimado (preço real do item - custo do produto)
+            // Lucro estimado (preço real do item - custo do lote; fallback para custo do produto)
             try (PreparedStatement ps = c.prepareStatement("""
-                SELECT COALESCE(SUM((vi.preco - COALESCE(p.preco_compra,0)) * vi.qtd), 0) AS lucro
+                SELECT COALESCE(SUM((vi.preco * vi.qtd) - COALESCE(c.custo_total, vi.qtd * COALESCE(p.preco_compra,0))), 0) AS lucro
                 FROM vendas_itens vi
                 JOIN vendas v ON v.id = vi.venda_id
-                JOIN produtos p ON p.id = vi.produto_id
+                LEFT JOIN (
+                    SELECT venda_item_id, SUM(qtd * COALESCE(custo_unit,0)) AS custo_total
+                    FROM vendas_itens_lotes
+                    GROUP BY venda_item_id
+                ) c ON c.venda_item_id = vi.id
+                LEFT JOIN produtos p ON p.id = vi.produto_id
                 WHERE v.status <> 'cancelada'
                   AND date(v.data_venda) BETWEEN date(?) AND date(?)
             """)) {
@@ -114,10 +119,16 @@ public class DashboardDAO {
 
         try (Connection c = DB.get();
              PreparedStatement ps = c.prepareStatement("""
-                SELECT id, nome, quantidade
-                FROM produtos
-                WHERE quantidade <= ?
-                ORDER BY quantidade ASC, nome ASC
+                WITH saldo AS (
+                    SELECT produto_id, COALESCE(SUM(qtd_disponivel), 0) AS qtd
+                    FROM estoque_lotes
+                    GROUP BY produto_id
+                )
+                SELECT p.id, p.nome, COALESCE(s.qtd,0) AS quantidade
+                FROM produtos p
+                LEFT JOIN saldo s ON s.produto_id = p.id
+                WHERE COALESCE(s.qtd,0) <= ?
+                ORDER BY quantidade ASC, p.nome ASC
                 LIMIT ?
              """)) {
             ps.setInt(1, threshold);

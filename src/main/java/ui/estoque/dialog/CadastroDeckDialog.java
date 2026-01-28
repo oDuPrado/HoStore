@@ -318,9 +318,9 @@ public class CadastroDeckDialog extends JDialog {
             DeckModel d = new DeckModel(
                     id,
                     tfNome.getText().trim(),
-                    ((Number) tfQtd.getValue()).intValue(),
-                    ((Number) tfCusto.getValue()).doubleValue(),
-                    ((Number) tfPreco.getValue()).doubleValue(),
+                    UiKit.getIntValue(tfQtd, 0),
+                    UiKit.getDoubleValue(tfCusto, 0.0),
+                    UiKit.getDoubleValue(tfPreco, 0.0),
                     fornecedorSel.getNome(),
                     tfColecao.getText().trim(),
                     (String) cbTipoDeck.getSelectedItem(),

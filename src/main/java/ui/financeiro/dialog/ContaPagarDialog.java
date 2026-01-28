@@ -547,7 +547,7 @@ public class ContaPagarDialog extends JDialog {
         } catch (Exception ignored) {
         }
 
-        // teu código original tava jogando status dentro de observação (???)
+        // o código original tava jogando status dentro de observação (???)
         // mantive vazio pra não perpetuar esse crime.
         taObs.setText("");
     }

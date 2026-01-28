@@ -10,7 +10,7 @@ import controller.ProdutoEstoqueController;
  * com a tabela de produtos. Ao salvar ou atualizar uma carta, este serviço
  * garante que exista um registro correspondente na tabela "produtos", de modo
  * que a carta possa ser tratada como um produto comum (para vendas, estoque,
- * etc.).
+ * etc.), eu acho.
  *
  * Observação: Por enquanto, definimos jogoId = "POKEMON" para todas as cartas,
  * mas no futuro poderá ser parametrizado conforme outros TCGs (YUGIOH, MAGIC,

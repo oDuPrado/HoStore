@@ -67,6 +67,38 @@ public class ProdutoDAO {
         }
     }
 
+    public void atualizarPrecoCustoFornecedor(String id, Double precoCompra, Double precoVenda, String fornecedorId,
+            Connection c) throws SQLException {
+        String sql = """
+                    UPDATE produtos SET
+                        preco_compra = ?,
+                        preco_venda = ?,
+                        fornecedor_id = ?,
+                        alterado_em = ?
+                    WHERE id = ?
+                """;
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            if (precoCompra == null) {
+                ps.setNull(1, Types.REAL);
+            } else {
+                ps.setDouble(1, precoCompra);
+            }
+            if (precoVenda == null) {
+                ps.setNull(2, Types.REAL);
+            } else {
+                ps.setDouble(2, precoVenda);
+            }
+            if (fornecedorId == null || fornecedorId.isBlank()) {
+                ps.setNull(3, Types.VARCHAR);
+            } else {
+                ps.setString(3, fornecedorId);
+            }
+            ps.setString(4, new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
+            ps.setString(5, id);
+            ps.executeUpdate();
+        }
+    }
+
     /**
      * UI continua chamando delete(), mas internamente é soft delete.
      */

@@ -136,6 +136,54 @@ public class UiKit {
         return l;
     }
 
+    // ===== JFormattedTextField helpers =====
+    public static int getIntValue(JFormattedTextField f, int def) {
+        if (f == null)
+            return def;
+        Object v = f.getValue();
+        if (v instanceof Number n)
+            return n.intValue();
+        String t = f.getText();
+        if (t == null)
+            return def;
+        String s = t.trim();
+        if (s.isEmpty())
+            return def;
+        s = s.replaceAll("[^0-9-]", "");
+        if (s.isEmpty() || "-".equals(s))
+            return def;
+        try {
+            return Integer.parseInt(s);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
+    public static double getDoubleValue(JFormattedTextField f, double def) {
+        if (f == null)
+            return def;
+        Object v = f.getValue();
+        if (v instanceof Number n)
+            return n.doubleValue();
+        String t = f.getText();
+        if (t == null)
+            return def;
+        String s = t.trim();
+        if (s.isEmpty())
+            return def;
+        s = s.replace("R$", "").replace(" ", "");
+        if (s.contains(",") && s.contains(".")) {
+            s = s.replace(".", "").replace(",", ".");
+        } else {
+            s = s.replace(",", ".");
+        }
+        try {
+            return Double.parseDouble(s);
+        } catch (Exception e) {
+            return def;
+        }
+    }
+
     // ===== Tabelas =====
     public static void tableDefaults(JTable t) {
         t.setRowHeight(28);

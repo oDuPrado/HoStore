@@ -124,9 +124,9 @@ public class ProdutoCadastroDialog extends JDialog {
                 ? produtoOrig.getId()
                 : UUID.randomUUID().toString();
 
-            int quantidade = ((Number) tfQtd.getValue()).intValue();
-            double custo   = ((Number) tfCusto.getValue()).doubleValue();
-            double venda   = ((Number) tfPreco.getValue()).doubleValue();
+            int quantidade = UiKit.getIntValue(tfQtd, 0);
+            double custo   = UiKit.getDoubleValue(tfCusto, 0.0);
+            double venda   = UiKit.getDoubleValue(tfPreco, 0.0);
 
             String ncm = firstToken((String) cbNcm.getSelectedItem());
             String cfop = firstToken((String) cbCfop.getSelectedItem());

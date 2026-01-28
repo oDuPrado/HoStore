@@ -52,6 +52,28 @@ public class EstoqueLoteDAO {
         }
     }
 
+    public static class LoteResumo {
+        public final int qtdDisponivel;
+        public final double custoTotal;
+        public final double vendaTotal;
+
+        public LoteResumo(int qtdDisponivel, double custoTotal, double vendaTotal) {
+            this.qtdDisponivel = qtdDisponivel;
+            this.custoTotal = custoTotal;
+            this.vendaTotal = vendaTotal;
+        }
+    }
+
+    public static class LoteFaixa {
+        public final Double min;
+        public final Double max;
+
+        public LoteFaixa(Double min, Double max) {
+            this.min = min;
+            this.max = max;
+        }
+    }
+
     /** FIFO por id ASC */
     public List<LoteSaldo> listarLotesDisponiveisFIFO(String produtoId, Connection c) throws SQLException {
         String sql = """
@@ -167,6 +189,50 @@ public class EstoqueLoteDAO {
             }
         }
         return 0;
+    }
+
+    public LoteResumo obterResumoProduto(String produtoId, Connection c) throws SQLException {
+        String sql = """
+                    SELECT
+                      COALESCE(SUM(qtd_disponivel), 0) AS qtd,
+                      COALESCE(SUM(qtd_disponivel * COALESCE(custo_unit,0)), 0) AS custo_total,
+                      COALESCE(SUM(qtd_disponivel * COALESCE(preco_venda_unit,0)), 0) AS venda_total
+                    FROM estoque_lotes
+                    WHERE produto_id = ?
+                """;
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, produtoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new LoteResumo(
+                            rs.getInt("qtd"),
+                            rs.getDouble("custo_total"),
+                            rs.getDouble("venda_total"));
+                }
+            }
+        }
+        return new LoteResumo(0, 0.0, 0.0);
+    }
+
+    public LoteFaixa obterFaixaPrecoVenda(String produtoId, Connection c) throws SQLException {
+        String sql = """
+                    SELECT
+                      MIN(preco_venda_unit) AS min_val,
+                      MAX(preco_venda_unit) AS max_val
+                    FROM estoque_lotes
+                    WHERE produto_id = ?
+                """;
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, produtoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Double min = (Double) rs.getObject("min_val");
+                    Double max = (Double) rs.getObject("max_val");
+                    return new LoteFaixa(min, max);
+                }
+            }
+        }
+        return new LoteFaixa(null, null);
     }
 
     /** Consome do lote com trava: só consome se tiver saldo */

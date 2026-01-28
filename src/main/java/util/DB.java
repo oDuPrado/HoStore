@@ -632,6 +632,8 @@ public class DB {
                                                         "qtd_disponivel INTEGER NOT NULL, " +
                                                         "status TEXT DEFAULT 'ativo', " +
                                                         "observacoes TEXT, " +
+                                                        "origem TEXT DEFAULT 'NORMAL', " +
+                                                        "legado INTEGER DEFAULT 0, " +
                                                         "FOREIGN KEY(produto_id) REFERENCES produtos(id), " +
                                                         "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")",
@@ -655,6 +657,8 @@ public class DB {
 
                         ensureColumn(c, "estoque_movimentacoes", "lote_id", "INTEGER");
                         ensureColumn(c, "estoque_movimentacoes", "evento_id", "TEXT");
+                        ensureColumn(c, "estoque_lotes", "origem", "TEXT");
+                        ensureColumn(c, "estoque_lotes", "legado", "INTEGER");
 
                         // ========== VENDAS ==========
                         executeComLog(st,
@@ -937,6 +941,8 @@ public class DB {
                                                         "pedido_id TEXT NOT NULL, " +
                                                         "produto_id TEXT NOT NULL, " +
                                                         "fornecedor_id TEXT, " + // fornecedor por item
+                                                        "custo_unit REAL, " +
+                                                        "preco_venda_unit REAL, " +
                                                         "quantidade_pedida INTEGER NOT NULL, " +
                                                         "quantidade_recebida INTEGER DEFAULT 0, " +
                                                         "data_prevista TEXT, " + // yyyy-MM-dd
@@ -948,6 +954,10 @@ public class DB {
                                                         "FOREIGN KEY(fornecedor_id) REFERENCES fornecedores(id)" +
                                                         ")",
                                         "pedido_produtos");
+
+                        ensureColumn(c, "pedido_produtos", "fornecedor_id", "TEXT");
+                        ensureColumn(c, "pedido_produtos", "custo_unit", "REAL");
+                        ensureColumn(c, "pedido_produtos", "preco_venda_unit", "REAL");
 
                         executeComLog(st,
                                         "CREATE INDEX IF NOT EXISTS idx_pedido_produtos_pedido ON pedido_produtos(pedido_id)",
@@ -2013,8 +2023,8 @@ public class DB {
                 String insertLote = """
                                 INSERT INTO estoque_lotes
                                 (produto_id, fornecedor_id, codigo_lote, data_entrada, validade, custo_unit,
-                                 preco_venda_unit, qtd_inicial, qtd_disponivel, status, observacoes)
-                                VALUES (?, ?, ?, datetime('now'), NULL, ?, ?, ?, ?, 'ativo', 'MIGRACAO_INICIAL')
+                                 preco_venda_unit, qtd_inicial, qtd_disponivel, status, observacoes, origem, legado)
+                                VALUES (?, ?, ?, datetime('now'), NULL, ?, ?, ?, ?, 'ativo', 'MIGRACAO_INICIAL', 'LEGADO', 1)
                             """;
 
                 try (PreparedStatement psProdutos = c.prepareStatement(selectProdutos);
@@ -2043,6 +2053,11 @@ public class DB {
                                 psInsert.setInt(6, qtd);
                                 psInsert.setInt(7, qtd);
                                 psInsert.executeUpdate();
+                        }
+                        try (PreparedStatement psUpdateLegado = c.prepareStatement(
+                                        "UPDATE estoque_lotes SET origem='LEGADO', legado=1 WHERE observacoes='MIGRACAO_INICIAL'")) {
+                                psUpdateLegado.executeUpdate();
+                        } catch (Exception ignored) {
                         }
                 } catch (Exception e) {
                         logWarn("Falha ao migrar estoque para lotes: " + e.getMessage(), (e instanceof Exception) ? (Exception) e : null);

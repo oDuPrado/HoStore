@@ -86,10 +86,17 @@ public class NovoPedidoEstoqueDialog extends JDialog {
                     if(qtd>0) {
                         String pid    = modelItens.getValueAt(i,0).toString();
                         String linkId = UUID.randomUUID().toString();
+                        ProdutoModel prod = produtoDAO.findById(pid);
+                        String fornecedorId = (prod != null) ? prod.getFornecedorId() : null;
+                        double custo = (prod != null) ? prod.getPrecoCompra() : 0.0;
+                        double preco = (prod != null) ? prod.getPrecoVenda() : 0.0;
                         PedidoEstoqueProdutoModel item = new PedidoEstoqueProdutoModel(
                             linkId,
                             pedido.getId(),
                             pid,
+                            fornecedorId,
+                            custo,
+                            preco,
                             qtd,
                             0,
                             "pendente"

@@ -139,7 +139,7 @@ public class PainelEstoque extends JPanel {
         tableCard.add(UiKit.title("Estoque"), BorderLayout.NORTH);
 
         modeloTabela = new DefaultTableModel(new String[] {
-                "Nome", "Tipo", "Quantidade", "R$ Compra", "R$ Venda", "Fornecedor"
+                "Nome", "Tipo", "Quantidade", "R$ Compra", "R$ Venda (min-max)", "Fornecedor"
         }, 0) {
             @Override
             public boolean isCellEditable(int linha, int coluna) {
@@ -363,7 +363,12 @@ public class PainelEstoque extends JPanel {
         produtosFiltrados = filtradosPorJogo;
 
         // Preenche tabela
-        for (ProdutoModel produto : filtradosPorJogo) {
+        int itensEstoque = 0;
+        double estoqueCusto = 0.0;
+        double estoqueVenda = 0.0;
+        try (java.sql.Connection c = util.DB.get()) {
+            dao.EstoqueLoteDAO loteDAO = new dao.EstoqueLoteDAO();
+            for (ProdutoModel produto : filtradosPorJogo) {
             String tipo = produto.getTipo();
             String tipoExibido = tipo;
 
@@ -402,35 +407,37 @@ public class PainelEstoque extends JPanel {
                 }
             }
 
+            dao.EstoqueLoteDAO.LoteResumo resumo;
+            dao.EstoqueLoteDAO.LoteFaixa faixa;
+            try {
+                resumo = loteDAO.obterResumoProduto(produto.getId(), c);
+                faixa = loteDAO.obterFaixaPrecoVenda(produto.getId(), c);
+            } catch (Exception ex) {
+                int qtdFallback = Math.max(0, produto.getQuantidade());
+                resumo = new dao.EstoqueLoteDAO.LoteResumo(
+                        qtdFallback,
+                        qtdFallback * Math.max(0.0, produto.getPrecoCompra()),
+                        qtdFallback * Math.max(0.0, produto.getPrecoVenda()));
+                faixa = new dao.EstoqueLoteDAO.LoteFaixa(produto.getPrecoVenda(), produto.getPrecoVenda());
+            }
+
+            String faixaVenda = formatFaixaVenda(faixa);
             modeloTabela.addRow(new Object[] {
                     produto.getNome(),
                     tipoExibido,
-                    produto.getQuantidade(),
+                    resumo.qtdDisponivel,
                     produto.getPrecoCompra(),
-                    produto.getPrecoVenda(),
+                    faixaVenda,
                     produto.getFornecedorNome()
             });
+
+            // acumula por lote
+            itensEstoque += Math.max(0, resumo.qtdDisponivel);
+            estoqueCusto += Math.max(0.0, resumo.custoTotal);
+            estoqueVenda += Math.max(0.0, resumo.vendaTotal);
         }
-
-        // ======================= RESUMO =======================
-        int itensEstoque = 0;
-        double estoqueCusto = 0.0;
-        double estoqueVenda = 0.0;
-
-        for (ProdutoModel p : filtradosPorJogo) {
-            int qtd = Math.max(0, p.getQuantidade());
-
-            double compra = p.getPrecoCompra();
-            double venda = p.getPrecoVenda();
-
-            if (Double.isNaN(compra) || Double.isInfinite(compra) || compra < 0)
-                compra = 0.0;
-            if (Double.isNaN(venda) || Double.isInfinite(venda) || venda < 0)
-                venda = 0.0;
-
-            itensEstoque += qtd;
-            estoqueCusto += (qtd * compra);
-            estoqueVenda += (qtd * venda);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
 
         double pmz = itensEstoque > 0 ? (estoqueCusto / itensEstoque) : 0.0;
@@ -496,6 +503,22 @@ public class PainelEstoque extends JPanel {
         Frame owner = (Frame) SwingUtilities.getWindowAncestor(this);
         new ui.estoque.dialog.LotesProdutoDialog(owner, selecionado).setVisible(true);
         listar();
+    }
+
+    private String formatFaixaVenda(dao.EstoqueLoteDAO.LoteFaixa faixa) {
+        if (faixa == null || (faixa.min == null && faixa.max == null))
+            return "-";
+        double min = (faixa.min != null) ? faixa.min : 0.0;
+        double max = (faixa.max != null) ? faixa.max : min;
+        if (Double.isNaN(min) || Double.isInfinite(min))
+            min = 0.0;
+        if (Double.isNaN(max) || Double.isInfinite(max))
+            max = min;
+        if (Math.abs(max - min) < 0.000001) {
+            return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(min);
+        }
+        return NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(min) + "–"
+                + NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(max);
     }
 
     private void abrirEditar() {

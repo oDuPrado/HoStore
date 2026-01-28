@@ -388,6 +388,13 @@ VALUES ('DEFAULT', '5102', '102', '0', 'UN');
 -- ============================================================================
 -- FIM DO SCRIPT
 -- ============================================================================
+
+-- ============================================================================
+-- V007: PEDIDOS DE COMPRA (CUSTO/PRECO/FORNECEDOR POR ITEM)
+-- ============================================================================
+ALTER TABLE pedido_produtos ADD COLUMN fornecedor_id TEXT;
+ALTER TABLE pedido_produtos ADD COLUMN custo_unit REAL;
+ALTER TABLE pedido_produtos ADD COLUMN preco_venda_unit REAL;
 -- 
 -- ✅ DADOS PRESERVADOS: Este script apenas ADICIONA campos e tabelas
 -- ✅ COMPATIBILIDADE: Usa "IF NOT EXISTS" para evitar erros em bancos atualizados
@@ -403,4 +410,10 @@ VALUES ('DEFAULT', '5102', '102', '0', 'UN');
 -- ============================================================================
 -- Comandas: tempo de permanencia (cap 8h)
 ALTER TABLE comandas ADD COLUMN tempo_permanencia_min INTEGER DEFAULT 0;
+
+-- ============================================================================
+-- V008: Estoque por lote - marcação de legado
+-- ============================================================================
+ALTER TABLE estoque_lotes ADD COLUMN origem TEXT DEFAULT 'NORMAL';
+ALTER TABLE estoque_lotes ADD COLUMN legado INTEGER DEFAULT 0;
 

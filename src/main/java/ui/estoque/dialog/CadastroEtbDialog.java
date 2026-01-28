@@ -551,9 +551,9 @@ public class CadastroEtbDialog extends JDialog {
             EtbModel e = new EtbModel(
                     id,
                     tfNome.getText().trim(),
-                    ((Number) tfQtd.getValue()).intValue(),
-                    ((Number) tfCusto.getValue()).doubleValue(),
-                    ((Number) tfPreco.getValue()).doubleValue(),
+                    UiKit.getIntValue(tfQtd, 0),
+                    UiKit.getDoubleValue(tfCusto, 0.0),
+                    UiKit.getDoubleValue(tfPreco, 0.0),
                     fornecedorSel != null ? fornecedorSel.getId() : null,
                     setSelecionado,
                     (cbColecao.getSelectedItem() != null)

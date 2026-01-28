@@ -613,8 +613,8 @@ public class CadastroCartaDialog extends JDialog {
     private void atualizarValorLoja() {
         if (!pnlConsignado.isVisible()) return;
         try {
-            double pc = ((Number) tfPrecoConsignado.getValue()).doubleValue();
-            double pct = ((Number) tfPercentualLoja.getValue()).doubleValue();
+            double pc = UiKit.getDoubleValue(tfPrecoConsignado, 0.0);
+            double pct = UiKit.getDoubleValue(tfPercentualLoja, 0.0);
             tfValorLoja.setValue(pc * pct / 100.0);
         } catch (Exception ignored) {}
     }
@@ -752,7 +752,7 @@ public class CadastroCartaDialog extends JDialog {
                 System.out.println("[LOG] Custo NULO -> abortando gravação");
                 return;
             }
-            double custo = ((Number) tfCusto.getValue()).doubleValue();
+            double custo = UiKit.getDoubleValue(tfCusto, 0.0);
             System.out.println("[LOG] custo: " + custo);
 
             // 12) Idioma
@@ -805,20 +805,20 @@ public class CadastroCartaDialog extends JDialog {
 
             // 18) Preço consignado, percentual e valor Loja
             double precoCons = cons
-                    ? ((Number) tfPrecoConsignado.getValue()).doubleValue()
+                    ? UiKit.getDoubleValue(tfPrecoConsignado, 0.0)
                     : 0.0;
             double percLoja = cons
-                    ? ((Number) tfPercentualLoja.getValue()).doubleValue()
+                    ? UiKit.getDoubleValue(tfPercentualLoja, 0.0)
                     : 0.0;
             double valorLoja = cons
-                    ? ((Number) tfValorLoja.getValue()).doubleValue()
+                    ? UiKit.getDoubleValue(tfValorLoja, 0.0)
                     : 0.0;
             System.out.println("[LOG] precoCons: " + precoCons
                     + " | percLoja: " + percLoja
                     + " | valorLoja: " + valorLoja);
 
             // 19) Preço de venda
-            double precoVenda = ((Number) tfPrecoVenda.getValue()).doubleValue();
+            double precoVenda = UiKit.getDoubleValue(tfPrecoVenda, 0.0);
             System.out.println("[LOG] precoVenda: " + precoVenda);
 
             // 20) Monta o objeto Carta para salvar

@@ -173,7 +173,38 @@ public class ProdutoEstoqueService {
 
     public void registrarEntrada(String produtoId, int quantidade, String motivo, String usuario, Connection c)
             throws Exception {
+        ProdutoModel produto = dao.findById(produtoId, c);
+        if (produto == null)
+            throw new Exception("Produto nao encontrado!");
+        registrarEntradaComLote(
+                produtoId,
+                quantidade,
+                produto.getFornecedorId(),
+                produto.getPrecoCompra(),
+                produto.getPrecoVenda(),
+                null,
+                motivo,
+                usuario,
+                c);
+    }
+
+    public void registrarEntradaComLote(String produtoId,
+            int quantidade,
+            String fornecedorId,
+            double custoUnit,
+            double precoVendaUnit,
+            String codigoLote,
+            String motivo,
+            String usuario,
+            Connection c) throws Exception {
         LogService.audit("ESTOQUE_ENTRADA", "produto", produtoId, "qtd=" + quantidade + " motivo=" + motivo);
+        if (quantidade <= 0)
+            throw new Exception("Quantidade invalida: " + quantidade);
+        if (Double.isNaN(custoUnit) || Double.isInfinite(custoUnit) || custoUnit < 0)
+            custoUnit = 0.0;
+        if (Double.isNaN(precoVendaUnit) || Double.isInfinite(precoVendaUnit) || precoVendaUnit < 0)
+            precoVendaUnit = 0.0;
+
         ProdutoModel produto = dao.findById(produtoId, c);
         if (produto == null)
             throw new Exception("Produto nao encontrado!");
@@ -181,12 +212,12 @@ public class ProdutoEstoqueService {
         String dataEntrada = LocalDateTime.now().format(FMT);
         int loteId = loteDAO.inserirLote(
                 produtoId,
-                produto.getFornecedorId(),
-                null,
+                fornecedorId,
+                codigoLote,
                 dataEntrada,
                 null,
-                produto.getPrecoCompra(),
-                produto.getPrecoVenda(),
+                custoUnit,
+                precoVendaUnit,
                 quantidade,
                 motivo,
                 c);
@@ -197,6 +228,22 @@ public class ProdutoEstoqueService {
         movService.registrar(mov, c);
 
         atualizarQuantidadeCache(produtoId, c);
+    }
+
+    public void registrarEntradaComLote(String produtoId,
+            int quantidade,
+            String fornecedorId,
+            double custoUnit,
+            double precoVendaUnit,
+            String codigoLote,
+            String motivo,
+            String usuario) throws Exception {
+        try (Connection c = DB.get()) {
+            c.setAutoCommit(false);
+            registrarEntradaComLote(produtoId, quantidade, fornecedorId, custoUnit, precoVendaUnit, codigoLote, motivo,
+                    usuario, c);
+            c.commit();
+        }
     }
 
     public void registrarSaida(String produtoId, int quantidade, String motivo, String usuario) throws Exception {

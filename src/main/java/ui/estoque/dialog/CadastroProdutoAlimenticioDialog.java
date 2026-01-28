@@ -484,7 +484,7 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                     ? (String) cbSabor.getSelectedItem()
                     : "";
             String lote = tfLote.getText().trim();
-            double peso = ((Number) tfPeso.getValue()).doubleValue();
+            double peso = UiKit.getDoubleValue(tfPeso, 0.0);
             String unidadePeso = "Bebida".equals(categoria) ? "ml" : "g";
             String dataVal = tfDataValidade.getText().trim();
 
@@ -500,9 +500,9 @@ public class CadastroProdutoAlimenticioDialog extends JDialog {
                         "Aviso", JOptionPane.INFORMATION_MESSAGE);
             }
 
-            int quantidade = ((Number) tfQtd.getValue()).intValue();
-            double custo = ((Number) tfCusto.getValue()).doubleValue();
-            double preco = ((Number) tfPreco.getValue()).doubleValue();
+            int quantidade = UiKit.getIntValue(tfQtd, 0);
+            double custo = UiKit.getDoubleValue(tfCusto, 0.0);
+            double preco = UiKit.getDoubleValue(tfPreco, 0.0);
             String fornId = fornecedorSel.getId();
 
             AlimentoModel a = new AlimentoModel(

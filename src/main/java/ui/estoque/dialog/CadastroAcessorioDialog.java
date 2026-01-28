@@ -414,9 +414,9 @@ public class CadastroAcessorioDialog extends JDialog {
             String origem = firstToken((String) cbOrigem.getSelectedItem());
             String unidade = firstToken((String) cbUnidade.getSelectedItem());
 
-            int qtd = ((Number) tfQtd.getValue()).intValue();
-            double custo = ((Number) tfCusto.getValue()).doubleValue();
-            double preco = ((Number) tfPreco.getValue()).doubleValue();
+            int qtd = UiKit.getIntValue(tfQtd, 0);
+            double custo = UiKit.getDoubleValue(tfCusto, 0.0);
+            double preco = UiKit.getDoubleValue(tfPreco, 0.0);
             String fornId = fornecedorSel.getId();
             String fornNom = fornecedorSel.getNome();
 

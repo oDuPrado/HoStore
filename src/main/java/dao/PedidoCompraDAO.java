@@ -57,6 +57,21 @@ public class PedidoCompraDAO {
         }
     }
 
+    public void atualizar(PedidoCompraModel p, Connection c) throws SQLException {
+        String sql = "UPDATE pedidos_compras SET "
+                + "nome=?, data=?, status=?, fornecedor_id=?, observacoes=? "
+                + "WHERE id=?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, p.getNome());
+            ps.setString(2, p.getData());
+            ps.setString(3, p.getStatus());
+            ps.setString(4, p.getFornecedorId());
+            ps.setString(5, p.getObservacoes());
+            ps.setString(6, p.getId());
+            ps.executeUpdate();
+        }
+    }
+
     /**
      * Exclui um Pedido de Compra pelo ID.
      */
@@ -76,6 +91,24 @@ public class PedidoCompraDAO {
         String sql = "SELECT * FROM pedidos_compras WHERE id=?";
         try (Connection c = DB.get();
                 PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next())
+                    return null;
+                return new PedidoCompraModel(
+                        rs.getString("id"),
+                        rs.getString("nome"),
+                        rs.getString("data"),
+                        rs.getString("status"),
+                        rs.getString("fornecedor_id"),
+                        rs.getString("observacoes"));
+            }
+        }
+    }
+
+    public PedidoCompraModel buscarPorId(String id, Connection c) throws SQLException {
+        String sql = "SELECT * FROM pedidos_compras WHERE id=?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next())
@@ -125,8 +158,8 @@ public class PedidoCompraDAO {
      * @param idPedido ID do pedido a ser avaliado.
      */
     public void atualizarStatusAutomatico(String idPedido) {
-        String sqlTotal = "SELECT SUM(quantidade) FROM pedido_estoque_produtos WHERE pedido_id = ?";
-        String sqlRecebido = "SELECT SUM(quantidade_recebida) FROM pedido_estoque_produtos WHERE pedido_id = ?";
+        String sqlTotal = "SELECT SUM(quantidade_pedida) FROM pedido_produtos WHERE pedido_id = ?";
+        String sqlRecebido = "SELECT SUM(quantidade_recebida) FROM pedido_produtos WHERE pedido_id = ?";
         try (Connection conn = DB.get();
                 PreparedStatement pstTotal = conn.prepareStatement(sqlTotal);
                 PreparedStatement pstRec = conn.prepareStatement(sqlRecebido)) {
@@ -179,6 +212,28 @@ public class PedidoCompraDAO {
         PedidoCompraModel pedido = buscarPorId(pedidoId);
         pedido.setStatus(novoStatus);
         atualizar(pedido);
+    }
+
+    public void recalcularStatus(String pedidoId, Connection c) throws SQLException {
+        List<PedidoEstoqueProdutoModel> itens = new PedidoEstoqueProdutoDAO().listarPorPedido(pedidoId, c);
+
+        int totalPedida = 0;
+        int totalRecebida = 0;
+
+        for (PedidoEstoqueProdutoModel it : itens) {
+            totalPedida += it.getQuantidadePedida();
+            totalRecebida += it.getQuantidadeRecebida();
+        }
+
+        String novoStatus = (totalRecebida == 0) ? "enviado"
+                : (totalRecebida >= totalPedida) ? "recebido"
+                        : "parcialmente recebido";
+
+        PedidoCompraModel pedido = buscarPorId(pedidoId, c);
+        if (pedido == null)
+            return;
+        pedido.setStatus(novoStatus);
+        atualizar(pedido, c);
     }
         /**
      * Lista pedidos de compra filtrando por intervalo de datas e status.
